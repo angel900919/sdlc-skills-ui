@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import type { MetricsSummary } from '@sdlc/shared';
+import type { HookEvent, MetricsSummary } from '@sdlc/shared';
+import { buildTrace } from '@sdlc/shared';
 import { db } from '../db.js';
 import { bus } from '../bus.js';
 import {
@@ -171,6 +172,27 @@ export function registerApiRoutes(app: FastifyInstance) {
       messages = getTranscript(id);
     }
     return messages;
+  });
+
+  app.get('/api/sessions/:id/trace', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = getSession(id);
+    const rows = db
+      .prepare('SELECT * FROM hook_events WHERE session_id = ? ORDER BY id')
+      .all(id) as Record<string, unknown>[];
+    // Hooks may observe sessions we did not spawn; only 404 when we know
+    // nothing at all about this id.
+    if (!session && rows.length === 0) return reply.code(404).send({ error: 'not found' });
+    const events: HookEvent[] = rows.map((r) => ({
+      id: Number(r.id),
+      receivedAt: String(r.received_at),
+      hookEventName: String(r.hook_event_name),
+      sessionId: r.session_id === null ? null : String(r.session_id),
+      cwd: r.cwd === null ? null : String(r.cwd),
+      toolName: r.tool_name === null ? null : String(r.tool_name),
+      payload: JSON.parse(String(r.payload)) as Record<string, unknown>,
+    }));
+    return buildTrace(id, events);
   });
 
   // ---- observability ------------------------------------------------------

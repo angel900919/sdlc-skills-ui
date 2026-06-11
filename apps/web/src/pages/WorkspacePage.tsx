@@ -14,6 +14,7 @@ import {
 import { TerminalView } from '../components/Terminal.js';
 import { ChatView } from '../components/ChatView.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
+import { TraceView } from '../components/TraceView.js';
 
 function SessionRow({ s, active, onClick }: { s: LiveSession; active: boolean; onClick: () => void }) {
   const color = statusColor[s.status] ?? palette.muted;
@@ -48,7 +49,7 @@ export function WorkspacePage() {
   const spawn = useSpawnSession(projectId);
   const kill = useKillSession();
   const resume = useResumeSession();
-  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity'>('terminal');
+  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity' | 'trace'>('terminal');
   const [launchDraft, setLaunchDraft] = useState('');
 
   const current = useMemo(
@@ -121,6 +122,7 @@ export function WorkspacePage() {
                 <Tab value="terminal" label="Terminal" />
                 <Tab value="chat" label="Chat" />
                 <Tab value="activity" label="Activity" />
+                <Tab value="trace" label="Trace" />
               </Tabs>
               <Box sx={{ flex: 1 }} />
               <Chip
@@ -168,6 +170,11 @@ export function WorkspacePage() {
             {tab === 'activity' && (
               <Box sx={{ flex: 1, minHeight: 0 }}>
                 <ActivityFeed sessionId={current.id} />
+              </Box>
+            )}
+            {tab === 'trace' && (
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                <TraceView sessionId={current.id} live={live} />
               </Box>
             )}
           </>

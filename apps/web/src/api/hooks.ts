@@ -6,6 +6,7 @@ import type {
   MetricsSummary,
   Project,
   ProjectState,
+  SessionTrace,
   SkillInfo,
   TranscriptMessage,
 } from '@sdlc/shared';
@@ -116,6 +117,15 @@ export function useTranscript(sessionId: string | null) {
     queryKey: ['transcript', sessionId],
     queryFn: () => api<TranscriptMessage[]>(`/api/sessions/${sessionId}/transcript`),
     enabled: !!sessionId,
+  });
+}
+
+export function useSessionTrace(sessionId: string | null) {
+  return useQuery({
+    queryKey: ['trace', sessionId],
+    queryFn: () => api<SessionTrace>(`/api/sessions/${sessionId}/trace`),
+    enabled: !!sessionId,
+    refetchInterval: 15_000,
   });
 }
 
