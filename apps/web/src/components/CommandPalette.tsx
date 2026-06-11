@@ -25,7 +25,7 @@ export function CommandPalette() {
 
   const commands = useMemo<Command[]>(() => {
     const nav: Command[] = [
-      ['dashboard', 'Go to Dashboard'], ['pipeline', 'Go to Pipeline'], ['workspace', 'Go to Workspace'],
+      ['dashboard', 'Go to Dashboard'], ['pipeline', 'Go to Pipeline'], ['board', 'Go to Board'], ['workspace', 'Go to Workspace'],
       ['sessions', 'Go to Sessions'], ['docs', 'Go to Docs'], ['skills', 'Go to Skills'],
     ].map(([path, label]) => ({
       id: `nav-${path}`,
