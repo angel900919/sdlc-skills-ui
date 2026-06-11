@@ -15,11 +15,14 @@
     "dev:web": "npm run dev --workspace apps/web",
     "build": "npm run build --workspace packages/shared --if-present && npm run build --workspace apps/server --if-present && npm run build --workspace apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "npm run start --workspace apps/server"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   },
   "engines": {
     "node": ">=20"
