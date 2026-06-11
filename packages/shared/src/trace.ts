@@ -92,7 +92,8 @@ function markerLabel(event: HookEventName, payload: Record<string, unknown>): st
   }
 }
 
-function postToolUseFailed(payload: Record<string, unknown>): boolean {
+/** True when a PostToolUse payload reports a failed tool call. */
+export function postToolUseFailed(payload: Record<string, unknown>): boolean {
   const resp = payload.tool_response as Record<string, unknown> | undefined;
   if (!resp || typeof resp !== 'object') return false;
   return resp.is_error === true || resp.success === false;

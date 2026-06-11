@@ -64,12 +64,54 @@ See [ADR-0001](adr/0001-pty-over-headless.md).
 Everything lands in two places: the **SQLite audit trail** (queryable via
 `GET /api/events`, summarized via `GET /api/metrics`) and the **WebSocket**
 (live UI). Server logs are structured JSON (pino) written to stdout + `data/server.log`.
+A third, **opt-in** sink — OpenTelemetry trace export — is described below.
 
 Hooks are injected per-session via a generated `--settings` file
 (`data/claude-hook-settings.json`) so the user's own settings files are never
 mutated, and sessions started outside the dashboard are unaffected. Hook
 commands use `curl --max-time 3 … || true` so a dead backend can never block
 Claude.
+
+## OpenTelemetry export (opt-in, implemented)
+
+The server can export the hook-event stream as OTLP traces
+(`apps/server/src/otel.ts`). **Off by default**: the single enable switch is
+the standard OTel env var — when `OTEL_EXPORTER_OTLP_ENDPOINT` (or
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`) is unset, the OTel SDK is never even
+imported (zero overhead, zero log noise, server behaves exactly as before).
+
+Span model (assembled live off the in-process bus — no changes to the hook
+ingest or PTY hot paths):
+
+- **`claude.session`** — one root span per session id, opened lazily on the
+  first hook/audit event naming the session, closed by `SessionEnd` (or the
+  `session_exited` / `session_interrupted` audit events). Lifecycle moments
+  (`SessionStart`, `UserPromptSubmit`, `Stop`, `SubagentStop`, `Notification`,
+  prompt injected, session spawned/resumed, user input) become span events.
+- **`claude.tool <Tool>`** — one child span per tool call: `PreToolUse` opens,
+  the earliest still-open `PostToolUse` of the same tool closes (the same FIFO
+  pairing semantics as `buildTrace()` in `packages/shared/src/trace.ts`).
+  Attributes: `claude.session.id`, `sdlc.project.id`, `claude.tool.name`,
+  `claude.tool.input` (summarized), error status from the tool response.
+
+Open spans are capped per session and swept on a timer, so a missed
+`PostToolUse` or an abandoned session cannot leak memory. Exporter failures
+are non-fatal and silent (set `SDLC_OTEL_DIAG=1` to surface them). Spans are
+flushed on SIGINT/SIGTERM alongside PTY teardown.
+
+Enable it against a local Jaeger all-in-one:
+
+```bash
+# Jaeger UI on :16686, OTLP/HTTP collector on :4318
+docker run --rm -p 16686:16686 -p 4318:4318 jaegertracing/jaeger:latest
+
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 npm run dev
+```
+
+> Note: the backend's own default port (4317) coincides with the OTLP/**gRPC**
+> collector port. The exporter here uses OTLP/**HTTP** (collector port 4318),
+> so there is no conflict — but if you run a collector that also binds gRPC
+> :4317, move the backend with `SDLC_PORT`.
 
 ## State model: reuse the chain's own generator
 
@@ -109,8 +151,9 @@ skills, but never auto-advances the chain (matching the skills' own
   opt-in global hook install could add them).
 - The chat input types into the PTY — if Claude is mid-tool-approval, input
   goes to that prompt (the Terminal tab is the source of truth).
-- OpenTelemetry export (`CLAUDE_CODE_ENABLE_TELEMETRY=1` + OTLP collector) is
-  a documented extension point, not wired by default.
+- OpenTelemetry export is implemented (opt-in via
+  `OTEL_EXPORTER_OTLP_ENDPOINT`, see above). Claude Code's own telemetry
+  (`CLAUDE_CODE_ENABLE_TELEMETRY=1`) remains a separate, unwired channel.
 - Kanban board for feature slices and a richer timeline view are natural next
   features; the data (slices, statuses, audit trail) is already in the API.
 

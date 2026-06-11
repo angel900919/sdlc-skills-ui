@@ -11,8 +11,12 @@ import { registerHookRoutes } from './routes/hooks.js';
 import { registerWebSocket } from './ws.js';
 import { recoverOrphanedSessions, shutdownAllSessions } from './claude/sessionManager.js';
 import { addProject, listProjects, watchAllProjects } from './state/projects.js';
+import { initTelemetry } from './otel.js';
 
 async function main() {
+  // Opt-in OpenTelemetry export: no-op (null) unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+  const otel = await initTelemetry();
+
   const app = Fastify({ loggerInstance: logger as unknown as FastifyBaseLogger });
 
   await app.register(cors, { origin: true });
@@ -45,7 +49,9 @@ async function main() {
   const shutdown = (signal: string) => {
     logger.info({ signal }, 'shutting down');
     shutdownAllSessions();
-    void app.close().then(() => process.exit(0));
+    void Promise.allSettled([app.close(), otel ? otel.shutdown() : Promise.resolve()]).then(() =>
+      process.exit(0),
+    );
     setTimeout(() => process.exit(0), 3000).unref();
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
