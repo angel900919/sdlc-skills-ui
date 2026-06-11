@@ -1,0 +1,4 @@
+# The gate scripts and mtdd-init.sh run under /bin/sh on macOS/Linux — they must
+# stay LF regardless of a contributor's core.autocrlf, or the `#!/bin/sh` shebang
+# breaks on checkout. Scope: this shared bundle and below.
+*.sh text eol=lf

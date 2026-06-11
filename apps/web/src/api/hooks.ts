@@ -1,0 +1,141 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type {
+  AuditEvent,
+  ClaudeSession,
+  DocNode,
+  MetricsSummary,
+  Project,
+  ProjectState,
+  SkillInfo,
+  TranscriptMessage,
+} from '@sdlc/shared';
+import { api, del, post } from './client.js';
+
+export type LiveSession = ClaudeSession & { live?: boolean };
+
+export function useProjects() {
+  return useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/api/projects') });
+}
+
+export function useAddProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { rootPath: string; name?: string }) => post<Project>('/api/projects', input),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['projects'] }),
+  });
+}
+
+export function useRemoveProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => del<{ ok: boolean }>(`/api/projects/${id}`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['projects'] }),
+  });
+}
+
+export function useProjectState(projectId: string | null) {
+  return useQuery({
+    queryKey: ['project-state', projectId],
+    queryFn: () => api<{ project: Project; state: ProjectState | null }>(`/api/projects/${projectId}/state`),
+    enabled: !!projectId,
+    staleTime: 5_000,
+  });
+}
+
+export function useSkills(projectId: string | null) {
+  return useQuery({
+    queryKey: ['skills', projectId],
+    queryFn: () => api<SkillInfo[]>(`/api/projects/${projectId}/skills`),
+    enabled: !!projectId,
+    staleTime: 60_000,
+  });
+}
+
+export function useDocsTree(projectId: string | null) {
+  return useQuery({
+    queryKey: ['docs', projectId],
+    queryFn: () => api<DocNode[]>(`/api/projects/${projectId}/docs`),
+    enabled: !!projectId,
+    staleTime: 15_000,
+  });
+}
+
+export function useDocFile(projectId: string | null, relPath: string | null) {
+  return useQuery({
+    queryKey: ['doc-file', projectId, relPath],
+    queryFn: () =>
+      api<{ content: string; relPath: string }>(
+        `/api/projects/${projectId}/docs/file?path=${encodeURIComponent(relPath!)}`,
+      ),
+    enabled: !!projectId && !!relPath,
+  });
+}
+
+export function useSessions(projectId?: string | null) {
+  return useQuery({
+    queryKey: ['sessions', projectId ?? 'all'],
+    queryFn: () => api<LiveSession[]>(`/api/sessions${projectId ? `?projectId=${projectId}` : ''}`),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useSpawnSession(projectId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { prompt?: string; title?: string; resumeSessionId?: string }) =>
+      post<ClaudeSession>(`/api/projects/${projectId}/sessions`, input),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
+  });
+}
+
+export function useSessionInput() {
+  return useMutation({
+    mutationFn: (input: { sessionId: string; data: string; submit?: boolean }) =>
+      post<{ ok: boolean }>(`/api/sessions/${input.sessionId}/input`, { data: input.data, submit: input.submit }),
+  });
+}
+
+export function useKillSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => post<{ ok: boolean }>(`/api/sessions/${sessionId}/kill`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
+  });
+}
+
+export function useResumeSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => post<ClaudeSession>(`/api/sessions/${sessionId}/resume`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
+  });
+}
+
+export function useTranscript(sessionId: string | null) {
+  return useQuery({
+    queryKey: ['transcript', sessionId],
+    queryFn: () => api<TranscriptMessage[]>(`/api/sessions/${sessionId}/transcript`),
+    enabled: !!sessionId,
+  });
+}
+
+export function useEvents(filter: { projectId?: string; sessionId?: string; kind?: string; limit?: number }) {
+  const params = new URLSearchParams();
+  if (filter.projectId) params.set('projectId', filter.projectId);
+  if (filter.sessionId) params.set('sessionId', filter.sessionId);
+  if (filter.kind) params.set('kind', filter.kind);
+  params.set('limit', String(filter.limit ?? 200));
+  return useQuery({
+    queryKey: ['events', filter],
+    queryFn: () => api<AuditEvent[]>(`/api/events?${params.toString()}`),
+    refetchInterval: 15_000,
+  });
+}
+
+export function useMetrics(projectId?: string | null) {
+  return useQuery({
+    queryKey: ['metrics', projectId ?? 'all'],
+    queryFn: () => api<MetricsSummary>(`/api/metrics${projectId ? `?projectId=${projectId}` : ''}`),
+    refetchInterval: 30_000,
+  });
+}

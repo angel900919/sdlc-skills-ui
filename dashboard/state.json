@@ -1,0 +1,56 @@
+{
+  "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
+  "projectName": "SDLC-skills-UI-approach2",
+  "generatedAt": "2026-06-11T11:12:28.067454+00:00",
+  "generatedAtSha": null,
+  "foundation": {
+    "discover": {
+      "present": false,
+      "files": []
+    },
+    "understand": {
+      "present": false,
+      "files": [],
+      "hasContext": false
+    },
+    "eventStorm": {
+      "present": false
+    },
+    "featureMap": {
+      "present": false
+    },
+    "anchor": {
+      "present": false,
+      "tier": "unknown",
+      "projectType": "unknown",
+      "language": "unknown"
+    },
+    "dddStrategy": {
+      "present": false
+    },
+    "architect": {
+      "present": false,
+      "bundled": false,
+      "adrCount": 0
+    },
+    "bootstrap": {
+      "present": false,
+      "complete": false
+    },
+    "explore": {
+      "present": false
+    }
+  },
+  "features": [],
+  "fitness": {
+    "projectScope": [],
+    "perFeature": {},
+    "hasCodeowners": false
+  },
+  "progressTail": [],
+  "recentCommits": [],
+  "recentlyModified": [],
+  "nextActions": [
+    "/anchor \u2014 lock stack + tier"
+  ]
+}
