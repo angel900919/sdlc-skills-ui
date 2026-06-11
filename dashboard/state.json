@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-11T11:12:28.067454+00:00",
-  "generatedAtSha": null,
+  "generatedAt": "2026-06-11T12:13:35.685390+00:00",
+  "generatedAtSha": "75166b8",
   "foundation": {
     "discover": {
       "present": false,
@@ -48,7 +48,38 @@
     "hasCodeowners": false
   },
   "progressTail": [],
-  "recentCommits": [],
+  "recentCommits": [
+    {
+      "sha": "75166b8",
+      "date": "2026-06-11",
+      "subject": "Set up vitest with tests for trace, stage model, hooks, and docs guard"
+    },
+    {
+      "sha": "d15541f",
+      "date": "2026-06-11",
+      "subject": "Wire opt-in OpenTelemetry trace export"
+    },
+    {
+      "sha": "30ccd82",
+      "date": "2026-06-11",
+      "subject": "Add opt-in global hook install/uninstall"
+    },
+    {
+      "sha": "19b0fb2",
+      "date": "2026-06-11",
+      "subject": "Add per-session trace timeline from hook events"
+    },
+    {
+      "sha": "f715b71",
+      "date": "2026-06-11",
+      "subject": "Add Kanban board page for feature slices"
+    },
+    {
+      "sha": "44df3ed",
+      "date": "2026-06-11",
+      "subject": "SDLC Command Center: visual OS over Claude Code CLI + the 54-skill chain"
+    }
+  ],
   "recentlyModified": [],
   "nextActions": [
     "/anchor \u2014 lock stack + tier"

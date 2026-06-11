@@ -104,7 +104,7 @@ export function registerApiRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const project = getProject(id);
     if (!project) return reply.code(404).send({ error: 'not found' });
-    const body = (req.body ?? {}) as { prompt?: string; title?: string; resumeSessionId?: string; cols?: number; rows?: number };
+    const body = (req.body ?? {}) as { prompt?: string; title?: string; resumeSessionId?: string; skipPermissions?: boolean; cols?: number; rows?: number };
     try {
       const session = spawnSession({
         projectId: id,
@@ -112,6 +112,7 @@ export function registerApiRoutes(app: FastifyInstance) {
         prompt: body.prompt,
         title: body.title,
         resumeSessionId: body.resumeSessionId,
+        skipPermissions: body.skipPermissions,
         cols: body.cols,
         rows: body.rows,
       });

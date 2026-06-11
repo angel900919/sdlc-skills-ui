@@ -85,7 +85,7 @@ export function useSessions(projectId?: string | null) {
 export function useSpawnSession(projectId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { prompt?: string; title?: string; resumeSessionId?: string }) =>
+    mutationFn: (input: { prompt?: string; title?: string; resumeSessionId?: string; skipPermissions?: boolean }) =>
       post<ClaudeSession>(`/api/projects/${projectId}/sessions`, input),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
   });

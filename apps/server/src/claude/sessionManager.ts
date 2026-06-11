@@ -95,6 +95,8 @@ export interface SpawnOptions {
   prompt?: string;
   /** Resume an earlier Claude session (crash recovery / continue work). */
   resumeSessionId?: string;
+  /** Launch with `--dangerously-skip-permissions` (skip all permission prompts). */
+  skipPermissions?: boolean;
   cols?: number;
   rows?: number;
 }
@@ -104,6 +106,7 @@ export function spawnSession(opts: SpawnOptions): ClaudeSession {
   const settingsFile = ensureHookSettingsFile();
 
   const args: string[] = ['--settings', settingsFile];
+  if (opts.skipPermissions) args.push('--dangerously-skip-permissions');
   if (opts.resumeSessionId) args.push('--resume', opts.resumeSessionId);
   else args.push('--session-id', id);
 
@@ -192,7 +195,7 @@ export function spawnSession(opts: SpawnOptions): ClaudeSession {
     sessionId: id,
     summary: opts.resumeSessionId
       ? `Resumed Claude session ${id.slice(0, 8)}`
-      : `Started Claude session ${id.slice(0, 8)}${opts.prompt ? ` with "${opts.prompt}"` : ''}`,
+      : `Started Claude session ${id.slice(0, 8)}${opts.prompt ? ` with "${opts.prompt}"` : ''}${opts.skipPermissions ? ' [skip-permissions]' : ''}`,
     detail: { cwd: opts.cwd },
   });
 

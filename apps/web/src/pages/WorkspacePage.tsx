@@ -4,6 +4,7 @@ import {
   Box, Button, Chip, Divider, IconButton, InputBase, Stack, Tab, Tabs, Tooltip, Typography,
 } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import { palette, microLabel, statusColor } from '../theme.js';
@@ -62,11 +63,18 @@ export function WorkspacePage() {
     if (!sessionId && sessions?.length) navigate(`/workspace/${sessions[0].id}`, { replace: true });
   }, [sessionId, sessions, navigate]);
 
-  const startSession = (prompt?: string) => {
+  const startSession = (prompt?: string, skipPermissions?: boolean) => {
     spawn.mutate(
-      { prompt: prompt || undefined, title: prompt || undefined },
+      { prompt: prompt || undefined, title: prompt || undefined, skipPermissions },
       { onSuccess: (sess) => navigate(`/workspace/${sess.id}`) },
     );
+  };
+
+  // Start a session, consuming the launch draft as the initial prompt if present.
+  const launchFromDraft = (skipPermissions?: boolean) => {
+    const prompt = launchDraft.trim();
+    startSession(prompt || undefined, skipPermissions);
+    if (prompt) setLaunchDraft('');
   };
 
   const live = !!current && (current.status === 'running' || current.status === 'starting');
@@ -82,6 +90,11 @@ export function WorkspacePage() {
               <AddRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          <Tooltip title="New session — skip permissions (claude --dangerously-skip-permissions)">
+            <IconButton size="small" onClick={() => launchFromDraft(true)} disabled={spawn.isPending} sx={{ color: palette.amber }}>
+              <BoltRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
         <Stack direction="row" sx={{ gap: 0.5, px: 1.5, pb: 1 }}>
           <InputBase
@@ -90,8 +103,7 @@ export function WorkspacePage() {
             onChange={(e) => setLaunchDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && launchDraft.trim()) {
-                startSession(launchDraft.trim());
-                setLaunchDraft('');
+                launchFromDraft(e.shiftKey);
               }
             }}
             sx={{
@@ -181,9 +193,21 @@ export function WorkspacePage() {
         ) : (
           <Stack sx={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
             <Typography sx={{ fontSize: 15, color: palette.muted }}>No session selected</Typography>
-            <Button variant="outlined" startIcon={<AddRoundedIcon />} onClick={() => startSession()}>
-              Start a Claude session
-            </Button>
+            <Stack direction="row" sx={{ gap: 1 }}>
+              <Button variant="outlined" startIcon={<AddRoundedIcon />} onClick={() => startSession()}>
+                Start a Claude session
+              </Button>
+              <Tooltip title="claude --dangerously-skip-permissions">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<BoltRoundedIcon />}
+                  onClick={() => startSession(undefined, true)}
+                >
+                  Skip permissions
+                </Button>
+              </Tooltip>
+            </Stack>
           </Stack>
         )}
       </Box>
