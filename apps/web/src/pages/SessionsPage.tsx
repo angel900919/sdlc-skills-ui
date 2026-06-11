@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import { useMetrics, useSessions } from '../api/hooks.js';
+import { GlobalHooksPanel } from '../components/GlobalHooksPanel.js';
 
 export function SessionsPage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
@@ -40,6 +41,8 @@ export function SessionsPage() {
           </Paper>
         )}
       </Stack>
+
+      <GlobalHooksPanel />
 
       <Paper>
         <Table size="small">

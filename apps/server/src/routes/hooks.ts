@@ -45,7 +45,12 @@ function summarize(event: string, payload: Record<string, unknown>): string {
 export function registerHookRoutes(app: FastifyInstance) {
   app.post('/api/hooks/:event', async (req, reply) => {
     const eventName = (req.params as { event: string }).event;
-    const payload = (req.body ?? {}) as Record<string, unknown>;
+    // External sessions (global hook install) may send anything; never crash
+    // on a non-object body.
+    const raw = req.body;
+    const payload = (raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? raw
+      : {}) as Record<string, unknown>;
     const sessionId = payload.session_id ? String(payload.session_id) : null;
     const cwd = payload.cwd ? String(payload.cwd) : null;
     const toolName = payload.tool_name ? String(payload.tool_name) : null;

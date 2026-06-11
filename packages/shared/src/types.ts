@@ -93,6 +93,39 @@ export interface HookEvent {
 }
 
 // ---------------------------------------------------------------------------
+// Global hook install (opt-in observation of sessions started outside the
+// dashboard, via the user's ~/.claude/settings.json)
+// ---------------------------------------------------------------------------
+
+export type GlobalHooksInstallState =
+  | 'installed'
+  | 'partially-installed'
+  | 'not-installed'
+  | 'file-missing';
+
+export interface GlobalHooksStatus {
+  state: GlobalHooksInstallState;
+  /** Absolute path of the user settings file we read/write. */
+  settingsPath: string;
+  installedEvents: string[];
+  missingEvents: string[];
+  /** Most recent settings.json.bak-<ISO> backup, if any. */
+  lastBackupPath: string | null;
+  /** Set when the settings file exists but could not be parsed. */
+  error?: string;
+}
+
+export interface GlobalHooksMutationResult {
+  status: GlobalHooksStatus;
+  /** Whether the settings file was actually modified. */
+  changed: boolean;
+  /** Backup written before the first-ever modification (or the existing one). */
+  backupPath: string | null;
+  /** True when this call created the backup. */
+  backupCreated: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Audit / activity events (unified observability stream)
 // ---------------------------------------------------------------------------
 

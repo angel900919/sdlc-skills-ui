@@ -21,6 +21,11 @@ import {
   writeToSession,
 } from '../claude/sessionManager.js';
 import { getTranscript, transcriptTailer } from '../claude/transcriptTailer.js';
+import {
+  getStatus as getGlobalHooksStatus,
+  install as installGlobalHooks,
+  uninstall as uninstallGlobalHooks,
+} from '../claude/globalHooks.js';
 
 export function registerApiRoutes(app: FastifyInstance) {
   // ---- health -------------------------------------------------------------
@@ -193,6 +198,52 @@ export function registerApiRoutes(app: FastifyInstance) {
       payload: JSON.parse(String(r.payload)) as Record<string, unknown>,
     }));
     return buildTrace(id, events);
+  });
+
+  // ---- global hook install (observe sessions started outside the dashboard)
+  app.get('/api/global-hooks', async () => getGlobalHooksStatus());
+
+  app.post('/api/global-hooks/install', async (req, reply) => {
+    try {
+      const result = installGlobalHooks();
+      bus.audit({
+        source: 'user',
+        kind: 'global_hooks_installed',
+        summary: result.changed
+          ? `Global observation hooks installed into ${result.status.settingsPath}`
+          : 'Global observation hooks already installed',
+        detail: {
+          settingsPath: result.status.settingsPath,
+          backupPath: result.backupPath,
+          backupCreated: result.backupCreated,
+          changed: result.changed,
+        },
+      });
+      return result;
+    } catch (err) {
+      const status = (err as { statusCode?: number }).statusCode ?? 500;
+      req.log.error({ err }, 'global hook install failed');
+      return reply.code(status).send({ error: (err as Error).message });
+    }
+  });
+
+  app.post('/api/global-hooks/uninstall', async (req, reply) => {
+    try {
+      const result = uninstallGlobalHooks();
+      bus.audit({
+        source: 'user',
+        kind: 'global_hooks_uninstalled',
+        summary: result.changed
+          ? `Global observation hooks removed from ${result.status.settingsPath}`
+          : 'Global observation hooks were not installed',
+        detail: { settingsPath: result.status.settingsPath, changed: result.changed },
+      });
+      return result;
+    } catch (err) {
+      const status = (err as { statusCode?: number }).statusCode ?? 500;
+      req.log.error({ err }, 'global hook uninstall failed');
+      return reply.code(status).send({ error: (err as Error).message });
+    }
   });
 
   // ---- observability ------------------------------------------------------

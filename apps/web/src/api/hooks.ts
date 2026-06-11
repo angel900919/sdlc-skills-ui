@@ -3,6 +3,8 @@ import type {
   AuditEvent,
   ClaudeSession,
   DocNode,
+  GlobalHooksMutationResult,
+  GlobalHooksStatus,
   MetricsSummary,
   Project,
   ProjectState,
@@ -139,6 +141,30 @@ export function useEvents(filter: { projectId?: string; sessionId?: string; kind
     queryKey: ['events', filter],
     queryFn: () => api<AuditEvent[]>(`/api/events?${params.toString()}`),
     refetchInterval: 15_000,
+  });
+}
+
+export function useGlobalHooks() {
+  return useQuery({
+    queryKey: ['global-hooks'],
+    queryFn: () => api<GlobalHooksStatus>('/api/global-hooks'),
+    staleTime: 10_000,
+  });
+}
+
+export function useInstallGlobalHooks() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => post<GlobalHooksMutationResult>('/api/global-hooks/install'),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['global-hooks'] }),
+  });
+}
+
+export function useUninstallGlobalHooks() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => post<GlobalHooksMutationResult>('/api/global-hooks/uninstall'),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['global-hooks'] }),
   });
 }
 
