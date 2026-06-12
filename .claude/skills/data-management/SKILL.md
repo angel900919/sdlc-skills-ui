@@ -1,5 +1,6 @@
 ---
 name: data-management
+disable-model-invocation: true
 description: |-
   Writes .ai/data-management.md — the project-level data policy: the migration tool and conventions, the reversibility rule, and (at production) backup/restore, retention/PII lifecycle, and the zero-downtime rule. Runs once after /architect when the architecture names a datastore; brownfield runs in recovery mode (detects the existing setup with file:line citations, never inventing). Use when the user says "/data-management", "migration policy", "data management", "backup strategy", "data retention", "how do migrations work here", or "rollback a migration". Do NOT use for: per-feature schema deltas (/design), writing or running migrations (the build phase), choosing the database (/anchor), or dev/test fixtures and seeds (/test-strategy).
 ---

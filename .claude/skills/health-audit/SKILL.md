@@ -1,5 +1,6 @@
 ---
 name: health-audit
+disable-model-invocation: true
 description: |-
   Brownfield discovery orchestrator and gate. Fans out read-only sub-agents across up to seven lenses (critical bugs, security, architecture, tech debt, performance, UX, dependency currency), verifies the P0/P1 findings, consolidates them into .ai/health-report.md with file:line evidence, optionally publishes each to the tracker (beads default) with health and triage labels, and writes a plain-English gate summary. Ends with a human-approved verdict answering the brownfield rule — must anything be fixed before new feature work. Tier-aware; brownfield-only; runs after /explore. Use when the user says "/health-audit", "audit this codebase", "what's wrong with this repo", "is this safe to build on", "find the bugs/security/perf/debt", or before major work on an inherited codebase. Do NOT use for: greenfield (nothing to audit), facts-only recon (/explore), root-causing one bug (/diagnose), one refactor (/improve-codebase-architecture), or feature-boundary verification (/qa).
 ---

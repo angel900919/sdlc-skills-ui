@@ -1,7 +1,7 @@
 ---
 name: mtdd-review
 description: |-
-  Manual-TDD-loop review phase validator. Accepts a bd-tracked bead ID, a canonical chain ticket file, or a free-form task markdown file. Diffs the feature branch against the target branch and ticks every acceptance criterion against that diff. Emits a structured criteria evaluation block alongside a single COMPLETE or REJECT promise verdict. For beads, logs the verdict via bd note and updates ticked criteria via bd update --acceptance upon a COMPLETE verdict. Runs strictly through manual user execution. Use for "/mtdd-review", "manual tdd review", "review this branch", or after /mtdd-implement lands commits.
+  Manual-TDD review phase — diffs the feature branch against target and ticks every acceptance criterion, emitting COMPLETE or REJECT. Invoked by name (/mtdd-review) or by the mtdd-cycle orchestrator.
 allowed-tools:
   - Read
   - Edit

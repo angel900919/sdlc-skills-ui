@@ -1,6 +1,6 @@
 ---
 name: research-report
-description: Produces a cited Markdown research report or engineering decision brief saved to reports/, grounded in primary web sources and (for decisions) the local codebase. Use when the user wants a researched, sourced write-up — "research X", "deep dive on X", "write a report on X", "state of X" — or a technical decision with tradeoffs — "should we use X or Y", "build vs buy", "which database/framework/library", "help me decide between two options". Do NOT use for quick factual lookups answerable in a sentence, or pure local-codebase questions needing no external research.
+description: Produces a cited research report or engineering decision brief saved to reports/, grounded in primary web sources. Use for research write-ups and build-vs-buy or library/framework decisions.
 allowed-tools: WebSearch, WebFetch, Read, Write, Glob, Grep, TodoWrite
 ---
 

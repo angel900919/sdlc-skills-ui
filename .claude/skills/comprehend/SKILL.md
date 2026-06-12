@@ -1,5 +1,6 @@
 ---
 name: comprehend
+disable-model-invocation: true
 description: |-
   Brownfield-only domain recovery — the /understand twin for an existing codebase. Reads the code-derived draft in .ai/recon.md (glossary candidates, code-enforced invariants, inferred journeys, mystery zones) and confirms and corrects it with the user in plain English instead of modeling from scratch. Triages code-enforced rules into real domain invariants vs implementation detail, and flags unenforced rules as gaps. Writes the same artifacts as /understand (.ai/understanding/, the shared .ai/context.md, a human summary with diagrams), then routes to /architect. Use when the user says "/comprehend", "recover the domain from the code", "build the domain model from this repo", or after /explore on a brownfield project. Do NOT use for: greenfield idea modeling (/understand), whole-repo recon (/explore), stack lock (/anchor), architecture (/architect), feature scope (/prd), or a code health audit (/health-audit).
 ---

@@ -1,5 +1,6 @@
 ---
 name: measure
+disable-model-invocation: true
 description: |-
   Closes the chain's post-ship feedback loop — records a shipped feature's ACTUAL metric value against the target its PRD and discovery promised, then routes the consequence (keep, iterate, or remove). The human supplies every number from where they track it; the skill never estimates an actual, and a missed target is written as missed. Feature mode (/measure with a feature) waits out the metric's timeframe, then writes the outcome record under .ai/specs/; bare /measure is the project-level reckoning — it evaluates discovery's kill criteria honestly (advisory, override on the record) and writes .ai/outcomes.md plus a plain-English mirror. Use when the user says "/measure", "did it work", "check the success metric", "measure the feature", "are we hitting the target", "post-ship review", or "kill criteria". Do NOT use for: QA evidence (/qa), defining or changing metrics (/discovery, /prd), releasing (/ship), or project status (/status).
 ---

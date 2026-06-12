@@ -1,5 +1,6 @@
 ---
 name: runbook
+disable-model-invocation: true
 description: |-
   Compiles the operational knowledge already in a feature's specs into a per-feature incident runbook under .ai/runbooks/ plus a mandatory plain-prose .human mirror for a person mid-incident. Runs at ship time on a qa-approved or shipped feature; compiles and confirms, never invents a procedure. Project scope at production tier (/runbook --slo) interviews and locks .ai/slo.md — SLIs, SLO targets, error budgets, paging thresholds, and the severity ladder. Use when the user says "/runbook", "runbook", "incident response", "on-call guide", "what do I do when the alert fires", "rollback procedure", "SLO", or "/runbook --slo". Do NOT use for: root-causing a live bug (/diagnose), deploying or rolling back (human plus CI/CD), defining NFRs (/prd), or monitoring setup (the build phase).
 ---

@@ -1,7 +1,7 @@
 ---
 name: mtdd-implement
 description: |-
-  Manual-TDD-loop implement phase executor. Accepts three task identifier shapes: a bd-tracked bead ID (claims bead and writes phase notes via bd note), a canonical chain ticket markdown file (tickets/feature/SLICE-N-slug.md with YAML frontmatter), or a free-form one-off task file (tasks/slug.md). Creates/checks out a feature branch, then drives red → green → refactor cycles using structured commit prefixes (red:, green:, refactor:). Runs strictly via manual user execution with human-in-the-loop control and no autonomous self-healing. Use for "/mtdd-implement", "manual tdd implement", "start the implement phase", or when a bead ID or task file is provided for coding.
+  Manual-TDD implement phase — claims a bead, ticket, or task, creates the feature branch, drives red → green → refactor commits. Invoked by name (/mtdd-implement) or by the mtdd-cycle orchestrator.
 allowed-tools:
   - Read
   - Write

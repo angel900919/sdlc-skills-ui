@@ -1,5 +1,6 @@
 ---
 name: mtdd-init
+disable-model-invocation: true
 description: |-
   One-time setup for the MTDD bundle in a repo. Detects the default branch, the typecheck and test commands, the language, and the task source, then writes them to a .mtdd/config file so the mtdd-* phases read settled values instead of re-sniffing the environment and re-asking every run. Runs a git-only POSIX detection script, confirms the findings with the user in plain English, and writes the config (safe to commit; re-run anytime to update). Use for "/mtdd-init", "mtdd init", "mtdd setup", "set up mtdd", or right after copying the mtdd bundle into a new project. Do NOT use to run a TDD phase (use mtdd-implement, mtdd-review, mtdd-verify, or mtdd-merge) or to orchestrate the cycle (that is mtdd-cycle).
 allowed-tools:

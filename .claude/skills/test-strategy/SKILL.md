@@ -1,5 +1,6 @@
 ---
 name: test-strategy
+disable-model-invocation: true
 description: |-
   Locks the project-wide test strategy — the test pyramid, fixture and factory conventions, seed data, test database approach, and the cross-feature E2E journey suite — so every red-first MTDD slice obtains test data the same canonical way and journey coverage survives across features. Runs once after /architect, before the per-feature loop: greenfield alongside /bootstrap; brownfield after /explore, where it recovers the repo's existing test conventions (framework, fixture patterns, test db setup) and confirms them with file:line citations instead of inventing new ones. Governs fixture libraries against anchor's approved dependencies and writes .ai/test-strategy.md plus a plain-English mirror at mvp and above. Use when the user says "/test-strategy", "test strategy", "fixtures", "test data", "seed data", "how should tests get data", "E2E suite", or "journey tests". Do NOT use for: running tests (/qa, /mtdd-verify), writing tests or fixtures (the build phase), or authoring NFRs (/prd).
 ---

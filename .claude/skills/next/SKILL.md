@@ -1,5 +1,6 @@
 ---
 name: next
+disable-model-invocation: true
 description: Boundary-aware guidance at the current chain position — a forward decision, plus an optional backward recap for re-entry. Refreshes dashboard/state.json (via _build_share/project-state.py), walks foundation → per-feature → per-slice mtdd-* to find exactly which boundary the project sits at, asks 3–5 questions citing this project's real artifacts and feature slugs by name, then commits to ONE slash command + one alternative + one rule citation. `/next --resume` (or any run after a gap) first reads the backward-looking trail (progress-tracker, .ai/current-issues.md, in-flight slices, git log, recent specs/ADRs) and synthesizes a staleness-aware recap before recommending. Never invokes the recommended skill — the user types it. Use for "/next", "what's next", "what should I do", "guide me at this boundary", "/resume", "i'm back", "where did I leave off", "catch me up". Do NOT use for text/HTML status (/status), coherence audit (/coherence-check), or advancing a feature (the canonical skill it recommends).
 allowed-tools:
   - Read

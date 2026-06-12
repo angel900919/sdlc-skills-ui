@@ -1,5 +1,6 @@
 ---
 name: architect
+disable-model-invocation: true
 description: |-
   Produces the one-time high-level design between /anchor and the per-feature /prd loop — picks the architecture style, names verb-noun components and their dependency edges, records ADRs, and (at production) architectural characteristics and risk storming. Inherits the locked project_tier from anchor and never asks the tier. Writes machine structure to .ai/architecture.md (prototype) or the .ai/architecture bundle (mvp, production); every C4 diagram is generated only into .human/summaries/architecture via the mermaid skill. Use when the user says "/architect", "design the architecture", "system design", "HLD", "C4 the system", "pick the architecture style", or after /anchor. Do NOT use for: per-feature implementation (/design), per-feature scope (/prd), locking the stack (/anchor), domain modeling (/understand), idea validation (/discovery), or DDD bounded contexts (/ddd-strategy runs first as a pre-phase).
 ---

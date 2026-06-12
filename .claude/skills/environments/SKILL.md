@@ -1,5 +1,6 @@
 ---
 name: environments
+disable-model-invocation: true
 description: |-
   Writes .ai/environments.md — the project-level environment spec: the environment roster, the config/env-var inventory, the secrets policy, config conventions, the feature-flag system, and IaC location. Records secret NAMES and storage locations only — never a secret value. Runs after /bootstrap on greenfield, or after /explore on brownfield in recovery mode (scans the repo and confirms with file:line citations, never inventing); re-run in update mode whenever a slice adds config. Use when the user says "/environments", "environment spec", "env vars", "config inventory", "secrets policy", "where does this config go", or "add an environment". Do NOT use for: deploying or releasing (/ship plus CI/CD), choosing hosting (/anchor), scaffolding the skeleton (/bootstrap), or writing application config code (the build phase).
 ---

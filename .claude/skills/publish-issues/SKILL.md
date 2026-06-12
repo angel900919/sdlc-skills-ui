@@ -1,5 +1,6 @@
 ---
 name: publish-issues
+disable-model-invocation: true
 description: |-
   Publishes canonical issue files (written by /to-issues) to ONE tracker backend per run — beads, jira, or md (set with --backend). A pure, idempotent adapter — it mutates the canonical files in place (writes backend refs + flips status), writes no new artifact and no human mirror. Use when the user says "/publish-issues", "publish to beads", "push tickets to jira", "create the tickets in the tracker", "materialize tickets", or after /to-issues emits READY-TO-PUBLISH. Do NOT use for: generating issue content (/to-issues), planning slices (/plan), re-slicing (/plan), or build execution (the build loop).
 ---

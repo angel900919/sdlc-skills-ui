@@ -1,5 +1,6 @@
 ---
 name: docs
+disable-model-invocation: true
 description: |-
   Pure documentation assembler — writes end-user docs under docs/ and the root README from the chain's existing spec artifacts, never inventing capability claims. Targets: "/docs readme" generates or refreshes the root README (what the app is, getting started, project layout, running tests); "/docs feature-name" writes a user-facing guide page from the feature's PRD stories, ux screens, and .human mirrors; "/docs api" renders docs/api.md faithfully from design.md's API contract tables. On update it refreshes only marker-owned sections and never clobbers hand-written content. Use when the user says "/docs", "write the docs", "user guide", "API reference", "API docs", "update the README", "getting started guide", or "document the feature for users". Do NOT use for: chain spec artifacts (the canonical skills own .ai), code comments, internal architecture docs for developers (/as-built and the .human mirrors), CHANGELOG entries (/ship), or publishing docs to a site (human/CI).
 ---

@@ -1,5 +1,6 @@
 ---
 name: diagnose
+disable-model-invocation: true
 description: |-
   Disciplined root-cause analysis for hard bugs, flaky tests, and performance regressions via a strict reproduce, hypothesise, instrument, fix-with-regression-test loop. The system's defect entry point and the one skill with near-zero preconditions — it runs on just a symptom and a repo, grounding mental models in .ai/context.md and nearby ADRs when present (never blocking on them). Insists on a deterministic feedback loop and rejects guess-and-check. Fixes trivial local bugs inline; hands larger ones forward as a repro-bearing task. Reached standalone or routed from /qa, /health-audit, /as-built, and the build loop. Use for "/diagnose", "debug this", "find the root cause", "flaky build", or "performance regression". Do NOT use for codebase exploration (use /research or /explore), or for optimizing healthy code (use /improve-codebase-architecture).
 allowed-tools:

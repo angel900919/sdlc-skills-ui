@@ -1,5 +1,6 @@
 ---
 name: intake
+disable-model-invocation: true
 description: |-
   Plain-English front door for a NEW idea. Runs one friendly conversation that quietly wears four hats (Product, Architecture, UX, Engineering), detects whether the user is technical, predicts the project tier, and writes the human idea doc plus a machine handoff stub — then routes into discovery. Writes .human/intake/idea.md (prose + optional diagram) and .ai/intake.md (slug, tier, technical level, project type). Use when the user says "/intake", "I have an idea", "I want to build X", "start a new project", "help me build an app", or "where do I start". Do NOT use for: existing codebases (route to /onboard), the idea kill/keep gate (/discovery), domain modeling (/understand), or stack selection (/anchor).
 ---

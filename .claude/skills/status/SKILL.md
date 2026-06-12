@@ -1,5 +1,6 @@
 ---
 name: status
+disable-model-invocation: true
 description: Read-only project-state reporter — the text + HTML lens over the chain's shared dashboard/state.json (refreshed by the _build_share/project-state.py generator). `/status` prints a roster across every feature; `/status FEATURE` a per-slice deep-dive (status, branch, last activity); `--html` also writes the self-contained dashboard/index.html visual snapshot; `--write` persists the per-feature report to .ai/specs/FEATURE/status.md. Uses state.json as the spine and drills into live tracker records (beads, canonical tickets, or Jira) + git only for detail it doesn't carry. Never mutates specs, plan, issues, or tracker records. Use for "/status", "/status FEATURE", "--html", "where are we on X", "project pulse", "regenerate the dashboard", "show me the project state", or one view of work in flight. Do NOT use for QA evidence (use /qa), coherence audit (/coherence-check), forward guidance (/next), or advancing a feature's lifecycle (the canonical chain skill).
 allowed-tools:
   - Read

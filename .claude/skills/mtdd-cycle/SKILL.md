@@ -1,5 +1,6 @@
 ---
 name: mtdd-cycle
+disable-model-invocation: true
 description: |-
   Autonomous orchestrator for the manual-TDD cycle — runs mtdd-implement, then mtdd-review, then mtdd-verify on one task hands-free, each phase in its own fresh sub-agent for context isolation, resuming mid-cycle on a re-run. Accepts a bd bead ID, a canonical chain ticket file (tickets/feature/SLICE-N-slug.md), or a free-form task file (tasks/slug.md). Halts and reports on a review REJECT, an implement blocker, or a verify failure; stops after verify so the human runs the manual smoke checklist before merging. Use for "/mtdd-cycle", "run the mtdd implement-review-verify cycle", "auto-run the manual TDD loop", or when a bead ID or task file should go through implement, review, and verify hands-free. Do NOT use to merge (that is /mtdd-merge) or to run a single phase (use /mtdd-implement, /mtdd-review, or /mtdd-verify directly).
 allowed-tools:

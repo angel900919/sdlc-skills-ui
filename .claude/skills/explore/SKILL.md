@@ -1,5 +1,6 @@
 ---
 name: explore
+disable-model-invocation: true
 description: |-
   Whole-codebase reconnaissance for brownfield projects. Spawns a sub-agent to scan the entire repo and produces a facts-only .ai/recon.md across five sections (repo shape, component decomposition, domain language + invariants, decisions already made, gaps/warnings). Pre-phase for /comprehend and /architect on brownfield. Brownfield only; greenfield skips. Facts only, no recommendations — every claim carries a file:line citation; the parent stays lean and the sub-agent does the scan. Tier is inherited from anchor. Use when the user says "/explore", "scout the codebase", "recon this repo", "what's already here", "map the codebase", "I just inherited this repo", or before /comprehend or /architect on a brownfield project. Do NOT use for: per-feature reconnaissance (/research), greenfield projects (nothing to scan), stack lock (/anchor), domain modeling (/comprehend), high-level architecture (/architect), a codebase health or bug audit (/health-audit), or writing code.
 ---

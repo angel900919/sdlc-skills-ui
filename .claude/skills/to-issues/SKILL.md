@@ -1,5 +1,6 @@
 ---
 name: to-issues
+disable-model-invocation: true
 description: |-
   Decomposes a per-feature plan into one canonical, tracker-agnostic issue file per slice under .ai/specs (one issues folder per feature), enriching each terse plan slice into a self-contained work contract — file boundary, AFK/HITL classification, tests vs skip-tests, category, target branch, and tier-scaled traceability to PRD functional requirements, user stories, NFRs, and Unwanted-behavior clauses. A pure content generator: writes files only, no tracker side effects (publish-issues pushes to beads, Jira, or markdown). Flips the feature status planned to building. Faithful transformer — never re-authors the plan; thin or untraceable slices bounce back. Use when the user says "/to-issues", "convert plan to issues", "draft tickets", "break the plan into issues", or after /plan. Do NOT use for: publishing to a tracker (/publish-issues), re-slicing (/plan), feature scope (/prd), implementation design (/design), prioritization (/triage), or build execution.
 ---

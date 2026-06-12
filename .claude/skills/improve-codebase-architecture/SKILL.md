@@ -1,5 +1,6 @@
 ---
 name: improve-codebase-architecture
+disable-model-invocation: true
 description: |-
   Brownfield architectural-friction analyzer and refactor designer. Walks existing code, finds shallow modules, tangled seams, and poor testability, then proposes ranked deepening opportunities — turning shallow modules into deep ones. Diagnoses and proposes only; it never writes the refactored code — the refactor is handed forward as a slice (chain repo) or a free-form task (bare repo). Persists candidates and the chosen design to .ai/refactors/. Grounds in .ai/context.md and ADRs when present, never blocking on them. Reached standalone or routed from /diagnose (its NO-SEAM post-mortem) and /health-audit (ARCHITECTURE-BLOCKS-FEATURE). Use for "/improve-codebase-architecture", "improve the architecture", "find refactoring opportunities", "spot deepening targets", "reduce coupling", or "modules feel shallow". Do NOT use for initial system design (/architect), per-feature implementation design (/design), bug root-causing (/diagnose), or running DDD domain-smell audits (/health-audit's tech-debt lens).
 allowed-tools:

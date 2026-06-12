@@ -1,6 +1,6 @@
 ---
 name: write-a-skill
-description: Authors, reviews, and refactors agent skills (SKILL.md + bundled resources) with proper YAML frontmatter, progressive disclosure, and trigger phrases. Use when the user asks to create, write, build, design, audit, fix, or improve a skill, mentions SKILL.md, frontmatter, skill description, or skill triggers, or wants to extract a repeatable workflow into a reusable skill.
+description: Authors, reviews, and refactors agent skills (SKILL.md + bundled resources). Use when the user asks to create, audit, fix, or improve a skill, or mentions SKILL.md, frontmatter, or trigger phrases.
 ---
 
 # Writing Skills

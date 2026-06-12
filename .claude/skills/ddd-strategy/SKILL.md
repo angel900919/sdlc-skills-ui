@@ -1,5 +1,6 @@
 ---
 name: ddd-strategy
+disable-model-invocation: true
 description: |-
   Pre-phase for /architect on DDD-shaped domains. Produces .ai/architecture/strategic-design.md — subdomain classification (core/supporting/generic), bounded-context map, ubiquitous-language seams, and integration patterns (ACL, OHS, Conformist, Customer-Supplier, Shared Kernel, Partnership, Separate Ways) — plus a .human context-map diagram. Runs BEFORE /architect; non-DDD projects skip it. Use when the user says "/ddd-strategy", "design my system using DDD", "decompose my domain into bounded contexts", "draw a context map", "what bounded contexts do I need", "how should these services talk to each other", or when /architect or /event-storm emits NEEDS-STRATEGIC-DESIGN. Do NOT use for: high-level architecture or components (/architect), tactical event modeling (/event-storm), domain glossary or invariants (/understand), per-feature scope (/prd), or code scaffolding (the build phase).
 ---

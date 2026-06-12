@@ -1,6 +1,6 @@
 ---
 name: mermaid
-description: Generates and validates Mermaid diagrams (flowchart, sequence, state, ER, class, journey, mindmap, gantt, C4) so broken syntax never ships into a document. Validates every diagram before returning it, using the local mmdc CLI, a hosted renderer, or an offline lint. Use when the user asks for a diagram, chart, flowchart, sequence diagram, ER/entity diagram, state machine, or mind map, mentions Mermaid, or when another skill needs a validated Mermaid block for a human-facing artifact. Do NOT use for image editing, hand-drawn art, or non-Mermaid chart libraries.
+description: Generates and validates Mermaid diagrams (flowchart, sequence, ER, state, class, C4) — syntax-checked before shipping. Chain skills sub-invoke it for .human diagrams; use for any diagram request.
 ---
 
 # Mermaid

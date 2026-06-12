@@ -1,5 +1,6 @@
 ---
 name: sunset
+disable-model-invocation: true
 description: |-
   Retires a shipped feature through the lifecycle's final two human-gated flips — shipped to deprecated to removed — closing the gap after /ship and /measure. The deprecate phase blocks on live dependants first (depends_on in features.md), then plans the why, window, user comms, flag-off, and data handling into a sunset record under .ai/specs, flipping shipped to deprecated only on explicit approval. The remove phase verifies the window and comms, routes the removal as build work, and flips deprecated to removed only after the human confirms that work merged — it never deletes code, flags, or data itself. Use when the user says "/sunset", "deprecate the feature", "remove the feature", "retire X", "kill the feature", "turn off X", "decommission", or after /measure records a remove decision. Do NOT use for: cutting unbuilt features (/feature-map update), deleting code directly (the build loop executes routed work), the project kill decision (/measure plus /discovery), or rolling back a bad deploy (human ops).
 ---

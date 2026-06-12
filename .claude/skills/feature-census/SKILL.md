@@ -1,5 +1,6 @@
 ---
 name: feature-census
+disable-model-invocation: true
 description: |-
   Brownfield-only feature inventory — the /feature-map twin for an existing codebase. Instead of decomposing a new idea, it catalogs the features already shipping in the code: reads recon.md (Section B components, Section C journeys) and comprehend's understanding.md (behaviors), maps them into a roster of atomic vertical features marked status shipped and traced to their component, then captures any new desired work as status planned and prioritizes it. Writes the same .ai/features.md as /feature-map (so /prd is unchanged) plus a .human dashboard. Use when the user says "/feature-census", "what features does this app have", "inventory the features", "catalog the existing features", "map the shipped features", or after /comprehend on a brownfield project. Do NOT use for: greenfield idea decomposition (/feature-map), code recon (/explore), domain modeling (/comprehend), per-feature scope (/prd), or a code health audit (/health-audit).
 ---

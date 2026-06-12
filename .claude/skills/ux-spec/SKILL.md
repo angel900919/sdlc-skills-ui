@@ -1,5 +1,6 @@
 ---
 name: ux-spec
+disable-model-invocation: true
 description: |-
   Authors the chain's UX/UI contract so an implementing agent never invents the interface. Dual scope: project scope (once, after /architect) interviews the user and locks the design system to .ai/design-system.md; feature scope (per UI-bearing feature, between /prd and /design) writes the per-feature ux spec under .ai/specs — screens, interaction states, user flows, and copy. Tier-scaled; non-UI surfaces (backend, pipeline, CLI, infra) skip with SKIPPED-NO-UI. Use when the user says "/ux-spec", "spec the UI", "design system", "wireframe the feature", "screens and states", or "UX spec for X". Do NOT use for: implementation design, file layout, or component code (/design), feature scope or NFRs (/prd), creating visual assets or mockups, or features with no user interface.
 ---

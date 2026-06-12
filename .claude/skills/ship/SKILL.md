@@ -1,5 +1,6 @@
 ---
 name: ship
+disable-model-invocation: true
 description: |-
   Lean continuous-delivery release gate — the terminal step of the per-feature loop. Carries a qa-approved feature across the release line: assembles release notes from the PRD and merged slices, walks a tier-aware release checklist, hands the actual deploy to CI/CD or the human (never deploys, pushes, or tags itself), runs the post-deploy smoke, and only on an explicit human go-ahead flips features.md qa-approved to shipped. Deploy is not release — it records the shipped lifecycle state and notes feature-flag exposure as a separate product flip. Human-gated at the one irreversible boundary; writes no new artifact (release notes to chat, optional CHANGELOG append). Use when the user says "/ship", "ship it", "release X", "cut the release", "mark X shipped", or after /qa returns READY-FOR-SHIP. Do NOT use for: feature-boundary verification (/qa), deploy automation (that is CI/CD), per-slice merge (the mtdd loop), spec authoring (/prd, /design, /plan), or rolling back (a human ops decision).
 ---

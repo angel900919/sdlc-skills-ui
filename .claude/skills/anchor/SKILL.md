@@ -1,5 +1,6 @@
 ---
 name: anchor
+disable-model-invocation: true
 description: |-
   Locks a project's foundation — the stack, tier, and lifecycle stage every downstream skill reads first. Reads intake's predicted tier as the default and confirms it (never asks the tier cold), honors intake's uplift signals instead of re-scanning, adapts depth to the user's technical level, scans the repo on brownfield, and accepts "I don't know" with safe tentative defaults. Writes the machine foundation to .ai/anchor.md plus a plain-English mirror to .human/summaries/anchor.md, and seeds the progress tracker and root CLAUDE.md. Use when the user says "/anchor", "anchor this project", "lock the stack", "pick the stack and tier", "create anchor.md", or when .ai/anchor.md does not exist after /feature-map. Do NOT use for: per-feature decisions (/prd, /design), domain modeling (/understand), idea validation (/discovery), high-level architecture (/architect), or advancing the tier (/promote).
 ---

@@ -1,5 +1,6 @@
 ---
 name: plan
+disable-model-invocation: true
 description: |-
   Decomposes a per-feature design into vertical, dependency-ordered, independently-mergeable slices under .ai/specs (one plan per feature). Slice 1 is always a tracer bullet — the thinnest end-to-end path. Inherits the effective tier from the feature's PRD and never recomputes it; each slice traces to PRD functional requirements or user stories and carries mechanical acceptance (tests, NFR targets, and at production a named fitness function). Inherits external dependencies verbatim from the design — propagation, not re-judgment. Pairs 1:1 with /design; each slice is one PR. Use when the user says "/plan", "plan the build", "break this into slices", "slice order", "tracer-bullet plan", or after /design. Do NOT use for: feature scope or NFRs (/prd), implementation design, modules, or schemas (/design), high-level architecture or components (/architect), stack and tier lock (/anchor), writing code (the build phase), or ticket creation (/to-issues).
 ---

@@ -1,5 +1,6 @@
 ---
 name: qa
+disable-model-invocation: true
 description: |-
   Feature-boundary quality gate. After every slice of a feature is built and closed, runs a tier-aware evidence pass — slice closure, PRD coverage (F-IDs, user stories, NFRs, Unwanted-EARS), a full regression test run, security review and accessibility at production, fitness functions, architecture invariants, and a lightweight spec-drift check — delegating runs to built-in commands with manual fallback. Writes a structured evidence record plus a human-run acceptance and exploratory script, then a human approves before the feature flips building to qa-approved. Reads the canonical specs and backend runtime state; never edits specs or ships. Use when the user says "/qa", "qa this feature", "verify the feature", "evidence pack for X", "ready for ship review", or after /build emits READY-FOR-QA. Do NOT use for: per-slice work (the mtdd loop), bug root-causing (/diagnose), spec authoring (/prd, /design, /plan), release and deploy (/ship), or whole-repo health audits (/health-audit).
 ---

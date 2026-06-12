@@ -1,5 +1,6 @@
 ---
 name: triage
+disable-model-invocation: true
 description: |-
   Triages issues that did NOT come through the chain — human-filed bugs and requests, /health-audit findings, or anything not minted by /publish-issues. Assigns a category (bug or enhancement), a priority (P0 to P3), and a routing state (needs-info, ready-for-agent, ready-for-human, wontfix); it recommends and the maintainer decides. Recognises a chain-origin ticket by its feature label and skips it — the chain already specced it. Routes a bug needing root cause to /diagnose and ready work into the build path. Use for "/triage", "triage this", "anything need my attention", "look at issue 42", "move 42 to ready-for-agent", "what is ready for agents", or after /health-audit lands findings. Do NOT use for generating chain issue content (/to-issues), publishing tickets (/publish-issues), spec authoring (/prd, /design, /plan), feature-boundary verification (/qa), or root-causing a bug yourself (/diagnose).
 allowed-tools:

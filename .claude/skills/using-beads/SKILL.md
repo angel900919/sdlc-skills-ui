@@ -1,6 +1,6 @@
 ---
 name: using-beads
-description: Tracks work in beads (the bd CLI issue tracker) — creating well-formed tickets, finding and claiming ready work, linking dependencies, capturing discovered follow-ups, and closing issues. Use when a project has a .beads directory, when the user mentions beads, bd, or a bead, or when they ask to create/file a ticket or issue, log or track a bug or task, find ready work, pick the next thing to work on, or claim/close an issue in a beads project. Do NOT use for GitHub Issues, Jira, or Linear unless they are reached through bd.
+description: Tracks work in beads (the bd CLI) — create tickets, find and claim ready work, link dependencies, close issues. Use when a .beads directory exists or the user mentions beads, bd, or filing a ticket.
 ---
 
 <what-to-do>

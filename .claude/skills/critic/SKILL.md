@@ -1,5 +1,6 @@
 ---
 name: critic
+disable-model-invocation: true
 description: |-
   Clean-context review gate for a single SDLC artifact. Spawns one fresh-context subagent that adversarially grades a .ai document against its explicit contract — schema, effective tier, and direct upstream inputs — and reports severity-rated findings plus a CRITIC-PASS or CRITIC-REVISE verdict routing back to the source skill's update mode. Treats bloat and gaps as equal defects; never edits the artifact. With --verify it also fact-checks externally-falsifiable claims (Context7 for library claims, web for market/security claims). Use when the user says "/critic", "critique this doc", "review the PRD/design/plan artifact", "grade this spec", "fact-check this artifact", or asks whether a freshly written artifact is good enough. Do NOT use for: cross-artifact contradictions (/coherence-check), code or diff review (/code-review, /mtdd-review), feature verification (/qa), fixing the artifact (the source skill's update mode), or auto-running after another skill — run only on explicit request.
 argument-hint: "[artifact-path] [--verify] [--write]"

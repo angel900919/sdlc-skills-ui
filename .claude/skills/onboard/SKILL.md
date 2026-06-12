@@ -1,5 +1,6 @@
 ---
 name: onboard
+disable-model-invocation: true
 description: |-
   Plain-English front door for an EXISTING codebase (brownfield). Runs one friendly conversation that captures what the app does and who uses it — the product knowledge a human has but the code cannot tell you — does a light filesystem peek to confirm it is a real repo and name the stack, detects the user's technical level, predicts the project tier, and writes the machine handoff stub plus the human orientation doc, then routes into the brownfield recon chain. Writes .ai/intake.md with project_type brownfield and .human/intake/idea.md, then hands off to /anchor. Use when the user says "/onboard", "I have an existing app", "I inherited this repo", "onboard onto this project", "I know what this app does but not the code", or "where do I start with an existing project". Do NOT use for: fresh ideas with no code (/intake), deep code reconnaissance (/explore), locking the stack (/anchor), domain modeling (/comprehend), a codebase health or bug audit (/health-audit), or per-feature work (/prd).
 ---

@@ -1,5 +1,6 @@
 ---
 name: quick-spec
+disable-model-invocation: true
 description: |-
   One-sitting express lane for prototype-tier features — merges the /prd, /design, and /plan interviews into a single conversation and writes the same three per-feature artifacts under .ai/specs (prd.md, design.md, plan.md, plus design's human mirror), schema-identical to the full chain so every downstream reader (/to-issues, /build, /qa, /as-built) is untouched. Computes the effective tier exactly as /prd does and refuses anything above prototype: a feature with money, PII, regulatory, or other uplift signals bounces to the full chain. Use when the user says "/quick-spec", "quick spec the next feature", "express spec", "spec this feature fast", "one-sitting spec", or wants prd plus design plus plan in one pass on a prototype project. Do NOT use for: mvp or production features (/prd then /design then /plan), the project feature roster (/feature-map), deepening a promoted feature (the source skills' update modes), ticket creation (/to-issues), or writing code (the build loop).
 argument-hint: "[feature-slug]"

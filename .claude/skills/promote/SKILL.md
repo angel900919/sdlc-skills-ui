@@ -1,5 +1,6 @@
 ---
 name: promote
+disable-model-invocation: true
 description: |-
   Advances a project's lifecycle one step — prototype to mvp, or mvp to production — through an advisory, human-approved, recorded gate. Reads .ai/anchor.md (lifecycle_stage, project_tier, stage_history), .ai/features.md statuses, qa-reports, and the progress tracker; runs the full promotion-gate analysis and shows the evidence; on explicit human approval bumps lifecycle_stage AND project_tier in lockstep (one step, never backward), appends a stage_history entry, writes a plain-English human mirror, logs the tracker, and routes to the rigor skills the new stage requires. It mutates anchor; it does not write code, stack fields, or specs. Use when the user says "/promote", "promote to mvp", "promote to production", "graduate this prototype", "level up the project", or "move to the next stage". Do NOT use for: per-feature tier uplift (that is /prd's automatic max of project_tier and signal), locking the initial stack or tier (/anchor), high-level design (/architect), or shipping one feature (/ship).
 ---

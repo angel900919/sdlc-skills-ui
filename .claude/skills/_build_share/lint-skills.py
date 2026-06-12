@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict frontmatter lint for the mtdd-* skills.
+"""Strict frontmatter lint for every skill in the chain.
 
 Unlike write-a-skill/validate_frontmatter.py (a lenient regex parser that
 cannot see YAML structure), this gate does a REAL YAML parse so it catches
@@ -7,11 +7,19 @@ structural bugs the lenient one misses — notably an unquoted scalar containing
 a colon-space (`key: value` text), which strict parsers reject as an accidental
 mapping. That class of bug previously shipped silently (see manual-tdd-7zs).
 
+Invocation policy (the audit question is "who starts this?"):
+- User types the slash command → `disable-model-invocation: true`. The
+  description never enters model context, so it may run long as documentation.
+- Another skill chains into it by name, or it answers a natural-language ask
+  (mermaid, the mtdd-* atoms, using-beads, write-a-skill, research-report) →
+  stays model-invocable, but its description sits in EVERY session's context,
+  so it gets a 200-char budget.
+
 Usage:
     python3 lint-skills.py [SKILL.md ...]
 
-With no arguments it auto-discovers every `mtdd-*/SKILL.md` next to this file's
-parent (the .claude/skills/ bundle root).
+With no arguments it auto-discovers every `*/SKILL.md` next to this file's
+parent (the .claude/skills/ bundle root), skipping `_*` support dirs.
 
 Exit: 0 = all pass · 1 = at least one failure · 2 = usage error.
 
@@ -25,6 +33,9 @@ import re
 import sys
 
 MAX_DESCRIPTION_CHARS = 1024
+# Model-invocable skills (no disable-model-invocation: true) keep their
+# description in every session's context — hold them to a tight budget.
+MAX_INVOCABLE_DESCRIPTION_CHARS = 200
 MAX_NAME_CHARS = 64
 RESERVED_NAME_WORDS = ("claude", "anthropic")
 
@@ -118,6 +129,13 @@ def validate(path):
             for w in RESERVED_NAME_WORDS:
                 if w in name.lower():
                     errors.append(f"name: contains reserved word '{w}'.")
+        dmi = data.get("disable-model-invocation")
+        if not HAVE_YAML and dmi == "true":
+            dmi = True  # degraded parser yields strings, not YAML booleans
+        if dmi is not None and dmi is not True:
+            errors.append(
+                "disable-model-invocation: must be the YAML boolean true when present."
+            )
         if not desc:
             errors.append("description: missing or empty.")
         elif isinstance(desc, str):
@@ -127,6 +145,13 @@ def validate(path):
                 errors.append("description: contains angle brackets (< or >) in the parsed value.")
             if len(desc) > MAX_DESCRIPTION_CHARS:
                 errors.append(f"description: {len(desc)} chars exceeds max {MAX_DESCRIPTION_CHARS}.")
+            elif dmi is not True and len(desc) > MAX_INVOCABLE_DESCRIPTION_CHARS:
+                errors.append(
+                    f"description: {len(desc)} chars exceeds the "
+                    f"{MAX_INVOCABLE_DESCRIPTION_CHARS}-char budget for model-invocable "
+                    f"skills — shrink it, or set disable-model-invocation: true if "
+                    f"only the user starts this skill."
+                )
 
     label = os.path.relpath(path)
     for w in warnings:
@@ -141,7 +166,10 @@ def validate(path):
 def discover():
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(here)  # .claude/skills/
-    return sorted(glob.glob(os.path.join(root, "mtdd-*", "SKILL.md")))
+    return sorted(
+        p for p in glob.glob(os.path.join(root, "*", "SKILL.md"))
+        if not os.path.basename(os.path.dirname(p)).startswith("_")
+    )
 
 
 def main(argv):

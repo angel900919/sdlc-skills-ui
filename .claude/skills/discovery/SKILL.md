@@ -1,5 +1,6 @@
 ---
 name: discovery
+disable-model-invocation: true
 description: |-
   Pressure-tests whether a captured idea is worth building. Runs a Jobs-to-be-Done interview (problem, target user, JTBD, success metric, kill criteria, scope), optionally researching competitors and feasibility with sub-agents, then issues an advisory PROCEED / INVESTIGATE / KILL verdict the user can override on the record. Writes a structured discovery artifact under .ai/discovery/ and a plain-English .human/summaries/discovery.md with a validated diagram. Use when the user says "/discovery", "should we build this", "is this idea worth pursuing", "validate this idea", or after /intake. Do NOT use for: capturing a brand-new idea (/intake), domain modeling (/understand), stack selection (/anchor), or PRDs (/prd).
 ---

@@ -1,5 +1,6 @@
 ---
 name: coherence-check
+disable-model-invocation: true
 description: |-
   Read-only audit that scans SDLC artifacts (.ai/**, .ai/context.md) and reports contradictions between them with file:line citations. Never modifies, creates, or deletes any file — output is stdout only. Cross-references artifacts pair-by-pair (discovery↔understanding, anchor↔architecture, prd↔design, features↔prd, domain-model↔context, fitness↔sources) and flags stale name references (components, feature slugs, personas, ADR numbers). Use when "/coherence-check", "check coherence", "audit my docs", "are my .ai docs consistent", "look for contradictions", "lint my premises", or whenever upstream and downstream docs may have drifted. Do NOT use for: fixing contradictions (the user resolves them via the source skill), writing new artifacts (use the canonical skill), code-vs-doc checks, or code review (/code-review, /qa).
 allowed-tools:

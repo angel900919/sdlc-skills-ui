@@ -1,5 +1,6 @@
 ---
 name: feature-map
+disable-model-invocation: true
 description: |-
   Decomposes a validated idea into a prioritized roster of atomic vertical features — each ships independently and delivers user value end-to-end. Reads understanding's behaviors as the primary decomposition source and discovery's scope as the envelope, traces every feature to a journey, forces 1–N priority (no all-P0), and honors the tier cap. Writes the machine roster to .ai/features.md and a plain-English dashboard with one validated diagram to .human/summaries/features.md. Use when the user says "/feature-map", "decompose features", "break this into features", "story map", or "what should I build", or after /understand. Do NOT use for: per-feature scope or NFRs (/prd), stack selection (/anchor, /architect), domain modeling (/understand), or idea validation (/discovery).
 ---

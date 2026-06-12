@@ -1,5 +1,6 @@
 ---
 name: understand
+disable-model-invocation: true
 description: |-
   Builds shared understanding of WHAT will be built — domain glossary, entity models, invariants, user journeys, and boundaries — never the HOW. Grills one question at a time until terms are pinned down, writes the structured understanding artifact plus the shared context/entity model, and mirrors journeys and entities as validated diagrams for humans. Writes a structured understanding artifact under .ai/understanding/, the shared .ai/context.md, and .human/summaries/understanding.md. Use when the user says "/understand", "go deeper on this idea", "domain model this", "define the requirements", or after /discovery. Do NOT use for: idea validation (/discovery), stack selection (/anchor, /architect), PRD writing (/prd), or full event storming (/event-storm).
 ---

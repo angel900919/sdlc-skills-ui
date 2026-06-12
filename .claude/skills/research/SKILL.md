@@ -1,5 +1,6 @@
 ---
 name: research
+disable-model-invocation: true
 description: |-
   Optional brownfield-only per-feature codebase reconnaissance. Spawns an Explore sub-agent to scan the existing code touching a feature and writes a citation-heavy, facts-only research.md under .ai/specs — prior art, conventions, constraints, and the open questions /design must close. Facts, never recommendations (those belong to /design); every claim carries a file:line citation. Tier is inherited from the feature's PRD. Pairs 1:1 with /design and is the destination for design's NEEDS-RESEARCH verdict. Use when the user says "/research", "scout the area", "prior art for X", "what's already in the codebase for X", "scout the integration surface", or before /design on a brownfield feature. Do NOT use for: greenfield projects (nothing to scan), whole-codebase audits, high-level architecture (/architect), feature scope or NFRs (/prd), implementation design or schemas (/design), picking libraries definitively (/design), or writing code (the build phase).
 ---

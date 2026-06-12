@@ -1,7 +1,7 @@
 ---
 name: mtdd-verify
 description: |-
-  Manual-TDD-loop verify phase tester. Accepts a bd-tracked bead ID, a canonical chain ticket file, or a free-form task markdown file. Runs typecheck and test suites on the current feature branch based on the language frontmatter, reporting a definitive pass/fail verdict. Skips test execution if explicitly requested by the task criteria (tests: skip-tests or Skip tests?: true). For beads, writes the verdict via bd note; for markdown files, logs to a Status log section. On a passing run, dynamically generates a per-slice manual smoke test checklist (action → expected observable result) derived from the acceptance criteria. Use for "/mtdd-verify", "manual tdd verify", "run tests for this branch", or after /mtdd-review returns COMPLETE.
+  Manual-TDD verify phase — runs typecheck and tests on the feature branch, then generates the manual smoke checklist. Invoked by name (/mtdd-verify) or by the mtdd-cycle orchestrator.
 allowed-tools:
   - Read
   - Edit

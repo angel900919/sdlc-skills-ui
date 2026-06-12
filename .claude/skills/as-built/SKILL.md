@@ -1,5 +1,6 @@
 ---
 name: as-built
+disable-model-invocation: true
 description: |-
   Read-only, post-build, per-feature as-built code map. After a feature's slices merge, compiles the per-slice file manifests plus the code at HEAD into a structured .ai/specs as-built record and a .human mirror with two validated Mermaid diagrams — a module/import map and the main entry-point flow — plus a drift table comparing the real call chain against design.md's planned sequence diagram. Origin-agnostic (greenfield and brownfield features built through the loop; op modify marks changed files); commit-pinned, timestamped, idempotent; never modifies code or specs. Use when the user says "/as-built", "/codemap", "code map for X", "did the code drift", or after a feature's last slice merges. Do NOT use for: untouched shipped features with no slices (that is /explore's component map), design-time C4/HLD (/architect), planned sequence diagrams (/design), progress reporting (/status), or test verification (/qa).
 ---
@@ -8,7 +9,7 @@ description: |-
 
 Reverse-engineers what the code **actually is now** for one feature, from the real source at HEAD — not what `design.md` *intended*. Reads the per-slice `files:` manifests to learn the feature's file set, reads that code, and writes a structured `.ai/specs/<feature>/as-built.md` (module table, import-edge list, main-flow step list, drift table) plus a `.human/specs/<feature>/as-built.md` mirror carrying the two **validated Mermaid diagrams**.
 
-Cross-cutting, like `/status` — it runs at the feature boundary (after the last slice merges) and can be sub-invoked by `/qa`. **Origin-agnostic:** it maps any feature built **through the loop** — greenfield or a brownfield modification (the `op: modify` tag flags changed files). It does **not** map an untouched shipped feature (no manifest to scope from — that's `/explore`).
+Cross-cutting, like `/status` — it runs at the feature boundary (after the last slice merges), typically alongside `/qa`. **Origin-agnostic:** it maps any feature built **through the loop** — greenfield or a brownfield modification (the `op: modify` tag flags changed files). It does **not** map an untouched shipped feature (no manifest to scope from — that's `/explore`).
 
 <what-to-do>
 

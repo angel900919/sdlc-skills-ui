@@ -1,5 +1,6 @@
 ---
 name: design
+disable-model-invocation: true
 description: |-
   Produces the per-feature low-level design (LLD) — the implementation contract that /plan, /to-fitness, and /qa consume — under .ai/specs per feature. Inherits the effective tier from the feature's PRD (never recomputes it), the stack from anchor, and the architecture from architect; traces every design to a component in architecture's 02-components and refuses orphan features. Decides the per-feature HOW: modules, file layout, schema deltas, API contracts, call flow, test plan, and per-feature ADRs. Governs new libraries against anchor's approved_dependencies and always writes a derived plain-English mirror with a validated sequence diagram. Use when the user says "/design", "design the feature", "implementation design", "LLD", "how should I build X", or after /prd. Do NOT use for: feature scope or NFRs (/prd), high-level architecture or components (/architect), stack and tier lock (/anchor), domain modeling (/understand), idea validation (/discovery), or writing code (the build phase).
 ---

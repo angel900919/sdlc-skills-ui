@@ -1,5 +1,6 @@
 ---
 name: bootstrap
+disable-model-invocation: true
 description: |-
   Produces .ai/bootstrap.md — an ordered, copy-pasteable checklist that turns a locked stack (/anchor) + architecture (/architect) into a runnable greenfield project skeleton (scaffold, component roots, Docker, migrations, .env.example, dev scripts, CI). Greenfield only — refuses on brownfield via the anchor claim AND a filesystem probe. Tier-aware (90/185/250 line cap). Grounds every tool, scaffolder, and version it emits through Context7 (resolve-library-id + query-docs) so commands name real packages with current CLI syntax — no phantom or stale libraries — staying within anchor's approved_dependencies, naming the major version + --frozen-lockfile. Use when "/bootstrap", "scaffold the project", "set up the skeleton", "project setup", "before slice 1", or after /architect on a greenfield project. Do NOT use for: per-feature code (/design, /plan), stack lock (/anchor), HLD (/architect), or scaffolding over existing code (brownfield → /research).
 allowed-tools:

@@ -1,5 +1,6 @@
 ---
 name: pipeline
+disable-model-invocation: true
 description: |-
   Locks the project delivery contract into .ai/pipeline.md — the tier-gated quality-gate matrix (pre-merge, post-merge, release), deploy-vs-release stance per environment, rollback mechanism, supply-chain controls (secrets scanning, dependency audit, SBOM, provenance), dependency-update automation, and monitoring-as-code location — plus a gap table comparing the contract against the CI that actually exists. Contract only: never writes workflow files, runs pipelines, or deploys; gap closure routes as ordinary slices. Runs after /environments (greenfield) or /test-strategy (brownfield RECOVERY: cites workflow files file:line, never invents); re-run after /promote or /to-fitness. Use when the user says "/pipeline", "CI/CD", "delivery pipeline", "quality gates", "what does our CI enforce", "branch protection", "supply-chain security", or "Renovate/Dependabot". Do NOT use for: the initial CI scaffold (/bootstrap), deploying (/ship), env roster and config (/environments), or test conventions (/test-strategy).
 ---

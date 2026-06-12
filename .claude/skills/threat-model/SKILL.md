@@ -1,5 +1,6 @@
 ---
 name: threat-model
+disable-model-invocation: true
 description: |-
   Runs a STRIDE-lite threat-modeling pass over the locked architecture after /architect — derives trust boundaries from the dependency-edge table and entry points, names the assets worth attacking, and registers every credible threat scored 1-9 with a mitigation status. Routes each unmitigated high-score threat as a candidate invariant to /architect and a candidate Unwanted-behavior EARS clause to /prd, feeding the /to-fitness pipeline; drafts and routes, never adopts. Gated to production tier or uplift signals pii, money, regulatory, external-dependants; refreshed at /promote and on architecture changes. Writes .ai/architecture/threat-model.md plus a .human mirror diagram. Use when the user says "/threat-model", "threat model", "STRIDE", "security design", "who can attack this", "trust boundaries", or "attack surface". Do NOT use for: code vulnerability scanning (/health-audit, /security-review), the QA security check (/qa), mechanizing rules (/to-fitness), or architecture authoring (/architect).
 ---

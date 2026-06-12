@@ -1,5 +1,6 @@
 ---
 name: mtdd-merge
+disable-model-invocation: true
 description: |-
   Manual-TDD-loop merge phase closer. Accepts a bd-tracked bead ID, a canonical chain ticket file, or a free-form task markdown file. Merges the current feature branch into the target branch (default develop) and verifies a clean tree. For beads, writes a completion summary via multi-line bd note and runs bd close ID. For canonical/free-form markdown tasks, appends a Completion section to the file. Never pushes changes to remote; human pushes manually downstream. Use for "/mtdd-merge", "manual tdd merge", "merge this branch", or immediately after /mtdd-verify passes.
 allowed-tools:

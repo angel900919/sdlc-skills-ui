@@ -1,5 +1,6 @@
 ---
 name: prd
+disable-model-invocation: true
 description: |-
   Writes the per-feature PRD — the contract that /design, /plan, and /to-fitness consume — to .ai/specs (one folder per feature). Reads the locked project_tier from anchor and computes the effective tier as the max of the project tier and any feature uplift, scaling a prototype one-pager up to a production EARS contract with strict SMART checks and invariant defenses. Stays implementation-agnostic: the stack lives in anchor, components and invariants in architecture; it references both and decides neither. At mvp and above it also writes a derived plain-English mirror under .human/specs for sign-off. Use when the user says "/prd", "write the PRD for X", "draft requirements for X", "feature brief for X", or "spec out a feature", or after /architect names a feature. Do NOT use for: high-level architecture or components (/architect), stack and tier lock (/anchor), per-feature implementation, schemas, or API contracts (/design), idea validation (/discovery), or domain modeling (/understand).
 ---

@@ -1,5 +1,6 @@
 ---
 name: event-storm
+disable-model-invocation: true
 description: |-
   Optional tactical domain-modeling session between domain understanding and the next phase — for domains with non-trivial event flows, cross-aggregate consistency, or aggregates the user can't yet name. Produces .ai/architecture/domain-model.md (events, commands, aggregates, policies, read models, bounded-context relationships) plus a .human diagram. Most projects skip it. Use when the user says "/event-storm", "event storming", "model the domain events", "what are the aggregates", "I can't name the aggregates yet", or when /understand or /comprehend emits NEEDS-EVENT-STORM. Do NOT use for: high-level architecture or components (/architect), strategic DDD bounded contexts (/ddd-strategy), per-feature scope (/prd), implementation design (/design), or idea validation (/discovery).
 ---

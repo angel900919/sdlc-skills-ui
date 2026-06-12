@@ -1,5 +1,6 @@
 ---
 name: build
+disable-model-invocation: true
 description: |-
   Per-feature execute-phase queue-brain and router. Reads the canonical issue files under .ai/specs (written by /to-issues, published by /publish-issues), detects which slices are already done across the beads, jira, or md backends, gates on dependency order, and picks the next unblocked slice to work — then routes it to /mtdd-implement. A pure read-and-route skill — it writes no .ai artifact and no .human mirror and never mutates the frozen canonical files (its only side effect is a progress-tracker append when a feature is fully built). Emits next-skill verdict tokens — READY-FOR-MTDD, READY-FOR-QA, or a BLOCKED-ON reason. Use when the user says "/build", "build the next slice", "execute the feature", "what should I work on next", or after /publish-issues emits READY-FOR-BUILD. Do NOT use for: writing or testing code (the mtdd-* atoms), publishing tickets (/publish-issues), generating issue content (/to-issues), planning slices (/plan), or feature-boundary verification (/qa).
 ---

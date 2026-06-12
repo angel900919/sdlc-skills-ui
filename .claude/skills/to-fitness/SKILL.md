@@ -1,5 +1,6 @@
 ---
 name: to-fitness
+disable-model-invocation: true
 description: |-
   Production-tier-only code generator that mechanizes a project's architectural invariants and characteristics (project scope) and a feature's PRD NFRs and Unwanted-behavior EARS defenses (feature scope) into one runnable, CI-executable assertion file per rule under fitness/. Picks the ArchUnit-family library from the anchor language (tsarch, pytest-arch, ArchUnit, ArchGo, ArchUnit.NET), cites the source file and line in every header, enforces red-first discipline, marks fitness/ human-owned in CODEOWNERS, and is idempotent on re-run (orphans listed, never auto-deleted). Generator, not executor — it writes files and emits the test command but never runs it. Use when the user says "/to-fitness", "generate fitness functions", "lock in the architectural rules", after /architect, or at production tier between /design and /plan. Do NOT use for: defining invariants or characteristics (/architect), authoring NFRs (/prd), running the test suite or the gate (/qa), or slicing the build (/plan).
 ---
