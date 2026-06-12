@@ -249,6 +249,35 @@ other repo. Full docs, quickstart, and the gate-hook design:
 
 ---
 
+## Session-start orientation (optional hook)
+
+Sessions otherwise start blind until you type `/status` or `/next`. The suite
+ships a read-only SessionStart hook — `_build_share/hooks/inject-state.sh` —
+that prints a short orientation block (≤12 lines) straight into the session
+context: active branch, any in-flight MTDD cycle, the branch's spec folder,
+in-flight/planned features, the newest progress-tracker breadcrumb with its
+`Next:` line, and the locked tier. It is fail-open: missing artifacts print
+nothing, it never writes, and it always exits 0 (a non-zero SessionStart hook
+would block the session). `/status` remains the deep on-demand view and
+`/next` the recommender — this hook only covers "where was I?" for free.
+
+Enable it per project by adding to the project's `.claude/settings.json`
+(Claude Code asks you to approve the hook on first use):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
+      { "matcher": "resume",  "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
+      { "matcher": "clear",   "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] }
+    ]
+  }
+}
+```
+
+---
+
 ## Layout
 
 ```
@@ -257,7 +286,7 @@ other repo. Full docs, quickstart, and the gate-hook design:
 ├── QUICKSTART.md             ← the short command-order guide
 ├── README-mtdd.md            ← the portable MTDD bundle (copy this with mtdd-*)
 ├── _shared/                  ← chain contracts: conventions.md · ai-schema.md · downstream-integration.md
-├── _build_share/             ← MTDD rule packs, POSIX gates, task sources, project-state.py
+├── _build_share/             ← MTDD rule packs, POSIX gates + hooks, task sources, project-state.py
 ├── <skill-name>/SKILL.md     ← one folder per skill (+ optional references/, scripts/)
 └── …
 ```
