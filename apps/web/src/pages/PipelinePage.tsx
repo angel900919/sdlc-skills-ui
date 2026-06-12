@@ -18,7 +18,7 @@ import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import {
   EXECUTION, FOUNDATION_BROWNFIELD, FOUNDATION_GREENFIELD, PER_FEATURE, QA_RELEASE,
   type StageDef, type StagePhase, type StageStatus, type FeatureState, type ProjectState,
-  featureStageStatus, foundationStageStatus, resolveArtifactPath,
+  featureStageStatus, foundationStageStatus, resolveArtifactPath, verdictAdvances,
 } from '@sdlc/shared';
 import { useNavigate } from 'react-router-dom';
 import { palette, microLabel, statusColor } from '../theme.js';
@@ -434,6 +434,7 @@ export function PipelinePage() {
     return null;
   }, [liveVerdicts, verdictEvents, projectId]);
   const verdictBanner = latestVerdict && latestVerdict.key !== dismissedVerdictKey ? latestVerdict : null;
+  const verdictHalted = verdictBanner !== null && !verdictAdvances(verdictBanner.token);
 
   const locate = useCallback(() => {
     if (rf.current && focusPos) rf.current.setCenter(focusPos.x + NODE_W / 2, focusPos.y, { zoom: 0.95, duration: 400 });
@@ -498,7 +499,7 @@ export function PipelinePage() {
           sx={{
             alignItems: 'center', gap: 1.5, px: 2.5, py: 0.9, flexShrink: 0,
             borderBottom: `1px solid ${palette.hairline}`,
-            background: verdictBanner.token === 'BLOCKED-ON' ? `${palette.red}10` : `${palette.green}0C`,
+            background: verdictHalted ? `${palette.red}10` : `${palette.green}0C`,
           }}
         >
           <Chip
@@ -506,12 +507,12 @@ export function PipelinePage() {
             label={verdictBanner.token}
             sx={{
               fontWeight: 700,
-              color: verdictBanner.token === 'BLOCKED-ON' ? palette.red : palette.green,
-              background: verdictBanner.token === 'BLOCKED-ON' ? `${palette.red}18` : `${palette.green}18`,
+              color: verdictHalted ? palette.red : palette.green,
+              background: verdictHalted ? `${palette.red}18` : `${palette.green}18`,
             }}
           />
           <Typography sx={{ fontSize: 12.5, color: palette.text, flex: 1 }} noWrap>
-            {verdictBanner.token === 'BLOCKED-ON'
+            {verdictHalted
               ? verdictBanner.blockedReason ?? 'A chain run is blocked and needs a human decision.'
               : `The chain reports this stage complete${verdictBanner.nextSkill ? ` — next: /${verdictBanner.nextSkill}` : ''}.`}
           </Typography>

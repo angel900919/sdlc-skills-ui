@@ -29,10 +29,9 @@ export function watchForVerdicts(msg: TranscriptMessage, projectId: string | nul
       kind: 'verdict',
       projectId,
       sessionId: msg.sessionId,
-      summary:
-        verdict.token === 'BLOCKED-ON'
-          ? `Chain verdict: BLOCKED-ON ${verdict.blockedReason ?? ''}`.trim()
-          : `Chain verdict: ${verdict.token}${nextSkill ? ` → /${nextSkill}` : ''}`,
+      summary: verdict.blockedReason
+        ? `Chain verdict: ${verdict.token} ${verdict.blockedReason}`
+        : `Chain verdict: ${verdict.token}${nextSkill ? ` → /${nextSkill}` : ''}`,
       detail: { token: verdict.token, nextSkill, blockedReason: verdict.blockedReason },
     });
     bus.broadcast({
