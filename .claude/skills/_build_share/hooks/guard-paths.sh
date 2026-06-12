@@ -61,10 +61,11 @@ esac
 
 # (b) Gate self-protection — ask. The agent being graded must not silently
 # edit the grader; the one legitimate editor is a session maintaining the
-# skill-set source repo itself, which only the human can recognize.
+# skill-set source repo itself, which only the human can recognize. The
+# seeded verifier subagent prompt is a grader too.
 case "$path" in
-    *.claude/skills/_build_share/gates/*|*.claude/skills/_build_share/hooks/*)
-        decide ask "Discipline gate/hook: $path verifies the agent's work and is not normally agent-editable. Approve only if this session is intentionally maintaining the skill set; otherwise change it by hand or via the skill-set repo." ;;
+    *.claude/skills/_build_share/gates/*|*.claude/skills/_build_share/hooks/*|*.claude/skills/_build_share/agents/*|*.claude/agents/verifier.md)
+        decide ask "Verification infrastructure: $path gates or grades the agent's work and is not normally agent-editable. Approve only if this session is intentionally maintaining the skill set; otherwise change it by hand or via the skill-set repo." ;;
 esac
 
 # (c) Frozen canonical specs — ask, content-aware. Only the frontmatter is
