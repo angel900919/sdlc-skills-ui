@@ -210,7 +210,8 @@ pause always fires interactively.
     ├── task-sources.md, coding-standards.md, ai-code-audit.md, *-styleguide.md, react-rules.md, …
     ├── task-template.md, mtdd-init.sh, .gitattributes (pins *.sh to LF)
     ├── BEADS-SETUP.md, PROGRESS-TRACKER.md   ← chain/beads adapters (optional)
-    └── gates/             ← tdd-check.sh, stop-guard.sh, clean-tree-guard.sh, beads-safety-guard.sh (git-only POSIX shell)
+    ├── gates/             ← tdd-check.sh, stop-guard.sh, clean-tree-guard.sh, beads-safety-guard.sh (git-only POSIX shell)
+    └── agents/            ← verifier.md — read-only grading subagent; `/mtdd-init --write` seeds it to .claude/agents/
 ```
 
 Claude Code only discovers skills at `.claude/skills/<name>/SKILL.md`, and

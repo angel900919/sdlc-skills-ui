@@ -269,7 +269,8 @@ secrets and lockfiles (`.env*` except the `.env.example`-style templates,
 `*.pem`/`*.key`/`secrets/`, and `package-lock.json`/`pnpm-lock.yaml`/
 `yarn.lock`/`Cargo.lock`/`poetry.lock`/`uv.lock`) are **denied** with the
 correct alternative named; edits to the discipline gates/hooks under
-`_build_share/` and to frozen canonical `SLICE-N.md` files (frontmatter
+`_build_share/`, the seeded verifier subagent (`.claude/agents/verifier.md`),
+and frozen canonical `SLICE-N.md` files (frontmatter
 `status: published` or `removed`) **escalate to you** for approval, because
 legitimate-but-rare writers exist (`/publish-issues` write-back, `/to-issues`
 re-slice, maintaining the skill set itself). It is advisory — it matches
@@ -298,6 +299,22 @@ use):
 
 ---
 
+## Independent verifier (subagent)
+
+Grading used to run in the same context that wrote the code — verdicts could be
+steered by the conversation, and the no-edit rule was prose. The suite now ships
+a **read-only verifier subagent** (`_build_share/agents/verifier.md`, seeded to
+`.claude/agents/verifier.md` by `/mtdd-init --write`): a fresh-context grader
+whose `tools:` allowlist (Read, Grep, Glob, Bash) is enforced by the harness, so
+it mechanically cannot edit code, weaken a test, or fix-and-pass. `mtdd-review`,
+`mtdd-verify`, and `/qa`'s mechanical evidence checks delegate their grading to
+it; it returns per-criterion evidence and the launching skill maps that onto its
+existing verdicts — the human gates and routing are unchanged. Unseeded, the
+skills fall back to in-context grading and say so. (Bash could still mutate;
+that residual rule stays prose — the honest boundary, as with the path guard.)
+
+---
+
 ## Layout
 
 ```
@@ -306,7 +323,7 @@ use):
 ├── QUICKSTART.md             ← the short command-order guide
 ├── README-mtdd.md            ← the portable MTDD bundle (copy this with mtdd-*)
 ├── _shared/                  ← chain contracts: conventions.md · ai-schema.md · downstream-integration.md
-├── _build_share/             ← MTDD rule packs, POSIX gates + hooks, task sources, project-state.py
+├── _build_share/             ← MTDD rule packs, POSIX gates + hooks + agents, task sources, project-state.py
 ├── <skill-name>/SKILL.md     ← one folder per skill (+ optional references/, scripts/)
 └── …
 ```

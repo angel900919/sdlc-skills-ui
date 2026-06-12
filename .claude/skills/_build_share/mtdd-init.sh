@@ -89,6 +89,11 @@ script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 if [ ! -f "$script_dir/gates/tdd-check.sh" ]; then
     echo "WARN: gates/tdd-check.sh not found next to this script ($script_dir/gates/). The shared bundle may not be laid out as .claude/skills/_build_share/ — the TDD-order gate will not run." >&2
 fi
+if [ ! -f "$script_dir/agents/verifier.md" ]; then
+    echo "WARN: agents/verifier.md not found next to this script ($script_dir/agents/). The review/verify/qa phases will fall back to in-context grading." >&2
+elif [ ! -f .claude/agents/verifier.md ]; then
+    echo "INFO: verifier subagent not yet seeded at .claude/agents/verifier.md — run with --write to copy it." >&2
+fi
 if [ ! -d .claude/skills/mtdd-implement ]; then
     echo "WARN: .claude/skills/mtdd-implement/ not found from the repo root. Claude Code discovers skills only at .claude/skills/<name>/ — copy the mtdd-* folders there." >&2
 fi
@@ -114,4 +119,17 @@ if [ "$write" -eq 1 ]; then
         echo "mtdd_task_source=$task_source"
     } > .mtdd/config
     echo "WROTE: .mtdd/config" >&2
+
+    # Seed the read-only verifier subagent (Claude Code discovers agents only at
+    # .claude/agents/). Never overwrite a differing copy — a project may have
+    # customized it; updating a customized grader is the human's call.
+    if [ -f "$script_dir/agents/verifier.md" ]; then
+        if [ ! -f .claude/agents/verifier.md ]; then
+            mkdir -p .claude/agents
+            cp "$script_dir/agents/verifier.md" .claude/agents/verifier.md
+            echo "WROTE: .claude/agents/verifier.md" >&2
+        elif ! cmp -s "$script_dir/agents/verifier.md" .claude/agents/verifier.md; then
+            echo "WARN: .claude/agents/verifier.md differs from the bundle copy ($script_dir/agents/verifier.md) — left untouched; update by hand if intended." >&2
+        fi
+    fi
 fi
