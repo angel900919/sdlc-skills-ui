@@ -23,7 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
-import { useDocsTree, useProjectState, useSpawnSession } from '../api/hooks.js';
+import { useDocsTree, useEvents, useProjectState, useSpawnSession } from '../api/hooks.js';
 
 // ---------------------------------------------------------------------------
 // Layout constants
@@ -408,6 +408,33 @@ export function PipelinePage() {
     [navigate],
   );
 
+  // Latest chain verdict: live WS events first, persisted audit trail as fallback.
+  const liveVerdicts = useAppStore((s) => s.verdicts);
+  const { data: verdictEvents } = useEvents({ projectId: projectId ?? undefined, kind: 'verdict', limit: 1 });
+  const [dismissedVerdictKey, setDismissedVerdictKey] = useState<string | null>(null);
+  const latestVerdict = useMemo(() => {
+    const live = liveVerdicts.find((v) => v.projectId === projectId);
+    if (live) {
+      return {
+        key: `${live.sessionId}:${live.token}`,
+        token: live.token,
+        nextSkill: live.nextSkill,
+        blockedReason: live.blockedReason,
+      };
+    }
+    const ev = verdictEvents?.[0];
+    if (ev?.detail && typeof ev.detail.token === 'string') {
+      return {
+        key: `audit-${ev.id}`,
+        token: ev.detail.token,
+        nextSkill: typeof ev.detail.nextSkill === 'string' ? ev.detail.nextSkill : null,
+        blockedReason: typeof ev.detail.blockedReason === 'string' ? ev.detail.blockedReason : null,
+      };
+    }
+    return null;
+  }, [liveVerdicts, verdictEvents, projectId]);
+  const verdictBanner = latestVerdict && latestVerdict.key !== dismissedVerdictKey ? latestVerdict : null;
+
   const locate = useCallback(() => {
     if (rf.current && focusPos) rf.current.setCenter(focusPos.x + NODE_W / 2, focusPos.y, { zoom: 0.95, duration: 400 });
   }, [focusPos]);
@@ -463,6 +490,48 @@ export function PipelinePage() {
           </Select>
         )}
       </Stack>
+
+      {/* ---- verdict banner: the chain just told us what's next ---- */}
+      {verdictBanner && (
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center', gap: 1.5, px: 2.5, py: 0.9, flexShrink: 0,
+            borderBottom: `1px solid ${palette.hairline}`,
+            background: verdictBanner.token === 'BLOCKED-ON' ? `${palette.red}10` : `${palette.green}0C`,
+          }}
+        >
+          <Chip
+            size="small"
+            label={verdictBanner.token}
+            sx={{
+              fontWeight: 700,
+              color: verdictBanner.token === 'BLOCKED-ON' ? palette.red : palette.green,
+              background: verdictBanner.token === 'BLOCKED-ON' ? `${palette.red}18` : `${palette.green}18`,
+            }}
+          />
+          <Typography sx={{ fontSize: 12.5, color: palette.text, flex: 1 }} noWrap>
+            {verdictBanner.token === 'BLOCKED-ON'
+              ? verdictBanner.blockedReason ?? 'A chain run is blocked and needs a human decision.'
+              : `The chain reports this stage complete${verdictBanner.nextSkill ? ` — next: /${verdictBanner.nextSkill}` : ''}.`}
+          </Typography>
+          {verdictBanner.nextSkill && (
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<BoltRoundedIcon sx={{ fontSize: 14 }} />}
+              onClick={() => launch(verdictBanner.nextSkill!)}
+              disabled={spawn.isPending}
+              sx={{ background: palette.green, color: palette.bg, '&:hover': { background: palette.green, filter: 'brightness(1.1)' } }}
+            >
+              Launch {promptFor(verdictBanner.nextSkill)}
+            </Button>
+          )}
+          <IconButton size="small" onClick={() => setDismissedVerdictKey(verdictBanner.key)}>
+            <CloseRoundedIcon sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Stack>
+      )}
 
       {/* ---- canvas ---- */}
       <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>

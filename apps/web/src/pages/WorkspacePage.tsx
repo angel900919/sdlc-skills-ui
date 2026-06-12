@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Box, Button, Chip, Divider, IconButton, InputBase, Stack, Tab, Tabs, Tooltip, Typography,
+  Box, Button, Checkbox, Chip, Divider, FormControlLabel, IconButton, InputBase,
+  MenuItem, Select, Stack, Tab, Tabs, Tooltip, Typography,
 } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import PanToolRoundedIcon from '@mui/icons-material/PanToolRounded';
+import ForkRightRoundedIcon from '@mui/icons-material/ForkRightRounded';
+import type { PermissionMode } from '@sdlc/shared';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import {
@@ -16,16 +21,31 @@ import { TerminalView } from '../components/Terminal.js';
 import { ChatView } from '../components/ChatView.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
 import { TraceView } from '../components/TraceView.js';
+import { UsageStrip } from '../components/UsageStrip.js';
+import { SubagentsView } from '../components/SubagentsView.js';
+import { DiffView } from '../components/DiffView.js';
+import { formatCostUsd } from '../lib/format.js';
+
+const PERMISSION_MODE_LABELS: Record<PermissionMode, string> = {
+  default: 'ask (default)',
+  auto: 'auto mode',
+  acceptEdits: 'accept edits',
+  plan: 'plan mode',
+  dontAsk: "don't ask",
+  bypassPermissions: 'skip all (YOLO)',
+};
 
 function SessionRow({ s, active, onClick }: { s: LiveSession; active: boolean; onClick: () => void }) {
   const color = statusColor[s.status] ?? palette.muted;
+  const attention = useAppStore((st) => st.attention[s.id]) ?? s.attention;
+  const usage = useAppStore((st) => st.liveUsage[s.id]) ?? s.usage;
   return (
     <Box
       onClick={onClick}
       sx={{
         px: 1.5, py: 1, cursor: 'pointer', borderRadius: 1,
         background: active ? palette.raised : 'transparent',
-        borderLeft: `2px solid ${active ? palette.green : 'transparent'}`,
+        borderLeft: `2px solid ${attention ? palette.amber : active ? palette.green : 'transparent'}`,
         '&:hover': { background: palette.raised },
       }}
     >
@@ -34,9 +54,20 @@ function SessionRow({ s, active, onClick }: { s: LiveSession; active: boolean; o
         <Typography sx={{ fontSize: 12.5, fontWeight: active ? 600 : 400, flex: 1, minWidth: 0 }} noWrap>
           {s.title}
         </Typography>
+        {attention && (
+          <Tooltip title={attention.message}>
+            <PanToolRoundedIcon sx={{ fontSize: 13, color: palette.amber }} />
+          </Tooltip>
+        )}
+        {s.worktreePath && (
+          <Tooltip title={`Isolated worktree: ${s.worktreePath}`}>
+            <ForkRightRoundedIcon sx={{ fontSize: 13, color: palette.violet }} />
+          </Tooltip>
+        )}
       </Stack>
       <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: palette.faint, mt: 0.25 }}>
         {s.createdAt.slice(5, 16).replace('T', ' ')} · {s.status}
+        {usage && usage.messages > 0 ? ` · ${formatCostUsd(usage.estCostUsd)}` : ''}
       </Typography>
     </Box>
   );
@@ -50,30 +81,40 @@ export function WorkspacePage() {
   const spawn = useSpawnSession(projectId);
   const kill = useKillSession();
   const resume = useResumeSession();
-  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity' | 'trace'>('terminal');
+  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity' | 'trace' | 'agents' | 'diff'>('terminal');
   const [launchDraft, setLaunchDraft] = useState('');
+  const [permissionMode, setPermissionMode] = useState<PermissionMode>('default');
+  const [useWorktree, setUseWorktree] = useState(false);
 
   const current = useMemo(
     () => (sessions ?? []).find((s) => s.id === sessionId) ?? null,
     [sessions, sessionId],
   );
+  const liveUsage = useAppStore((st) => (current ? st.liveUsage[current.id] : undefined));
+  const usage = liveUsage ?? current?.usage ?? null;
+  const attention = useAppStore((st) => (current ? st.attention[current.id] : undefined)) ?? current?.attention;
 
   // Auto-select the most recent session if none chosen.
   useEffect(() => {
     if (!sessionId && sessions?.length) navigate(`/workspace/${sessions[0].id}`, { replace: true });
   }, [sessionId, sessions, navigate]);
 
-  const startSession = (prompt?: string, skipPermissions?: boolean) => {
+  const startSession = (prompt?: string, mode?: PermissionMode) => {
     spawn.mutate(
-      { prompt: prompt || undefined, title: prompt || undefined, skipPermissions },
+      {
+        prompt: prompt || undefined,
+        title: prompt || undefined,
+        permissionMode: mode ?? permissionMode,
+        useWorktree: useWorktree || undefined,
+      },
       { onSuccess: (sess) => navigate(`/workspace/${sess.id}`) },
     );
   };
 
   // Start a session, consuming the launch draft as the initial prompt if present.
-  const launchFromDraft = (skipPermissions?: boolean) => {
+  const launchFromDraft = (mode?: PermissionMode) => {
     const prompt = launchDraft.trim();
-    startSession(prompt || undefined, skipPermissions);
+    startSession(prompt || undefined, mode);
     if (prompt) setLaunchDraft('');
   };
 
@@ -85,32 +126,60 @@ export function WorkspacePage() {
       <Box sx={{ width: 240, flexShrink: 0, borderRight: `1px solid ${palette.hairline}`, display: 'flex', flexDirection: 'column', background: palette.surface }}>
         <Stack direction="row" sx={{ alignItems: 'center', px: 1.5, py: 1.25 }}>
           <Typography sx={{ ...microLabel, flex: 1 }}>Sessions</Typography>
-          <Tooltip title="New Claude session">
-            <IconButton size="small" onClick={() => startSession()} disabled={spawn.isPending}>
+          <Tooltip title="New Claude session (uses the launch settings below)">
+            <IconButton size="small" onClick={() => launchFromDraft()} disabled={spawn.isPending}>
               <AddRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="New session — skip permissions (claude --dangerously-skip-permissions)">
-            <IconButton size="small" onClick={() => launchFromDraft(true)} disabled={spawn.isPending} sx={{ color: palette.amber }}>
+          <Tooltip title="New session — skip ALL permissions (claude --dangerously-skip-permissions)">
+            <IconButton size="small" onClick={() => launchFromDraft('bypassPermissions')} disabled={spawn.isPending} sx={{ color: palette.amber }}>
               <BoltRoundedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Stack>
-        <Stack direction="row" sx={{ gap: 0.5, px: 1.5, pb: 1 }}>
+        <Stack sx={{ gap: 0.75, px: 1.5, pb: 1 }}>
           <InputBase
             placeholder="/skill or prompt…"
             value={launchDraft}
             onChange={(e) => setLaunchDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && launchDraft.trim()) {
-                launchFromDraft(e.shiftKey);
+                launchFromDraft(e.shiftKey ? 'bypassPermissions' : undefined);
               }
             }}
             sx={{
-              flex: 1, fontSize: 12, fontFamily: '"IBM Plex Mono", monospace',
+              fontSize: 12, fontFamily: '"IBM Plex Mono", monospace',
               background: palette.bg, border: `1px solid ${palette.hairline}`, borderRadius: 1, px: 1, py: 0.4,
             }}
           />
+          <Stack direction="row" sx={{ gap: 0.75, alignItems: 'center' }}>
+            <Select
+              size="small"
+              value={permissionMode}
+              onChange={(e) => setPermissionMode(e.target.value as PermissionMode)}
+              sx={{ flex: 1, fontSize: 11, '& .MuiSelect-select': { py: 0.4 } }}
+            >
+              {(Object.keys(PERMISSION_MODE_LABELS) as PermissionMode[]).map((m) => (
+                <MenuItem key={m} value={m} sx={{ fontSize: 11.5 }}>
+                  {PERMISSION_MODE_LABELS[m]}
+                </MenuItem>
+              ))}
+            </Select>
+            <Tooltip title="Run in an isolated git worktree (parallel slices don't collide)">
+              <FormControlLabel
+                sx={{ m: 0, '& .MuiFormControlLabel-label': { fontSize: 10.5, color: palette.muted, fontFamily: '"IBM Plex Mono", monospace' } }}
+                control={
+                  <Checkbox
+                    size="small"
+                    checked={useWorktree}
+                    onChange={(e) => setUseWorktree(e.target.checked)}
+                    sx={{ p: 0.4, color: palette.faint, '&.Mui-checked': { color: palette.violet } }}
+                  />
+                }
+                label="worktree"
+              />
+            </Tooltip>
+          </Stack>
         </Stack>
         <Divider />
         <Box sx={{ flex: 1, overflow: 'auto', p: 0.75 }}>
@@ -130,18 +199,45 @@ export function WorkspacePage() {
         {current ? (
           <>
             <Stack direction="row" sx={{ alignItems: 'center', px: 2, borderBottom: `1px solid ${palette.hairline}`, background: palette.surface }}>
-              <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+              <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons={false}>
                 <Tab value="terminal" label="Terminal" />
                 <Tab value="chat" label="Chat" />
                 <Tab value="activity" label="Activity" />
                 <Tab value="trace" label="Trace" />
+                <Tab value="agents" label="Agents" />
+                <Tab value="diff" label="Diff" />
               </Tabs>
               <Box sx={{ flex: 1 }} />
+              {usage && <Box sx={{ mr: 1.5 }}><UsageStrip usage={usage} /></Box>}
+              {attention && (
+                <Tooltip title={attention.message}>
+                  <Chip
+                    size="small"
+                    icon={<PanToolRoundedIcon sx={{ fontSize: 12 }} />}
+                    label="needs you"
+                    sx={{ color: palette.amber, background: `${palette.amber}18`, mr: 1, '& .MuiChip-icon': { color: palette.amber } }}
+                  />
+                </Tooltip>
+              )}
+              {current.permissionMode !== 'default' && (
+                <Tooltip title={`Permission mode: ${PERMISSION_MODE_LABELS[current.permissionMode]}`}>
+                  <Chip
+                    size="small"
+                    label={current.permissionMode === 'bypassPermissions' ? 'YOLO' : current.permissionMode}
+                    sx={{ color: current.permissionMode === 'bypassPermissions' ? palette.amber : palette.blue, background: palette.raised, mr: 1 }}
+                  />
+                </Tooltip>
+              )}
               <Chip
                 size="small"
                 label={current.status}
                 sx={{ color: statusColor[current.status], background: `${statusColor[current.status]}18`, mr: 1.5 }}
               />
+              <Tooltip title="Export transcript as Markdown">
+                <IconButton size="small" component="a" href={`/api/sessions/${current.id}/export.md`} download>
+                  <DownloadRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
               {live ? (
                 <Tooltip title="Stop this session">
                   <IconButton size="small" color="error" onClick={() => kill.mutate(current.id, { onSuccess: () => void refetch() })}>
@@ -189,6 +285,16 @@ export function WorkspacePage() {
                 <TraceView sessionId={current.id} live={live} />
               </Box>
             )}
+            {tab === 'agents' && (
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                <SubagentsView sessionId={current.id} />
+              </Box>
+            )}
+            {tab === 'diff' && (
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                <DiffView sessionId={current.id} live={live} />
+              </Box>
+            )}
           </>
         ) : (
           <Stack sx={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
@@ -202,7 +308,7 @@ export function WorkspacePage() {
                   variant="outlined"
                   color="secondary"
                   startIcon={<BoltRoundedIcon />}
-                  onClick={() => startSession(undefined, true)}
+                  onClick={() => startSession(undefined, 'bypassPermissions')}
                 >
                   Skip permissions
                 </Button>

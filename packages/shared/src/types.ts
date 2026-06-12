@@ -20,6 +20,9 @@ export interface Project {
 
 export type SessionStatus = 'starting' | 'running' | 'exited' | 'interrupted';
 
+/** Mirrors the claude CLI's --permission-mode choices (bypassPermissions == --dangerously-skip-permissions). */
+export type PermissionMode = 'default' | 'acceptEdits' | 'plan' | 'auto' | 'dontAsk' | 'bypassPermissions';
+
 export interface ClaudeSession {
   id: string; // our internal id == the --session-id we pass to claude
   projectId: string;
@@ -35,6 +38,17 @@ export interface ClaudeSession {
   endedAt: string | null;
   /** Set when this session resumed an earlier one. */
   resumedFromSessionId: string | null;
+  /** Permission mode the session was launched with; resume reuses it. */
+  permissionMode: PermissionMode;
+  /** Set when the session runs in an isolated git worktree. */
+  worktreePath: string | null;
+}
+
+/** "Blocked on you" state — set by Notification hooks, cleared by activity. */
+export interface SessionAttention {
+  sessionId: string;
+  message: string;
+  since: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -245,7 +259,10 @@ export type ServerEvent =
   | { type: 'hook-event'; event: HookEvent }
   | { type: 'audit-event'; event: AuditEvent }
   | { type: 'state-changed'; projectId: string }
-  | { type: 'fs-changed'; projectId: string; paths: string[] };
+  | { type: 'fs-changed'; projectId: string; paths: string[] }
+  | { type: 'session-usage'; sessionId: string; usage: import('./usage.js').SessionUsage }
+  | { type: 'session-attention'; sessionId: string; attention: SessionAttention | null }
+  | { type: 'verdict'; projectId: string | null; sessionId: string; token: string; nextSkill: string | null; blockedReason: string | null };
 
 /** Client -> server over the same socket. */
 export type ClientEvent =
@@ -266,4 +283,59 @@ export interface MetricsSummary {
   promptsTotal: number;
   sessionsByDay: { day: string; count: number }[];
   avgSessionMinutes: number | null;
+  /** Skill launches (slash commands) ranked by frequency. */
+  skillLeaderboard: { skill: string; count: number }[];
+  /** 90-day activity heatmap: sessions + prompts per day. */
+  activityByDay: { day: string; sessions: number; prompts: number }[];
+  /** File mutations observed via PostToolUse Edit/Write/NotebookEdit hooks. */
+  fileEditsTotal: number;
+  /** Sum of per-session token usage (main transcripts). */
+  tokens: { input: number; output: number; cacheRead: number; cacheWrite: number };
+  /** API-equivalent value of all tracked sessions; null if any model is unpriced. */
+  estCostUsd: number | null;
+}
+
+// ---------------------------------------------------------------------------
+// Subagents (parsed from <transcriptDir>/<sessionId>/subagents/agent-*.jsonl)
+// ---------------------------------------------------------------------------
+
+export interface SubagentInfo {
+  agentId: string;
+  /** First user message of the agent transcript — the task prompt. */
+  task: string;
+  model: string | null;
+  messages: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  estCostUsd: number | null;
+  startedAt: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Diff review
+// ---------------------------------------------------------------------------
+
+export interface SessionDiff {
+  base: string;
+  /** Unified diff text (may be large; capped server-side). */
+  diff: string;
+  files: import('./diffStat.js').DiffFileStat[];
+  truncated: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Transcript full-text search
+// ---------------------------------------------------------------------------
+
+export interface SearchHit {
+  sessionId: string;
+  sessionTitle: string;
+  projectId: string | null;
+  uuid: string;
+  role: string;
+  timestamp: string;
+  /** Match snippet with [match] … markers already applied. */
+  snippet: string;
 }

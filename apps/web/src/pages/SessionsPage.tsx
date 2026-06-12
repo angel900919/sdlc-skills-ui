@@ -1,9 +1,11 @@
-import { Box, Button, Chip, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { Box, Button, Chip, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
+import PanToolRoundedIcon from '@mui/icons-material/PanToolRounded';
 import { useNavigate } from 'react-router-dom';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import { useMetrics, useSessions } from '../api/hooks.js';
 import { GlobalHooksPanel } from '../components/GlobalHooksPanel.js';
+import { formatCostUsd, formatTokens } from '../lib/format.js';
 
 export function SessionsPage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
@@ -22,6 +24,8 @@ export function SessionsPage() {
           { label: 'Prompts', value: metrics?.promptsTotal ?? 0 },
           { label: 'Tool calls', value: metrics?.toolCallsTotal ?? 0 },
           { label: 'Avg duration', value: metrics?.avgSessionMinutes != null ? `${metrics.avgSessionMinutes}m` : '—' },
+          { label: 'Tokens out', value: formatTokens(metrics?.tokens.output ?? 0) },
+          { label: 'API-equiv value', value: formatCostUsd(metrics?.estCostUsd ?? null), color: palette.green },
         ].map((m) => (
           <Paper key={m.label} sx={{ px: 2, py: 1.25, minWidth: 130 }}>
             <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 20, color: m.color ?? palette.text }}>
@@ -48,7 +52,7 @@ export function SessionsPage() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              {['Title', 'Status', 'Started', 'Ended', 'Launch prompt', ''].map((h) => (
+              {['Title', 'Status', 'Started', 'Ended', 'Tokens', 'Est. value', 'Launch prompt', ''].map((h) => (
                 <TableCell key={h} sx={{ ...microLabel, borderColor: palette.hairline }}>{h}</TableCell>
               ))}
             </TableRow>
@@ -56,7 +60,22 @@ export function SessionsPage() {
           <TableBody>
             {(sessions ?? []).map((s) => (
               <TableRow key={s.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/workspace/${s.id}`)}>
-                <TableCell sx={{ fontSize: 12.5, borderColor: palette.hairline }}>{s.title}</TableCell>
+                <TableCell sx={{ fontSize: 12.5, borderColor: palette.hairline }}>
+                  <Stack direction="row" sx={{ alignItems: 'center', gap: 0.75 }}>
+                    {s.attention && (
+                      <Tooltip title={s.attention.message}>
+                        <PanToolRoundedIcon sx={{ fontSize: 13, color: palette.amber }} />
+                      </Tooltip>
+                    )}
+                    <span>{s.title}</span>
+                    {s.permissionMode === 'bypassPermissions' && (
+                      <Chip size="small" label="YOLO" sx={{ height: 16, fontSize: 9, color: palette.amber, background: `${palette.amber}18` }} />
+                    )}
+                    {s.worktreePath && (
+                      <Chip size="small" label="worktree" sx={{ height: 16, fontSize: 9, color: palette.violet, background: `${palette.violet}18` }} />
+                    )}
+                  </Stack>
+                </TableCell>
                 <TableCell sx={{ borderColor: palette.hairline }}>
                   <Chip size="small" label={s.status} sx={{ color: statusColor[s.status], background: `${statusColor[s.status]}18` }} />
                 </TableCell>
@@ -65,6 +84,14 @@ export function SessionsPage() {
                 </TableCell>
                 <TableCell sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5, color: palette.muted, borderColor: palette.hairline }}>
                   {s.endedAt ? s.endedAt.slice(0, 16).replace('T', ' ') : '—'}
+                </TableCell>
+                <TableCell sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5, color: palette.muted, borderColor: palette.hairline }}>
+                  {s.usage && s.usage.messages > 0
+                    ? `${formatTokens(s.usage.inputTokens + s.usage.cacheReadTokens + s.usage.cacheWriteTokens)}→${formatTokens(s.usage.outputTokens)}`
+                    : '—'}
+                </TableCell>
+                <TableCell sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5, color: palette.green, borderColor: palette.hairline }}>
+                  {s.usage && s.usage.messages > 0 ? formatCostUsd(s.usage.estCostUsd) : '—'}
                 </TableCell>
                 <TableCell sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5, color: palette.green, borderColor: palette.hairline }}>
                   {s.launchPrompt ?? '—'}
@@ -76,7 +103,7 @@ export function SessionsPage() {
             ))}
             {!sessions?.length && (
               <TableRow>
-                <TableCell colSpan={6} sx={{ color: palette.muted, fontSize: 12.5 }}>
+                <TableCell colSpan={8} sx={{ color: palette.muted, fontSize: 12.5 }}>
                   No sessions recorded yet.
                 </TableCell>
               </TableRow>

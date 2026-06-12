@@ -3,13 +3,13 @@ import { Box, Dialog, InputBase, List, ListItemButton, Stack, Typography } from 
 import { useNavigate } from 'react-router-dom';
 import { palette, microLabel } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
-import { useSkills, useSpawnSession } from '../api/hooks.js';
+import { useSkills, useSpawnSession, useTranscriptSearch } from '../api/hooks.js';
 
 interface Command {
   id: string;
   label: string;
   hint: string;
-  group: 'navigate' | 'skill';
+  group: 'navigate' | 'skill' | 'search';
   run: () => void;
 }
 
@@ -22,6 +22,11 @@ export function CommandPalette() {
   const spawn = useSpawnSession(projectId);
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
+
+  // "? terms" searches transcripts instead of matching commands.
+  const searchMode = query.startsWith('?');
+  const searchQuery = searchMode ? query.slice(1).trim() : '';
+  const { data: hits } = useTranscriptSearch(open && searchMode ? searchQuery : '', projectId);
 
   const commands = useMemo<Command[]>(() => {
     const nav: Command[] = [
@@ -49,11 +54,24 @@ export function CommandPalette() {
     return [...nav, ...skillCmds];
   }, [skills, navigate, spawn]);
 
+  const searchResults = useMemo<Command[]>(
+    () =>
+      (hits ?? []).map((h) => ({
+        id: `hit-${h.uuid}`,
+        label: h.sessionTitle.slice(0, 38),
+        hint: h.snippet,
+        group: 'search' as const,
+        run: () => navigate(`/workspace/${h.sessionId}`),
+      })),
+    [hits, navigate],
+  );
+
   const filtered = useMemo(() => {
+    if (searchMode) return searchResults.slice(0, 14);
     const q = query.trim().toLowerCase();
     if (!q) return commands.slice(0, 14);
     return commands.filter((c) => c.label.toLowerCase().includes(q) || c.hint.toLowerCase().includes(q)).slice(0, 14);
-  }, [commands, query]);
+  }, [commands, query, searchMode, searchResults]);
 
   const close = () => {
     setOpen(false);
@@ -79,7 +97,7 @@ export function CommandPalette() {
         <InputBase
           autoFocus
           fullWidth
-          placeholder="Type a command or skill… (↑↓ to move, ⏎ to run)"
+          placeholder="Type a command or skill… (?text searches transcripts)"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -101,7 +119,8 @@ export function CommandPalette() {
               <Typography
                 sx={{
                   fontFamily: '"IBM Plex Mono", monospace', fontSize: 13,
-                  color: cmd.group === 'skill' ? palette.green : palette.blue, flexShrink: 0,
+                  color: cmd.group === 'skill' ? palette.green : cmd.group === 'search' ? palette.violet : palette.blue,
+                  flexShrink: 0,
                 }}
               >
                 {cmd.label}
@@ -110,13 +129,19 @@ export function CommandPalette() {
                 {cmd.hint}
               </Typography>
               <Typography sx={{ ...microLabel, flexShrink: 0 }}>
-                {cmd.group === 'skill' ? 'launch' : 'nav'}
+                {cmd.group === 'skill' ? 'launch' : cmd.group === 'search' ? 'open' : 'nav'}
               </Typography>
             </Stack>
           </ListItemButton>
         ))}
         {filtered.length === 0 && (
-          <Typography sx={{ p: 2, color: palette.muted, fontSize: 13 }}>No matches.</Typography>
+          <Typography sx={{ p: 2, color: palette.muted, fontSize: 13 }}>
+            {searchMode
+              ? searchQuery.length < 2
+                ? 'Keep typing to search transcripts…'
+                : 'No transcript matches.'
+              : 'No matches. Tip: start with ? to search transcripts.'}
+          </Typography>
         )}
       </List>
     </Dialog>

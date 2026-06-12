@@ -66,4 +66,37 @@ CREATE TABLE IF NOT EXISTS transcript_messages (
   blocks TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript_messages(session_id, timestamp);
+
+CREATE TABLE IF NOT EXISTS usage_samples (
+  uuid TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  timestamp TEXT NOT NULL,
+  model TEXT NOT NULL,
+  input_tokens INTEGER NOT NULL,
+  output_tokens INTEGER NOT NULL,
+  cache_read_tokens INTEGER NOT NULL,
+  cache_write_5m_tokens INTEGER NOT NULL,
+  cache_write_1h_tokens INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_usage_session ON usage_samples(session_id, timestamp);
+
+-- Full-text search over transcript text (external-content-free FTS5 table;
+-- rows are inserted alongside transcript_messages and pruned with them).
+CREATE VIRTUAL TABLE IF NOT EXISTS transcript_fts USING fts5(
+  text,
+  uuid UNINDEXED,
+  session_id UNINDEXED,
+  role UNINDEXED,
+  timestamp UNINDEXED
+);
 `);
+
+/** Additive column migrations for databases created by earlier versions. */
+function ensureColumn(table: string, column: string, ddl: string) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+ensureColumn('sessions', 'permission_mode', `permission_mode TEXT NOT NULL DEFAULT 'default'`);
+ensureColumn('sessions', 'worktree_path', 'worktree_path TEXT');

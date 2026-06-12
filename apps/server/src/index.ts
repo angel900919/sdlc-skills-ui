@@ -11,6 +11,8 @@ import { registerHookRoutes } from './routes/hooks.js';
 import { registerWebSocket } from './ws.js';
 import { recoverOrphanedSessions, shutdownAllSessions } from './claude/sessionManager.js';
 import { addProject, listProjects, watchAllProjects } from './state/projects.js';
+import { backfillSearchIndex } from './state/search.js';
+import { backfillUsageSamples } from './state/usageTracker.js';
 import { initTelemetry } from './otel.js';
 
 async function main() {
@@ -41,6 +43,10 @@ async function main() {
   // Crash recovery: mark orphaned sessions interrupted (they can be resumed),
   // re-attach project watchers, self-register this repo on first boot.
   recoverOrphanedSessions();
+  const indexed = backfillSearchIndex();
+  if (indexed > 0) logger.info({ indexed }, 'backfilled transcript search index');
+  const usageRows = backfillUsageSamples();
+  if (usageRows > 0) logger.info({ usageRows }, 'backfilled usage telemetry');
   if (listProjects().length === 0) {
     addProject(REPO_ROOT, 'SDLC Command Center');
   }

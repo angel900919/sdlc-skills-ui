@@ -5,6 +5,9 @@ import { transcriptDirFor } from '../config.js';
 import { db } from '../db.js';
 import { bus } from '../bus.js';
 import { logger } from '../logger.js';
+import { ingestUsage } from '../state/usageTracker.js';
+import { watchForVerdicts } from '../state/verdictWatcher.js';
+import { indexTranscriptMessage } from '../state/search.js';
 
 /**
  * Tails Claude Code session transcripts (~/.claude/projects/<dir>/<id>.jsonl).
@@ -92,9 +95,14 @@ class TranscriptTailer {
       if (!line.trim()) continue;
       try {
         const entry = JSON.parse(line) as Record<string, unknown>;
+        ingestUsage(entry, t.sessionId);
         const msg = this.normalize(entry, t.sessionId);
         if (msg) {
-          this.persist(msg);
+          const inserted = this.persist(msg);
+          if (inserted) {
+            indexTranscriptMessage(msg);
+            watchForVerdicts(msg, t.projectId);
+          }
           count++;
           if (!quiet) bus.broadcast({ type: 'transcript-message', message: msg });
         }
@@ -132,11 +140,13 @@ class TranscriptTailer {
     };
   }
 
-  private persist(msg: TranscriptMessage) {
-    db.prepare(
+  /** Returns true when the row was newly inserted (vs an already-seen uuid). */
+  private persist(msg: TranscriptMessage): boolean {
+    const res = db.prepare(
       `INSERT OR IGNORE INTO transcript_messages (uuid, session_id, role, entry_type, timestamp, blocks)
        VALUES (?, ?, ?, ?, ?, ?)`,
     ).run(msg.uuid, msg.sessionId, msg.role, msg.entryType, msg.timestamp, JSON.stringify(msg.blocks));
+    return res.changes > 0;
   }
 }
 

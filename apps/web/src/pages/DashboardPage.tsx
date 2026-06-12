@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
-import { Box, Button, Chip, Grid, Paper, Stack, Typography } from '@mui/material';
+import { Box, Button, Chip, Grid, LinearProgress, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { useNavigate } from 'react-router-dom';
-import type { FeatureState } from '@sdlc/shared';
+import type { FeatureState, MetricsSummary } from '@sdlc/shared';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import { useMetrics, useProjectState, useSessions, useSpawnSession } from '../api/hooks.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
 import { post } from '../api/client.js';
+import { formatCostUsd, formatTokens } from '../lib/format.js';
 
 function Card({ title, children, action, span }: { title: string; children: React.ReactNode; action?: React.ReactNode; span?: object }) {
   return (
@@ -30,6 +31,58 @@ function Big({ value, label, color }: { value: string | number; label: string; c
       </Typography>
       <Typography sx={{ ...microLabel }}>{label}</Typography>
     </Box>
+  );
+}
+
+/** 90-day activity heatmap: one square per day, intensity = sessions + prompts. */
+function ActivityHeatmap({ days }: { days: MetricsSummary['activityByDay'] }) {
+  const max = Math.max(1, ...days.map((d) => d.sessions * 3 + d.prompts));
+  return (
+    <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.4 }}>
+      {days.map((d) => {
+        const intensity = (d.sessions * 3 + d.prompts) / max;
+        return (
+          <Tooltip key={d.day} title={`${d.day} · ${d.sessions} sessions · ${d.prompts} prompts`}>
+            <Box
+              sx={{
+                width: 11, height: 11, borderRadius: 0.5,
+                background: intensity === 0 ? palette.hairline : palette.green,
+                opacity: intensity === 0 ? 1 : 0.25 + intensity * 0.75,
+              }}
+            />
+          </Tooltip>
+        );
+      })}
+      {days.length === 0 && (
+        <Typography sx={{ fontSize: 12.5, color: palette.muted }}>No activity recorded yet.</Typography>
+      )}
+    </Stack>
+  );
+}
+
+function SkillLeaderboard({ rows }: { rows: MetricsSummary['skillLeaderboard'] }) {
+  const max = Math.max(1, ...rows.map((r) => r.count));
+  return (
+    <Stack sx={{ gap: 0.6, overflow: 'auto', maxHeight: 240 }}>
+      {rows.map((r) => (
+        <Stack key={r.skill} direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11.5, color: palette.green, width: 130, flexShrink: 0 }} noWrap>
+            /{r.skill}
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={(r.count / max) * 100}
+            sx={{ flex: 1, height: 5, borderRadius: 2, background: palette.hairline, '& .MuiLinearProgress-bar': { background: palette.violet, borderRadius: 2 } }}
+          />
+          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: palette.muted, width: 28, textAlign: 'right' }}>
+            {r.count}
+          </Typography>
+        </Stack>
+      ))}
+      {rows.length === 0 && (
+        <Typography sx={{ fontSize: 12.5, color: palette.muted }}>No skill launches recorded yet.</Typography>
+      )}
+    </Stack>
   );
 }
 
@@ -121,6 +174,9 @@ export function DashboardPage() {
                   <Big value={counts.blocked} label="Blocked" color={counts.blocked ? palette.red : undefined} />
                   <Big value={activeSessions.length} label="Live sessions" color={activeSessions.length ? palette.green : undefined} />
                   <Big value={metrics?.toolCallsTotal ?? 0} label="Tool calls" />
+                  <Big value={formatTokens((metrics?.tokens.input ?? 0) + (metrics?.tokens.cacheRead ?? 0) + (metrics?.tokens.cacheWrite ?? 0))} label="Tokens in" />
+                  <Big value={formatTokens(metrics?.tokens.output ?? 0)} label="Tokens out" />
+                  <Big value={formatCostUsd(metrics?.estCostUsd ?? null)} label="API-equiv value" color={palette.green} />
                 </Stack>
               </Paper>
             </Grid>
@@ -207,6 +263,22 @@ export function DashboardPage() {
                     <Typography sx={{ fontSize: 12.5, color: palette.muted }}>No git history.</Typography>
                   )}
                 </Stack>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card title="Most-used skills">
+                <SkillLeaderboard rows={metrics?.skillLeaderboard ?? []} />
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card title="Activity · last 90 days">
+                <ActivityHeatmap days={metrics?.activityByDay ?? []} />
+                <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: palette.faint, mt: 1.5 }}>
+                  {metrics?.fileEditsTotal ?? 0} file edits · {metrics?.promptsTotal ?? 0} prompts ·{' '}
+                  {formatTokens(metrics?.tokens.output ?? 0)} tokens generated
+                </Typography>
               </Card>
             </Grid>
           </Grid>

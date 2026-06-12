@@ -26,6 +26,14 @@ import {
   install as installGlobalHooks,
   uninstall as uninstallGlobalHooks,
 } from '../claude/globalHooks.js';
+import { resolvePermissionMode } from '../claude/claudeArgs.js';
+import { listSubagents } from '../claude/subagents.js';
+import { removeSessionWorktree } from '../claude/worktrees.js';
+import { getSessionUsage, getUsageBySession, getUsageTotals } from '../state/usageTracker.js';
+import { getAttention, listAttention } from '../state/attention.js';
+import { getSessionDiff, listBranches } from '../state/gitDiff.js';
+import { searchTranscripts } from '../state/search.js';
+import { transcriptToMarkdown } from '@sdlc/shared';
 
 export function registerApiRoutes(app: FastifyInstance) {
   // ---- health -------------------------------------------------------------
@@ -97,14 +105,26 @@ export function registerApiRoutes(app: FastifyInstance) {
   // ---- sessions -----------------------------------------------------------
   app.get('/api/sessions', async (req) => {
     const { projectId } = req.query as { projectId?: string };
-    return listSessions(projectId).map((s) => ({ ...s, live: isLive(s.id) }));
+    const usage = getUsageBySession(projectId);
+    return listSessions(projectId).map((s) => ({
+      ...s,
+      live: isLive(s.id),
+      usage: usage[s.id] ?? null,
+      attention: getAttention(s.id),
+    }));
   });
+
+  app.get('/api/attention', async () => listAttention());
 
   app.post('/api/projects/:id/sessions', async (req, reply) => {
     const { id } = req.params as { id: string };
     const project = getProject(id);
     if (!project) return reply.code(404).send({ error: 'not found' });
-    const body = (req.body ?? {}) as { prompt?: string; title?: string; resumeSessionId?: string; skipPermissions?: boolean; cols?: number; rows?: number };
+    const body = (req.body ?? {}) as {
+      prompt?: string; title?: string; resumeSessionId?: string;
+      skipPermissions?: boolean; permissionMode?: string; useWorktree?: boolean;
+      cols?: number; rows?: number;
+    };
     try {
       const session = spawnSession({
         projectId: id,
@@ -112,7 +132,8 @@ export function registerApiRoutes(app: FastifyInstance) {
         prompt: body.prompt,
         title: body.title,
         resumeSessionId: body.resumeSessionId,
-        skipPermissions: body.skipPermissions,
+        permissionMode: resolvePermissionMode(body.permissionMode, body.skipPermissions),
+        useWorktree: body.useWorktree,
         cols: body.cols,
         rows: body.rows,
       });
@@ -178,6 +199,87 @@ export function registerApiRoutes(app: FastifyInstance) {
       messages = getTranscript(id);
     }
     return messages;
+  });
+
+  app.get('/api/sessions/:id/usage', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    if (!getSession(id)) return reply.code(404).send({ error: 'not found' });
+    return getSessionUsage(id);
+  });
+
+  app.get('/api/sessions/:id/agents', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    return listSubagents(id, session.cwd);
+  });
+
+  app.get('/api/sessions/:id/diff', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { base } = req.query as { base?: string };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    try {
+      return getSessionDiff(session.cwd, base || 'develop');
+    } catch (err) {
+      return reply.code(400).send({ error: `diff failed: ${(err as Error).message}` });
+    }
+  });
+
+  app.get('/api/sessions/:id/branches', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    try {
+      return listBranches(session.cwd);
+    } catch {
+      return [];
+    }
+  });
+
+  app.get('/api/sessions/:id/export.md', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    let messages = getTranscript(id);
+    if (messages.length === 0) {
+      transcriptTailer.backfill(id, session.projectId, session.cwd);
+      messages = getTranscript(id);
+    }
+    const md = transcriptToMarkdown(session, messages);
+    reply
+      .header('content-type', 'text/markdown; charset=utf-8')
+      .header('content-disposition', `attachment; filename="session-${id.slice(0, 8)}.md"`);
+    return md;
+  });
+
+  app.delete('/api/sessions/:id/worktree', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = getSession(id);
+    if (!session?.worktreePath) return reply.code(404).send({ error: 'no worktree' });
+    if (isLive(id)) return reply.code(409).send({ error: 'session is live; kill it first' });
+    const project = getProject(session.projectId);
+    if (!project) return reply.code(404).send({ error: 'project not found' });
+    try {
+      removeSessionWorktree(project.rootPath, session.worktreePath);
+      bus.audit({
+        source: 'user',
+        kind: 'worktree_removed',
+        projectId: session.projectId,
+        sessionId: id,
+        summary: `Removed worktree ${session.worktreePath}`,
+      });
+      return { ok: true };
+    } catch (err) {
+      return reply.code(400).send({ error: (err as Error).message });
+    }
+  });
+
+  // ---- transcript full-text search -----------------------------------------
+  app.get('/api/search', async (req) => {
+    const { q, projectId, limit } = req.query as { q?: string; projectId?: string; limit?: string };
+    if (!q || q.trim().length < 2) return [];
+    return searchTranscripts(q, projectId, Math.min(Number(limit ?? 30), 100));
   });
 
   app.get('/api/sessions/:id/trace', async (req, reply) => {
@@ -299,6 +401,46 @@ export function registerApiRoutes(app: FastifyInstance) {
       )
       .get(...sessionParams) as { m: number | null };
 
+    // Skill leaderboard: slash commands from session launches + submitted prompts.
+    const launchRows = db
+      .prepare(`SELECT launch_prompt p FROM sessions ${sessionFilter ? sessionFilter + ' AND' : 'WHERE'} launch_prompt LIKE '/%'`)
+      .all(...sessionParams) as { p: string }[];
+    const promptRows = db
+      .prepare(
+        `SELECT json_extract(payload, '$.prompt') p FROM hook_events
+         WHERE hook_event_name = 'UserPromptSubmit' AND json_extract(payload, '$.prompt') LIKE '/%'`,
+      )
+      .all() as { p: string | null }[];
+    const skillCounts = new Map<string, number>();
+    for (const { p } of [...launchRows, ...promptRows]) {
+      const skill = p?.match(/^\/([\w:-]+)/)?.[1];
+      if (skill) skillCounts.set(skill, (skillCounts.get(skill) ?? 0) + 1);
+    }
+    const skillLeaderboard = [...skillCounts.entries()]
+      .map(([skill, count]) => ({ skill, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 15);
+
+    // 90-day heatmap: sessions + prompts per day.
+    const heatSessions = db
+      .prepare(`SELECT substr(created_at, 1, 10) day, COUNT(*) c FROM sessions ${sessionFilter} GROUP BY day ORDER BY day DESC LIMIT 90`)
+      .all(...sessionParams) as { day: string; c: number }[];
+    const heatPrompts = db
+      .prepare(`SELECT substr(received_at, 1, 10) day, COUNT(*) c FROM hook_events WHERE hook_event_name = 'UserPromptSubmit' GROUP BY day ORDER BY day DESC LIMIT 90`)
+      .all() as { day: string; c: number }[];
+    const heat = new Map<string, { sessions: number; prompts: number }>();
+    for (const r of heatSessions) heat.set(r.day, { sessions: r.c, prompts: 0 });
+    for (const r of heatPrompts) heat.set(r.day, { ...(heat.get(r.day) ?? { sessions: 0, prompts: 0 }), prompts: r.c });
+    const activityByDay = [...heat.entries()]
+      .map(([day, v]) => ({ day, ...v }))
+      .sort((a, b) => a.day.localeCompare(b.day));
+
+    const fileEditsTotal = (db
+      .prepare(`SELECT COUNT(*) c FROM hook_events WHERE hook_event_name = 'PostToolUse' AND tool_name IN ('Edit', 'Write', 'NotebookEdit', 'MultiEdit')`)
+      .get() as { c: number }).c;
+
+    const usage = getUsageTotals(q.projectId);
+
     const summary: MetricsSummary = {
       sessionsTotal,
       sessionsActive,
@@ -308,6 +450,16 @@ export function registerApiRoutes(app: FastifyInstance) {
       promptsTotal,
       sessionsByDay: dayRows.map((r) => ({ day: r.day, count: r.c })).reverse(),
       avgSessionMinutes: avgRow.m === null ? null : Math.round(avgRow.m * 10) / 10,
+      skillLeaderboard,
+      activityByDay,
+      fileEditsTotal,
+      tokens: {
+        input: usage.inputTokens,
+        output: usage.outputTokens,
+        cacheRead: usage.cacheReadTokens,
+        cacheWrite: usage.cacheWriteTokens,
+      },
+      estCostUsd: usage.estCostUsd,
     };
     return summary;
   });

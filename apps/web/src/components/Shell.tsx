@@ -74,6 +74,12 @@ export function Shell() {
     () => (sessions ?? []).filter((s) => s.status === 'running' || s.status === 'starting').length,
     [sessions],
   );
+  const liveAttention = useAppStore((s) => s.attention);
+  const attentionCount = useMemo(() => {
+    const ids = new Set(Object.keys(liveAttention));
+    for (const s of sessions ?? []) if (s.attention) ids.add(s.id);
+    return ids.size;
+  }, [liveAttention, sessions]);
 
   const onAddProject = () => {
     const rootPath = window.prompt('Absolute path of the project to manage:');
@@ -138,7 +144,20 @@ export function Shell() {
                 }}
               >
                 {item.icon}
-                <Typography sx={{ fontSize: 13, fontWeight: active ? 600 : 400 }}>{item.label}</Typography>
+                <Typography sx={{ fontSize: 13, fontWeight: active ? 600 : 400, flex: 1 }}>{item.label}</Typography>
+                {item.path === '/workspace' && attentionCount > 0 && (
+                  <Box
+                    sx={{
+                      minWidth: 16, height: 16, px: 0.5, borderRadius: 1,
+                      background: palette.amber, color: palette.bg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 700, fontFamily: '"IBM Plex Mono", monospace',
+                      boxShadow: `0 0 8px ${palette.amber}66`,
+                    }}
+                  >
+                    {attentionCount}
+                  </Box>
+                )}
               </Box>
             );
           })}
@@ -156,11 +175,23 @@ export function Shell() {
             <Typography sx={{ ...microLabel }}>{wsConnected ? 'Link up' : 'Link down'}</Typography>
           </Stack>
           <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Chip
-              size="small"
-              label={`${activeSessions} active`}
-              sx={{ color: activeSessions ? palette.green : palette.muted, background: palette.raised }}
-            />
+            <Stack direction="row" sx={{ gap: 0.5 }}>
+              <Chip
+                size="small"
+                label={`${activeSessions} active`}
+                sx={{ color: activeSessions ? palette.green : palette.muted, background: palette.raised }}
+              />
+              {attentionCount > 0 && (
+                <Tooltip title={`${attentionCount} session${attentionCount > 1 ? 's' : ''} waiting on you`}>
+                  <Chip
+                    size="small"
+                    label={`${attentionCount} ✋`}
+                    onClick={() => navigate('/workspace')}
+                    sx={{ color: palette.bg, background: palette.amber, fontWeight: 700, cursor: 'pointer' }}
+                  />
+                </Tooltip>
+              )}
+            </Stack>
             <Clock />
           </Stack>
         </Stack>

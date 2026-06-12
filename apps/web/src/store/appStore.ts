@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuditEvent, HookEvent, ServerEvent } from '@sdlc/shared';
+import type { AuditEvent, HookEvent, ServerEvent, SessionAttention, SessionUsage } from '@sdlc/shared';
+import { notifyDesktop } from '../lib/notify.js';
 
 const LIVE_BUFFER = 400;
+const VERDICT_BUFFER = 50;
+
+export type VerdictEvent = Extract<ServerEvent, { type: 'verdict' }>;
 
 interface AppState {
   selectedProjectId: string | null;
@@ -13,6 +17,15 @@ interface AppState {
   /** Live hook events per session (newest first). */
   hookEvents: HookEvent[];
   pushHook: (e: HookEvent) => void;
+  /** Live per-session usage rollups (fresher than the sessions query). */
+  liveUsage: Record<string, SessionUsage>;
+  setUsage: (sessionId: string, usage: SessionUsage) => void;
+  /** Sessions currently blocked on the human. */
+  attention: Record<string, SessionAttention>;
+  setAttention: (sessionId: string, attention: SessionAttention | null) => void;
+  /** Chain verdicts (newest first). */
+  verdicts: VerdictEvent[];
+  pushVerdict: (v: VerdictEvent) => void;
   wsConnected: boolean;
   setWsConnected: (v: boolean) => void;
   commandPaletteOpen: boolean;
@@ -28,6 +41,18 @@ export const useAppStore = create<AppState>()(
       pushAudit: (e) => set((s) => ({ liveEvents: [e, ...s.liveEvents].slice(0, LIVE_BUFFER) })),
       hookEvents: [],
       pushHook: (e) => set((s) => ({ hookEvents: [e, ...s.hookEvents].slice(0, LIVE_BUFFER) })),
+      liveUsage: {},
+      setUsage: (sessionId, usage) => set((s) => ({ liveUsage: { ...s.liveUsage, [sessionId]: usage } })),
+      attention: {},
+      setAttention: (sessionId, attention) =>
+        set((s) => {
+          const next = { ...s.attention };
+          if (attention) next[sessionId] = attention;
+          else delete next[sessionId];
+          return { attention: next };
+        }),
+      verdicts: [],
+      pushVerdict: (v) => set((s) => ({ verdicts: [v, ...s.verdicts].slice(0, VERDICT_BUFFER) })),
       wsConnected: false,
       setWsConnected: (v) => set({ wsConnected: v }),
       commandPaletteOpen: false,
@@ -49,6 +74,21 @@ export function dispatchServerEvent(event: ServerEvent) {
       break;
     case 'hook-event':
       s.pushHook(event.event);
+      break;
+    case 'session-usage':
+      s.setUsage(event.sessionId, event.usage);
+      break;
+    case 'session-attention':
+      s.setAttention(event.sessionId, event.attention);
+      if (event.attention) {
+        notifyDesktop('Claude is waiting for you', event.attention.message);
+      }
+      break;
+    case 'verdict':
+      s.pushVerdict(event);
+      if (event.token === 'BLOCKED-ON') {
+        notifyDesktop('Chain blocked', event.blockedReason ?? 'A chain run reported BLOCKED-ON');
+      }
       break;
     default:
       break;

@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-12T10:32:08.149698+00:00",
-  "generatedAtSha": "337d23a",
+  "generatedAt": "2026-06-12T11:34:06.271441+00:00",
+  "generatedAtSha": "2e41615",
   "foundation": {
     "discover": {
       "present": false,
@@ -49,6 +49,11 @@
   },
   "progressTail": [],
   "recentCommits": [
+    {
+      "sha": "2e41615",
+      "date": "2026-06-12",
+      "subject": "Wire pipeline artifact links to Docs and fix empty MiniMap"
+    },
     {
       "sha": "337d23a",
       "date": "2026-06-11",

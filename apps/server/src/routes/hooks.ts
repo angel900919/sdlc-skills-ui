@@ -3,6 +3,7 @@ import type { HookEvent } from '@sdlc/shared';
 import { db } from '../db.js';
 import { bus } from '../bus.js';
 import { projectForCwd, touchProject } from '../state/projects.js';
+import { applyHookToAttention } from '../state/attention.js';
 
 /**
  * Ingest endpoint for Claude Code hooks. Each spawned session carries a
@@ -73,6 +74,7 @@ export function registerHookRoutes(app: FastifyInstance) {
       payload,
     };
     bus.broadcast({ type: 'hook-event', event: hookEvent });
+    applyHookToAttention(eventName, sessionId, String(payload.message ?? ''));
 
     const project = projectForCwd(cwd);
     if (project) touchProject(project.id);

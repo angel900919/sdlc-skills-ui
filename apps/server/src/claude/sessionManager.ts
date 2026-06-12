@@ -1,12 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import pty from 'node-pty';
-import type { ClaudeSession, SessionStatus } from '@sdlc/shared';
+import type { ClaudeSession, PermissionMode, SessionStatus } from '@sdlc/shared';
 import { config } from '../config.js';
 import { db } from '../db.js';
 import { bus } from '../bus.js';
 import { logger } from '../logger.js';
 import { ensureHookSettingsFile } from './hookSettings.js';
 import { transcriptTailer } from './transcriptTailer.js';
+import { buildClaudeArgs } from './claudeArgs.js';
+import { createSessionWorktree } from './worktrees.js';
+import { clearAttention } from '../state/attention.js';
 
 /**
  * Drives INTERACTIVE Claude Code CLI sessions through pseudo-terminals.
@@ -58,6 +61,8 @@ function rowToSession(row: Record<string, unknown>): ClaudeSession {
     createdAt: row.created_at as string,
     endedAt: (row.ended_at as string) ?? null,
     resumedFromSessionId: (row.resumed_from as string) ?? null,
+    permissionMode: ((row.permission_mode as string) ?? 'default') as PermissionMode,
+    worktreePath: (row.worktree_path as string) ?? null,
   };
 }
 
@@ -95,8 +100,10 @@ export interface SpawnOptions {
   prompt?: string;
   /** Resume an earlier Claude session (crash recovery / continue work). */
   resumeSessionId?: string;
-  /** Launch with `--dangerously-skip-permissions` (skip all permission prompts). */
-  skipPermissions?: boolean;
+  /** Permission mode for the claude CLI; persisted so resume keeps it. */
+  permissionMode?: PermissionMode;
+  /** Run the session in an isolated git worktree (parallel-slice safety). */
+  useWorktree?: boolean;
   cols?: number;
   rows?: number;
 }
@@ -104,17 +111,24 @@ export interface SpawnOptions {
 export function spawnSession(opts: SpawnOptions): ClaudeSession {
   const id = opts.resumeSessionId ?? randomUUID();
   const settingsFile = ensureHookSettingsFile();
+  const previous = opts.resumeSessionId ? getSession(opts.resumeSessionId) : null;
 
-  const args: string[] = ['--settings', settingsFile];
-  if (opts.skipPermissions) args.push('--dangerously-skip-permissions');
-  if (opts.resumeSessionId) args.push('--resume', opts.resumeSessionId);
-  else args.push('--session-id', id);
+  // Resume inherits the original mode and checkout unless explicitly overridden.
+  const permissionMode: PermissionMode = opts.permissionMode ?? previous?.permissionMode ?? 'default';
+  let cwd = previous?.cwd ?? opts.cwd;
+  let worktreePath = previous?.worktreePath ?? null;
+  if (!opts.resumeSessionId && opts.useWorktree) {
+    worktreePath = createSessionWorktree(opts.cwd, id);
+    cwd = worktreePath;
+  }
+
+  const args = buildClaudeArgs({ settingsFile, permissionMode, sessionId: id, resume: !!opts.resumeSessionId });
 
   const term = pty.spawn(config.claudeBin, args, {
     name: 'xterm-256color',
     cols: opts.cols ?? 140,
     rows: opts.rows ?? 38,
-    cwd: opts.cwd,
+    cwd,
     env: cleanEnv(),
   });
 
@@ -124,15 +138,16 @@ export function spawnSession(opts: SpawnOptions): ClaudeSession {
   if (opts.resumeSessionId) {
     // Re-activate the existing row rather than inserting a duplicate.
     db.prepare(
-      `INSERT INTO sessions (id, project_id, cwd, title, status, pid, launch_prompt, created_at, resumed_from)
-       VALUES (?, ?, ?, ?, 'starting', ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET status='starting', pid=excluded.pid, exit_code=NULL, ended_at=NULL`,
-    ).run(id, opts.projectId, opts.cwd, title, term.pid, opts.prompt ?? null, createdAt, opts.resumeSessionId);
+      `INSERT INTO sessions (id, project_id, cwd, title, status, pid, launch_prompt, created_at, resumed_from, permission_mode, worktree_path)
+       VALUES (?, ?, ?, ?, 'starting', ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET status='starting', pid=excluded.pid, exit_code=NULL, ended_at=NULL,
+         permission_mode=excluded.permission_mode`,
+    ).run(id, opts.projectId, cwd, title, term.pid, opts.prompt ?? null, createdAt, opts.resumeSessionId, permissionMode, worktreePath);
   } else {
     db.prepare(
-      `INSERT INTO sessions (id, project_id, cwd, title, status, pid, launch_prompt, created_at, resumed_from)
-       VALUES (?, ?, ?, ?, 'starting', ?, ?, ?, NULL)`,
-    ).run(id, opts.projectId, opts.cwd, title, term.pid, opts.prompt ?? null, createdAt);
+      `INSERT INTO sessions (id, project_id, cwd, title, status, pid, launch_prompt, created_at, resumed_from, permission_mode, worktree_path)
+       VALUES (?, ?, ?, ?, 'starting', ?, ?, ?, NULL, ?, ?)`,
+    ).run(id, opts.projectId, cwd, title, term.pid, opts.prompt ?? null, createdAt, permissionMode, worktreePath);
   }
 
   live.set(id, { term, buffer: '' });
@@ -147,6 +162,7 @@ export function spawnSession(opts: SpawnOptions): ClaudeSession {
 
   term.onExit(({ exitCode }) => {
     live.delete(id);
+    clearAttention(id);
     updateSession(id, { status: 'exited', exitCode, endedAt: new Date().toISOString() });
     bus.audit({
       source: 'server',
@@ -186,20 +202,21 @@ export function spawnSession(opts: SpawnOptions): ClaudeSession {
     }
   });
 
-  transcriptTailer.track(id, opts.projectId, opts.cwd);
+  transcriptTailer.track(id, opts.projectId, cwd);
 
+  const modeTag = permissionMode === 'default' ? '' : ` [${permissionMode}]`;
   bus.audit({
     source: 'server',
     kind: opts.resumeSessionId ? 'session_resumed' : 'session_started',
     projectId: opts.projectId,
     sessionId: id,
     summary: opts.resumeSessionId
-      ? `Resumed Claude session ${id.slice(0, 8)}`
-      : `Started Claude session ${id.slice(0, 8)}${opts.prompt ? ` with "${opts.prompt}"` : ''}${opts.skipPermissions ? ' [skip-permissions]' : ''}`,
-    detail: { cwd: opts.cwd },
+      ? `Resumed Claude session ${id.slice(0, 8)}${modeTag}`
+      : `Started Claude session ${id.slice(0, 8)}${opts.prompt ? ` with "${opts.prompt}"` : ''}${modeTag}${worktreePath ? ' [worktree]' : ''}`,
+    detail: { cwd, permissionMode, worktreePath },
   });
 
-  logger.info({ sessionId: id, pid: term.pid, cwd: opts.cwd, resume: !!opts.resumeSessionId }, 'spawned claude session');
+  logger.info({ sessionId: id, pid: term.pid, cwd, permissionMode, resume: !!opts.resumeSessionId }, 'spawned claude session');
   const session = getSession(id);
   if (!session) throw new Error('session row missing after insert');
   return session;
@@ -209,6 +226,7 @@ export function writeToSession(id: string, data: string): boolean {
   const entry = live.get(id);
   if (!entry) return false;
   entry.term.write(data);
+  clearAttention(id); // the human responded — no longer blocked on them
   return true;
 }
 

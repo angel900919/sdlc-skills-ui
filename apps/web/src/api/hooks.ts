@@ -6,15 +6,25 @@ import type {
   GlobalHooksMutationResult,
   GlobalHooksStatus,
   MetricsSummary,
+  PermissionMode,
   Project,
   ProjectState,
+  SearchHit,
+  SessionAttention,
+  SessionDiff,
   SessionTrace,
+  SessionUsage,
   SkillInfo,
+  SubagentInfo,
   TranscriptMessage,
 } from '@sdlc/shared';
 import { api, del, post } from './client.js';
 
-export type LiveSession = ClaudeSession & { live?: boolean };
+export type LiveSession = ClaudeSession & {
+  live?: boolean;
+  usage?: SessionUsage | null;
+  attention?: SessionAttention | null;
+};
 
 export function useProjects() {
   return useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/api/projects') });
@@ -85,9 +95,53 @@ export function useSessions(projectId?: string | null) {
 export function useSpawnSession(projectId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { prompt?: string; title?: string; resumeSessionId?: string; skipPermissions?: boolean }) =>
-      post<ClaudeSession>(`/api/projects/${projectId}/sessions`, input),
+    mutationFn: (input: {
+      prompt?: string;
+      title?: string;
+      resumeSessionId?: string;
+      permissionMode?: PermissionMode;
+      useWorktree?: boolean;
+    }) => post<ClaudeSession>(`/api/projects/${projectId}/sessions`, input),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
+  });
+}
+
+export function useSubagents(sessionId: string | null) {
+  return useQuery({
+    queryKey: ['subagents', sessionId],
+    queryFn: () => api<SubagentInfo[]>(`/api/sessions/${sessionId}/agents`),
+    enabled: !!sessionId,
+    refetchInterval: 20_000,
+  });
+}
+
+export function useSessionDiff(sessionId: string | null, base: string) {
+  return useQuery({
+    queryKey: ['session-diff', sessionId, base],
+    queryFn: () => api<SessionDiff>(`/api/sessions/${sessionId}/diff?base=${encodeURIComponent(base)}`),
+    enabled: !!sessionId && !!base,
+    retry: false,
+  });
+}
+
+export function useBranches(sessionId: string | null) {
+  return useQuery({
+    queryKey: ['branches', sessionId],
+    queryFn: () => api<string[]>(`/api/sessions/${sessionId}/branches`),
+    enabled: !!sessionId,
+    staleTime: 60_000,
+  });
+}
+
+export function useTranscriptSearch(query: string, projectId: string | null) {
+  const q = query.trim();
+  return useQuery({
+    queryKey: ['search', q, projectId],
+    queryFn: () =>
+      api<SearchHit[]>(`/api/search?q=${encodeURIComponent(q)}${projectId ? `&projectId=${projectId}` : ''}`),
+    enabled: q.length >= 2,
+    staleTime: 10_000,
+    placeholderData: (prev) => prev,
   });
 }
 
