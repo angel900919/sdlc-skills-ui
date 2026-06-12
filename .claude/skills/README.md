@@ -261,8 +261,25 @@ nothing, it never writes, and it always exits 0 (a non-zero SessionStart hook
 would block the session). `/status` remains the deep on-demand view and
 `/next` the recommender — this hook only covers "where was I?" for free.
 
-Enable it per project by adding to the project's `.claude/settings.json`
-(Claude Code asks you to approve the hook on first use):
+## Path guard (optional hook)
+
+A sibling PreToolUse hook — `_build_share/hooks/guard-paths.sh` — turns three
+prose invariants into mechanical permission decisions on `Edit`/`Write`:
+secrets and lockfiles (`.env*` except the `.env.example`-style templates,
+`*.pem`/`*.key`/`secrets/`, and `package-lock.json`/`pnpm-lock.yaml`/
+`yarn.lock`/`Cargo.lock`/`poetry.lock`/`uv.lock`) are **denied** with the
+correct alternative named; edits to the discipline gates/hooks under
+`_build_share/` and to frozen canonical `SLICE-N.md` files (frontmatter
+`status: published` or `removed`) **escalate to you** for approval, because
+legitimate-but-rare writers exist (`/publish-issues` write-back, `/to-issues`
+re-slice, maintaining the skill set itself). It is advisory — it matches
+`Edit|Write`, not `Bash`; hard boundaries belong in permission settings. Like
+the orientation hook it is fail-open: malformed input or unreadable files
+allow silently.
+
+Enable either or both per project by adding to the project's
+`.claude/settings.json` (Claude Code asks you to approve the hooks on first
+use):
 
 ```json
 {
@@ -271,6 +288,9 @@ Enable it per project by adding to the project's `.claude/settings.json`
       { "matcher": "startup", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
       { "matcher": "resume",  "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
       { "matcher": "clear",   "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/guard-paths.sh" }] }
     ]
   }
 }

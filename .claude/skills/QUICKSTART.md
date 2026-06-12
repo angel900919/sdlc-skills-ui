@@ -105,8 +105,10 @@ code map.
 | `/measure` | settle the bet: actual metric vs target → keep / iterate / sunset |
 | `/sunset` | retire a shipped feature: deprecated → removed (human-gated) |
 
-Optional: wire the SessionStart orientation hook so every session opens with
-branch + newest breadcrumb + tier already in context — snippet in
+Optional: wire the SessionStart orientation hook (every session opens with
+branch + newest breadcrumb + tier already in context) and the PreToolUse path
+guard (secrets/lockfiles denied; gate and frozen-spec edits escalate to you) —
+shared snippet in
 [`README.md` § Session-start orientation](README.md#session-start-orientation-optional-hook).
 
 ## Where things land
