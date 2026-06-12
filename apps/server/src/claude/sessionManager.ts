@@ -63,6 +63,7 @@ function rowToSession(row: Record<string, unknown>): ClaudeSession {
     resumedFromSessionId: (row.resumed_from as string) ?? null,
     permissionMode: ((row.permission_mode as string) ?? 'default') as PermissionMode,
     worktreePath: (row.worktree_path as string) ?? null,
+    lastSeenAt: (row.last_seen_at as string) ?? null,
   };
 }
 

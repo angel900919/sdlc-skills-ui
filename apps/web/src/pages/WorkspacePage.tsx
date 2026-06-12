@@ -24,6 +24,7 @@ import { TraceView } from '../components/TraceView.js';
 import { UsageStrip } from '../components/UsageStrip.js';
 import { SubagentsView } from '../components/SubagentsView.js';
 import { DiffView } from '../components/DiffView.js';
+import { RecapBanner } from '../components/RecapBanner.js';
 import { formatCostUsd } from '../lib/format.js';
 
 const PERMISSION_MODE_LABELS: Record<PermissionMode, string> = {
@@ -57,6 +58,20 @@ function SessionRow({ s, active, onClick }: { s: LiveSession; active: boolean; o
         {attention && (
           <Tooltip title={attention.message}>
             <PanToolRoundedIcon sx={{ fontSize: 13, color: palette.amber }} />
+          </Tooltip>
+        )}
+        {!active && (s.unseenCount ?? 0) > 0 && (
+          <Tooltip title={`${s.unseenCount} new transcript message${s.unseenCount! > 1 ? 's' : ''} since you last looked`}>
+            <Box
+              sx={{
+                minWidth: 16, height: 16, px: 0.5, borderRadius: 1, flexShrink: 0,
+                background: palette.blue, color: palette.bg,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, fontWeight: 700, fontFamily: '"IBM Plex Mono", monospace',
+              }}
+            >
+              {s.unseenCount! > 99 ? '99+' : s.unseenCount}
+            </Box>
           </Tooltip>
         )}
         {s.worktreePath && (
@@ -256,6 +271,7 @@ export function WorkspacePage() {
                 </Button>
               )}
             </Stack>
+            <RecapBanner sessionId={current.id} />
             <Box sx={{ flex: 1, minHeight: 0, display: tab === 'terminal' ? 'block' : 'none' }}>
               {live ? (
                 <TerminalView sessionId={current.id} />

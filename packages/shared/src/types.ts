@@ -42,6 +42,8 @@ export interface ClaudeSession {
   permissionMode: PermissionMode;
   /** Set when the session runs in an isolated git worktree. */
   worktreePath: string | null;
+  /** Recap cursor: when the user last viewed this session in the UI. */
+  lastSeenAt: string | null;
 }
 
 /** "Blocked on you" state — set by Notification hooks, cleared by activity. */

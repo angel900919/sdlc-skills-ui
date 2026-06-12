@@ -12,6 +12,7 @@ import type {
   SearchHit,
   SessionAttention,
   SessionDiff,
+  SessionRecap,
   SessionTrace,
   SessionUsage,
   SkillInfo,
@@ -24,6 +25,7 @@ export type LiveSession = ClaudeSession & {
   live?: boolean;
   usage?: SessionUsage | null;
   attention?: SessionAttention | null;
+  unseenCount?: number;
 };
 
 export function useProjects() {
@@ -142,6 +144,18 @@ export function useTranscriptSearch(query: string, projectId: string | null) {
     enabled: q.length >= 2,
     staleTime: 10_000,
     placeholderData: (prev) => prev,
+  });
+}
+
+export function fetchSessionRecap(sessionId: string): Promise<SessionRecap> {
+  return api<SessionRecap>(`/api/sessions/${sessionId}/recap`);
+}
+
+export function useMarkSessionSeen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => post<{ ok: boolean; lastSeenAt: string }>(`/api/sessions/${sessionId}/seen`),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['sessions'] }),
   });
 }
 

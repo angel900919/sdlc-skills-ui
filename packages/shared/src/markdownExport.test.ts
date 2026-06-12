@@ -16,6 +16,7 @@ const session: ClaudeSession = {
   resumedFromSessionId: null,
   permissionMode: 'default',
   worktreePath: null,
+  lastSeenAt: null,
 };
 
 function msg(role: TranscriptMessage['role'], blocks: TranscriptMessage['blocks'], uuid = 'u'): TranscriptMessage {

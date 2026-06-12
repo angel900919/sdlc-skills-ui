@@ -100,3 +100,4 @@ function ensureColumn(table: string, column: string, ddl: string) {
 }
 ensureColumn('sessions', 'permission_mode', `permission_mode TEXT NOT NULL DEFAULT 'default'`);
 ensureColumn('sessions', 'worktree_path', 'worktree_path TEXT');
+ensureColumn('sessions', 'last_seen_at', 'last_seen_at TEXT');

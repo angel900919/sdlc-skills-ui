@@ -68,6 +68,11 @@ export function SessionsPage() {
                       </Tooltip>
                     )}
                     <span>{s.title}</span>
+                    {(s.unseenCount ?? 0) > 0 && (
+                      <Tooltip title={`${s.unseenCount} new transcript message${s.unseenCount! > 1 ? 's' : ''} since you last looked`}>
+                        <Chip size="small" label={`${s.unseenCount! > 99 ? '99+' : s.unseenCount} new`} sx={{ height: 16, fontSize: 9, color: palette.bg, background: palette.blue, fontWeight: 700 }} />
+                      </Tooltip>
+                    )}
                     {s.permissionMode === 'bypassPermissions' && (
                       <Chip size="small" label="YOLO" sx={{ height: 16, fontSize: 9, color: palette.amber, background: `${palette.amber}18` }} />
                     )}

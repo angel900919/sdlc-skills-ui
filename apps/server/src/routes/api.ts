@@ -31,6 +31,7 @@ import { listSubagents } from '../claude/subagents.js';
 import { removeSessionWorktree } from '../claude/worktrees.js';
 import { getSessionUsage, getUsageBySession, getUsageTotals } from '../state/usageTracker.js';
 import { getAttention, listAttention } from '../state/attention.js';
+import { getSessionRecap, getUnseenCounts, markSessionSeen } from '../state/recap.js';
 import { getSessionDiff, listBranches } from '../state/gitDiff.js';
 import { searchTranscripts } from '../state/search.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
@@ -106,11 +107,13 @@ export function registerApiRoutes(app: FastifyInstance) {
   app.get('/api/sessions', async (req) => {
     const { projectId } = req.query as { projectId?: string };
     const usage = getUsageBySession(projectId);
+    const unseen = getUnseenCounts(projectId);
     return listSessions(projectId).map((s) => ({
       ...s,
       live: isLive(s.id),
       usage: usage[s.id] ?? null,
       attention: getAttention(s.id),
+      unseenCount: unseen[s.id] ?? 0,
     }));
   });
 
@@ -199,6 +202,18 @@ export function registerApiRoutes(app: FastifyInstance) {
       messages = getTranscript(id);
     }
     return messages;
+  });
+
+  app.get('/api/sessions/:id/recap', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    if (!getSession(id)) return reply.code(404).send({ error: 'not found' });
+    return getSessionRecap(id);
+  });
+
+  app.post('/api/sessions/:id/seen', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    if (!getSession(id)) return reply.code(404).send({ error: 'not found' });
+    return { ok: true, lastSeenAt: markSessionSeen(id) };
   });
 
   app.get('/api/sessions/:id/usage', async (req, reply) => {
