@@ -80,6 +80,16 @@ CREATE TABLE IF NOT EXISTS usage_samples (
 );
 CREATE INDEX IF NOT EXISTS idx_usage_session ON usage_samples(session_id, timestamp);
 
+CREATE TABLE IF NOT EXISTS session_prs (
+  session_id TEXT PRIMARY KEY,
+  branch TEXT NOT NULL,
+  base TEXT NOT NULL,
+  number INTEGER,
+  url TEXT NOT NULL,
+  title TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
 -- Full-text search over transcript text (external-content-free FTS5 table;
 -- rows are inserted alongside transcript_messages and pruned with them).
 CREATE VIRTUAL TABLE IF NOT EXISTS transcript_fts USING fts5(

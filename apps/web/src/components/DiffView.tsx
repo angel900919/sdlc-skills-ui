@@ -4,8 +4,10 @@ import {
 } from '@mui/material';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import DifferenceRoundedIcon from '@mui/icons-material/DifferenceRounded';
+import CallMergeRoundedIcon from '@mui/icons-material/CallMergeRounded';
 import { palette, microLabel } from '../theme.js';
 import { useBranches, useSessionDiff, useSessionInput } from '../api/hooks.js';
+import { PrDialog } from './PrDialog.js';
 
 /**
  * Diff review panel: the session checkout vs a base branch, plus a comment
@@ -18,6 +20,7 @@ export function DiffView({ sessionId, live }: { sessionId: string; live: boolean
   const sendInput = useSessionInput();
   const [comment, setComment] = useState('');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [prOpen, setPrOpen] = useState(false);
 
   const fileSections = useMemo(() => splitDiffByFile(data?.diff ?? ''), [data?.diff]);
   const visible = selectedFile ? fileSections.filter((f) => f.path === selectedFile) : fileSections;
@@ -42,7 +45,17 @@ export function DiffView({ sessionId, live }: { sessionId: string; live: boolean
               <MenuItem key={b} value={b} sx={{ fontSize: 12 }}>{b}</MenuItem>
             ))}
           </Select>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<CallMergeRoundedIcon sx={{ fontSize: 14 }} />}
+            onClick={() => setPrOpen(true)}
+            sx={{ fontSize: 11.5, color: palette.violet, borderColor: `${palette.violet}66` }}
+          >
+            Pull request…
+          </Button>
         </Stack>
+        <PrDialog sessionId={sessionId} base={base} open={prOpen} onClose={() => setPrOpen(false)} />
         <Box sx={{ flex: 1, overflow: 'auto', pb: 1 }}>
           <Box
             onClick={() => setSelectedFile(null)}

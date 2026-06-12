@@ -32,6 +32,7 @@ import { removeSessionWorktree } from '../claude/worktrees.js';
 import { getSessionUsage, getUsageBySession, getUsageTotals } from '../state/usageTracker.js';
 import { getAttention, listAttention } from '../state/attention.js';
 import { getSessionRecap, getUnseenCounts, markSessionSeen } from '../state/recap.js';
+import { createPr, getPrContext } from '../state/prFlow.js';
 import { getSessionDiff, listBranches } from '../state/gitDiff.js';
 import { searchTranscripts } from '../state/search.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
@@ -249,6 +250,46 @@ export function registerApiRoutes(app: FastifyInstance) {
       return listBranches(session.cwd);
     } catch {
       return [];
+    }
+  });
+
+  app.get('/api/sessions/:id/pr', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { base } = req.query as { base?: string };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    try {
+      return getPrContext(session, base || 'develop');
+    } catch (err) {
+      return reply.code(400).send({ error: (err as Error).message });
+    }
+  });
+
+  app.post('/api/sessions/:id/pr', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const body = (req.body ?? {}) as { base?: string; title?: string; body?: string; draft?: boolean };
+    const session = getSession(id);
+    if (!session) return reply.code(404).send({ error: 'not found' });
+    if (!body.base || !body.title?.trim()) return reply.code(400).send({ error: 'base and title required' });
+    try {
+      const pr = createPr(session, {
+        base: body.base,
+        title: body.title.trim(),
+        body: body.body ?? '',
+        draft: body.draft,
+      });
+      bus.audit({
+        source: 'user',
+        kind: 'pr_created',
+        projectId: session.projectId,
+        sessionId: id,
+        summary: `Pushed ${pr.branch} and opened PR ${pr.number ? `#${pr.number}` : ''} → ${pr.base}: ${pr.title}`,
+        detail: { url: pr.url, branch: pr.branch, base: pr.base, number: pr.number },
+      });
+      return pr;
+    } catch (err) {
+      req.log.error({ err }, 'pr creation failed');
+      return reply.code(400).send({ error: (err as Error).message });
     }
   });
 

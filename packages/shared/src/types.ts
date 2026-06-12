@@ -328,6 +328,34 @@ export interface SessionDiff {
 }
 
 // ---------------------------------------------------------------------------
+// PR flow (session branch → GitHub pull request, human-gated)
+// ---------------------------------------------------------------------------
+
+/** A pull request created from a session's branch. */
+export interface SessionPr {
+  sessionId: string;
+  branch: string;
+  base: string;
+  number: number | null;
+  url: string;
+  title: string;
+  createdAt: string;
+}
+
+/** Everything the PR dialog needs to render the draft-and-confirm flow. */
+export interface PrContext {
+  branch: string;
+  base: string;
+  commits: import('./prDraft.js').PrCommit[];
+  files: import('./diffStat.js').DiffFileStat[];
+  draft: import('./prDraft.js').PrDraft;
+  /** PR already created from this session, if any. */
+  existing: SessionPr | null;
+  /** Human-readable reasons creation is currently impossible (empty = go). */
+  blockers: string[];
+}
+
+// ---------------------------------------------------------------------------
 // Transcript full-text search
 // ---------------------------------------------------------------------------
 

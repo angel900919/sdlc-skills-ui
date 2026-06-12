@@ -7,11 +7,13 @@ import type {
   GlobalHooksStatus,
   MetricsSummary,
   PermissionMode,
+  PrContext,
   Project,
   ProjectState,
   SearchHit,
   SessionAttention,
   SessionDiff,
+  SessionPr,
   SessionRecap,
   SessionTrace,
   SessionUsage,
@@ -132,6 +134,24 @@ export function useBranches(sessionId: string | null) {
     queryFn: () => api<string[]>(`/api/sessions/${sessionId}/branches`),
     enabled: !!sessionId,
     staleTime: 60_000,
+  });
+}
+
+export function usePrContext(sessionId: string | null, base: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['pr-context', sessionId, base],
+    queryFn: () => api<PrContext>(`/api/sessions/${sessionId}/pr?base=${encodeURIComponent(base)}`),
+    enabled: enabled && !!sessionId && !!base,
+    retry: false,
+  });
+}
+
+export function useCreatePr(sessionId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { base: string; title: string; body: string; draft?: boolean }) =>
+      post<SessionPr>(`/api/sessions/${sessionId}/pr`, input),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['pr-context', sessionId] }),
   });
 }
 
