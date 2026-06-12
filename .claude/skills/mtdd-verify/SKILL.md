@@ -1,13 +1,14 @@
 ---
 name: mtdd-verify
 description: |-
-  Manual-TDD verify phase — runs typecheck and tests on the feature branch, then generates the manual smoke checklist. Invoked by name (/mtdd-verify) or by the mtdd-cycle orchestrator.
+  Manual-TDD verify phase — runs typecheck and tests via the read-only verifier subagent, then emits the manual smoke checklist. Invoked by name (/mtdd-verify) or by the mtdd-cycle orchestrator.
 allowed-tools:
   - Read
   - Edit
   - Bash
   - Glob
   - Grep
+  - Agent
 ---
 
 # mtdd-verify — manual TDD verify phase
@@ -38,9 +39,29 @@ Resolve the task source per [`../_build_share/task-sources.md` § Picking the so
 - `git rev-parse --abbrev-ref HEAD` — must be on a `feature/*` branch.
 - `git status --porcelain` — must be clean (no uncommitted changes). If dirty, **stop and ask** the user — verifying a dirty tree is meaningless.
 
+### 2.5. Delegate the runs to the verifier subagent
+
+The commands of steps 3–4 are **run by the `verifier` subagent**, not by you — a
+fresh, read-only context (no Edit/Write) cannot fix-and-pass or rationalize a
+failure it half-remembers causing. Resolve the commands per steps 3–4's precedence
+rules first (asking the user where those rules say to), then launch ONE `verifier`
+agent (seeded at `.claude/agents/verifier.md`; `/mtdd-init --write` copies it from
+`_build_share/agents/verifier.md`). The delegation prompt names: the task source
+(file path or bead id), `skip_tests`, and the resolved typecheck + test commands.
+It returns exit codes, counts, and failure output — the **On failure** blocks in
+steps 3–4 are yours to act on from that report.
+
+**Fallback (degraded).** If the launch fails because no `verifier` agent is seeded,
+say so, point the user at `/mtdd-init --write`, and run steps 3–4 in-context this
+run — same commands, same rules, but same-context grading; name the degradation in
+your hand-off. Under `/mtdd-cycle` the phase already runs inside a subagent and the
+Agent tool is unavailable there (agents can't nest) — that phase context is itself
+fresh, so run steps 3–4 directly and name the degradation as "phase-isolated,
+tool-unrestricted" instead.
+
 ### 3. Run typecheck
 
-Run the project's typecheck command. Pick by precedence:
+Determine the project's typecheck command (the verifier runs it — step 2.5). Pick by precedence:
 
 0. **Project config** — if `.mtdd/config` (written by `/mtdd-init`) defines a non-empty `mtdd_typecheck_cmd`, use it verbatim. This is the settled answer; the steps below are the fallback when no config exists.
 1. **Project script** — if `package.json` defines `typecheck`, use `npm run typecheck` (or pnpm/yarn analog). Same for `pyproject.toml` / `Makefile` targets.
@@ -66,7 +87,7 @@ If you still can't determine the command, **ask the user** which to run. Don't g
 
 If `skip_tests` is true (canonical `tests: skip-tests` OR free-form `Skip tests?: true`), log `"skipping test command (skip_tests=true)"` — and in canonical mode also surface `skip_tests_reason` for the user's record — then proceed to step 5.
 
-Otherwise, run the project's test command. Prefer `.mtdd/config` `mtdd_test_cmd` (written by `/mtdd-init`) when it's set and non-empty; otherwise pick by common shape:
+Otherwise, determine the project's test command (the verifier runs it — step 2.5). Prefer `.mtdd/config` `mtdd_test_cmd` (written by `/mtdd-init`) when it's set and non-empty; otherwise pick by common shape:
 
 - TypeScript / Node: `npm run test` (or `npx vitest run` / `npx jest`)
 - Python: `pytest`
@@ -138,8 +159,9 @@ Do not summarise the test *output* if everything passed — silence is fine ther
 Before writing any `verify: PASSED` line or telling the user the build is green:
 
 1. **Identify** the command that proves the claim (steps 3–4 above).
-2. **Run it now**, in full, in the foreground — this run, not a remembered one.
-3. **Read** the complete output and the exit code. Count the failures yourself.
+2. **Have the verifier run it now** (step 2.5) — or run it yourself only in the
+   degraded fallback — in full, in the foreground. This run, not a remembered one.
+3. **Read** the verifier's report: complete output and exit code, failures counted.
 4. Only then state the verdict — **with** the evidence (exit code, N passed / M failed).
 
 What is **not** evidence: a previous session's run · the implement phase's claim

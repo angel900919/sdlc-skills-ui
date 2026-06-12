@@ -1,13 +1,14 @@
 ---
 name: mtdd-review
 description: |-
-  Manual-TDD review phase — diffs the feature branch against target and ticks every acceptance criterion, emitting COMPLETE or REJECT. Invoked by name (/mtdd-review) or by the mtdd-cycle orchestrator.
+  Manual-TDD review phase — grades the feature diff against every acceptance criterion via the read-only verifier subagent, emitting COMPLETE or REJECT. Invoked by name (/mtdd-review) or by mtdd-cycle.
 allowed-tools:
   - Read
   - Edit
   - Bash
   - Glob
   - Grep
+  - Agent
 ---
 
 # mtdd-review — manual TDD review phase
@@ -119,7 +120,22 @@ This bypass covers only this confirmation pause — it never softens the verdict
 
 Once briefed, **violations of these rules promote to REJECT only when blocking** — security, type-system holes (`any`, non-null assertion on user input, etc.), dependency-rule breaches, missing test coverage on a behavioural criterion. Style nits, naming, and other non-load-bearing findings appear as commentary above the `<criteria>` block but do not flip the verdict. Use Step 7's verdict mechanism, not the briefing, to fail a slice.
 
+### 1.7. Delegate the grading to the verifier subagent
+
+Steps 2–5 plus the two packs in [§ Coding standards & AI-code audit](#coding-standards--ai-code-audit) are the **grading contract** — and they are **executed by the `verifier` subagent**, not by you. A fresh, read-only context (no Edit/Write) cannot quietly fix the diff it is judging, and it grades unbiased by the conversation that wrote the code. Launch ONE `verifier` agent (seeded at `.claude/agents/verifier.md`; `/mtdd-init --write` copies it from `_build_share/agents/verifier.md`). The delegation prompt must name:
+
+- this skill file's path, with the instruction to execute **§2–§5 and § Coding standards & AI-code audit only** — skip §1.5 (the pause was already held here) and §6 (it cannot edit);
+- the task source (file path or bead id), `target_branch`, and the diff range `git diff <target_branch>...HEAD`;
+- `skip_tests`, the traceability arrays from step 1, and the pack paths loaded in 1.5b;
+- the report it owes: the ticked criteria list (every criterion, original order), the TDD-gate result verbatim, and concerns marked blocking / non-blocking — plus the explicit instruction to emit **no** `<promise>` tag and no verdict token (the verdict is yours, step 7).
+
+Consume its report: spot-check **≤3** of its citations against the diff yourself, then carry its ticks into your `<criteria>` block unchanged — flip a tick only when a spot-check refutes it, and say so when you do.
+
+**Fallback (degraded).** If the launch fails because no `verifier` agent is seeded, say so, point the user at `/mtdd-init --write`, and execute §2–§5 in-context this run; name the degradation (same-context grading) next to your verdict. Under `/mtdd-cycle` the phase already runs inside a subagent and the Agent tool is unavailable there (agents can't nest) — that phase context is itself fresh, so execute §2–§5 directly and name the degradation as "phase-isolated, tool-unrestricted" instead.
+
 ### 2. Verify each acceptance criterion
+
+*(Executed by the verifier subagent per step 1.7 — steps 2–5 run in-context only in its degraded fallback.)*
 
 Open the task file's `## Acceptance criteria` checklist. For **each** criterion, walk the diff and decide whether it's satisfied. Base your tick on the diff content, not the bead title, commit messages, or vibes.
 
@@ -240,7 +256,7 @@ Do not implement the rejection yourself — the implement phase owns that.
 
 ## Coding standards & AI-code audit
 
-Judge the diff against two packs:
+*(Executed by the verifier subagent per step 1.7.)* Judge the diff against two packs:
 
 1. **Write-time standards** — [`../_build_share/coding-standards.md`](../_build_share/coding-standards.md). The same rules implement coded against; flag violations.
 2. **Review-time AI-code audit** — [`../_build_share/ai-code-audit.md`](../_build_share/ai-code-audit.md). Walk it explicitly: (1) Context Gap — list every deleted line and classify side effects; (2) Phantom Dependencies — verify unfamiliar imports against npm / PyPI; (3) Over-Engineering — apply YAGNI to new abstractions; (4) Test Theater — run the mutation check on at least one business-logic line; (5) Risk matrix — score Security / Ethics / Reliability. Apply the compounding rule and the audit verdict before emitting your own `COMPLETE` / `REJECT`.

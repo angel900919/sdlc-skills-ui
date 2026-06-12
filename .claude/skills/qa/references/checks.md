@@ -28,11 +28,11 @@ Human acceptance + exploratory     ✓           ✓          ✓
 
 ## Built-in delegation + graceful degradation
 
-`/qa` owns the *bespoke* part (read the contract, trace coverage, gate, write the report). It hands the *mechanical runs* to built-ins, and **degrades gracefully** — if a built-in is missing (older Claude Code, or the Windows checkout), emit the manual command for the human and **WARN**; never silently skip.
+`/qa` owns the *bespoke* part (read the contract, trace coverage, gate, write the report). Checks **a–c, e–h** execute inside the read-only **verifier subagent** (SKILL.md rule 3 — it reads this file's per-check methods itself); the table below covers the runs that stay in the parent, plus the fallbacks when the verifier or a built-in is unavailable. **Degrade gracefully** — if a built-in is missing (older Claude Code, or the Windows checkout), emit the manual command for the human and **WARN**; never silently skip.
 
 | Run | Built-in | Version floor | Manual fallback (WARN) |
 | :-- | :-- | :-- | :-- |
-| Acceptance behavior + regression | **`/verify`** | CC ≥ 2.1.145 | run the project's test command (`anchor.test_command`); for behavior, the human follows the `.human` script |
+| Regression test run (check c) | the **verifier subagent** running `anchor.test_command` / the project test command | — | **`/verify`** (CC ≥ 2.1.145), else the manual test command; acceptance *behavior* stays with the human following the `.human` script |
 | Bring the app up for the human script | **`/run`** | CC ≥ 2.1.145 | emit the run command from `anchor` for the human |
 | Security review (production) | **`/security-review`** | — | spawn a read-only security sub-agent on the feature diff, or flag "run a manual security pass" |
 | Fitness functions (production) | the `fitness/` test command | — | n/a — fitness files are runnable; if the runner is missing that's an env problem, FAIL with the command |
@@ -52,7 +52,7 @@ For each slice with `status: published`:
 Every PRD **F-ID** (all), **user story** + **NFR** (mvp+), **Unwanted-EARS clause** (prod) maps to ≥1 slice `satisfies_*`. A missing mapping → FAIL (route: F-ID/coverage → `/plan`; stale `satisfies_*` → `/to-issues`). **Inverse check:** every slice's `satisfies_*` resolves to a real PRD entry.
 
 ### c. Regression (all; scope by tier)
-The "did we break anything *else*?" gate — not just the feature's own tests. Prototype: feature-scoped tests + the smoke script (`npm run smoke` / `make smoke` / `anchor.smoke_command`; none → WARN). mvp+: the **full test suite** via `/verify` or `anchor.test_command`. Any failure → FAIL with the failing test names + stderr tail.
+The "did we break anything *else*?" gate — not just the feature's own tests. Prototype: feature-scoped tests + the smoke script (`npm run smoke` / `make smoke` / `anchor.smoke_command`; none → WARN). mvp+: the **full test suite** — the verifier subagent runs `anchor.test_command` (fallbacks: `/verify`, else the manual command + WARN). Any failure → FAIL with the failing test names + stderr tail.
 
 ### d. Spec-drift (mvp+)
 Lightweight inline: does each slice's `files`/intent still match `design.md`, and do `satisfies_*` still resolve to current PRD entries? ≥1 contradiction → `SPEC-DRIFT` (write the report capturing it; skip the gate). The deeper doc-vs-doc audit is `/coherence-check` (not built yet) — route there when it exists.
