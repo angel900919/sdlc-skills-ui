@@ -14,20 +14,23 @@ import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import {
   EXECUTION, FOUNDATION_BROWNFIELD, FOUNDATION_GREENFIELD, PER_FEATURE, QA_RELEASE,
   type StageDef, type StagePhase, type StageStatus, type FeatureState, type ProjectState,
-  featureStageStatus, foundationStageStatus,
+  featureStageStatus, foundationStageStatus, resolveArtifactPath,
 } from '@sdlc/shared';
 import { useNavigate } from 'react-router-dom';
 import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
-import { useProjectState, useSpawnSession } from '../api/hooks.js';
+import { useDocsTree, useProjectState, useSpawnSession } from '../api/hooks.js';
 
 // ---------------------------------------------------------------------------
 // Layout constants
 // ---------------------------------------------------------------------------
 const NODE_W = 188;
+const NODE_H = 56; // rendered stage-card height; nodes are controlled, so the MiniMap reads it from initialWidth/Height
+const LANE_H = 150;
 const COL = 212; // horizontal step between stages in a lane
 const PANEL_W = 332;
 
@@ -162,7 +165,7 @@ function LaneNode({ data }: NodeProps) {
   return (
     <Box
       sx={{
-        width, height: 150,
+        width, height: LANE_H,
         borderRadius: 2,
         border: `1px solid ${palette.hairline}`,
         background: dim ? 'transparent' : `${palette.surface}55`,
@@ -183,6 +186,28 @@ function LaneNode({ data }: NodeProps) {
 }
 
 const nodeTypes = { stage: StageNode, lane: LaneNode };
+
+// ---------------------------------------------------------------------------
+// MiniMap coloring — lanes show as faint phase-tinted bands for orientation;
+// stages carry their status color, with the focus/selected node stroked so it
+// stays findable at minimap scale.
+// ---------------------------------------------------------------------------
+function miniMapNodeColor(node: Node): string {
+  if (node.type === 'lane') {
+    const { accent, dim } = node.data as LaneNodeData;
+    return dim ? 'transparent' : `${accent}1F`;
+  }
+  const { status } = node.data as StageNodeData;
+  return statusColor[status] ?? palette.faint;
+}
+
+function miniMapStrokeColor(node: Node): string {
+  if (node.type === 'lane') return palette.hairline;
+  const { focus, selected } = node.data as StageNodeData;
+  if (focus) return palette.blue;
+  if (selected) return palette.text;
+  return 'transparent';
+}
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -216,6 +241,7 @@ const NEEDS_FEATURE = new Set([...PER_FEATURE, ...QA_RELEASE].map((s) => s.id));
 export function PipelinePage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
   const { data } = useProjectState(projectId);
+  const { data: docsTree } = useDocsTree(projectId);
   const navigate = useNavigate();
   const spawn = useSpawnSession(projectId);
   const state = data?.state ?? null;
@@ -270,19 +296,36 @@ export function PipelinePage() {
     for (const lane of LANES) {
       const laneOff = lane.branch !== null && lane.branch !== activeBranch && branchKnown;
       const width = lane.stages.length * COL - (COL - NODE_W) + 24;
-      let laneDone = 0;
-      let laneTotal = 0;
+      const statuses: StageStatus[] = lane.stages.map((stage) =>
+        laneOff ? 'skipped' : statusFor(state, feature, stage),
+      );
+      const laneDone = statuses.filter((s) => s === 'done').length;
+      const laneTotal = statuses.filter((s) => s !== 'skipped').length;
+
+      // Lane band first: the MiniMap paints nodes in array order (zIndex only
+      // layers the canvas), so the band must sit under its stages there too.
+      nodes.push({
+        id: `lane-${lane.key}`,
+        type: 'lane',
+        position: { x: 0, y: lane.y },
+        initialWidth: width,
+        initialHeight: LANE_H,
+        zIndex: 0,
+        selectable: false,
+        draggable: false,
+        data: { label: lane.label, width, done: laneDone, total: laneTotal, accent: phaseAccent[lane.stages[0].phase], dim: laneOff } satisfies LaneNodeData,
+      });
 
       lane.stages.forEach((stage, i) => {
-        const status: StageStatus = laneOff ? 'skipped' : statusFor(state, feature, stage);
-        if (status !== 'skipped') laneTotal++;
-        if (status === 'done') laneDone++;
+        const status = statuses[i];
         const x = 12 + i * COL;
         if (stage.id === focusId) focusPos = { x, y: lane.y + 70 };
         nodes.push({
           id: stage.id,
           type: 'stage',
           position: { x, y: lane.y + 38 },
+          initialWidth: NODE_W,
+          initialHeight: NODE_H,
           zIndex: 1,
           data: {
             stage, status,
@@ -300,16 +343,6 @@ export function PipelinePage() {
             style: { stroke: palette.hairlineBright, strokeWidth: 1.25 },
           });
         }
-      });
-
-      nodes.push({
-        id: `lane-${lane.key}`,
-        type: 'lane',
-        position: { x: 0, y: lane.y },
-        zIndex: 0,
-        selectable: false,
-        draggable: false,
-        data: { label: lane.label, width, done: laneDone, total: laneTotal, accent: phaseAccent[lane.stages[0].phase], dim: laneOff } satisfies LaneNodeData,
       });
     }
 
@@ -365,6 +398,15 @@ export function PipelinePage() {
 
   const selectedStage = selectedId ? STAGE_BY_ID.get(selectedId) ?? null : null;
   const selectedStatus = selectedStage ? statusFor(state, feature, selectedStage) : 'pending';
+  const selectedArtifactPath = useMemo(
+    () => (selectedStage ? resolveArtifactPath(selectedStage.artifact, feature?.slug ?? null, docsTree ?? []) : null),
+    [selectedStage, feature, docsTree],
+  );
+
+  const openArtifact = useCallback(
+    (relPath: string) => navigate(`/docs?file=${encodeURIComponent(relPath)}`),
+    [navigate],
+  );
 
   const locate = useCallback(() => {
     if (rf.current && focusPos) rf.current.setCenter(focusPos.x + NODE_W / 2, focusPos.y, { zoom: 0.95, duration: 400 });
@@ -447,8 +489,10 @@ export function PipelinePage() {
           <MiniMap
             pannable
             zoomable
-            nodeColor={(n) => (n.type === 'lane' ? 'transparent' : statusColor[(n.data as StageNodeData).status] ?? palette.faint)}
-            nodeStrokeColor={() => palette.hairlineBright}
+            nodeColor={miniMapNodeColor}
+            nodeStrokeColor={miniMapStrokeColor}
+            nodeStrokeWidth={10}
+            nodeBorderRadius={3}
             maskColor="#0A0E1499"
             style={{ background: palette.surface, border: `1px solid ${palette.hairline}` }}
           />
@@ -460,8 +504,10 @@ export function PipelinePage() {
             stage={selectedStage}
             status={selectedStatus}
             prompt={promptFor(selectedStage.id)}
+            artifactPath={selectedArtifactPath}
             launching={spawn.isPending}
             onLaunch={() => launch(selectedStage.id)}
+            onOpenArtifact={openArtifact}
             onSelect={setSelectedId}
             onClose={() => setSelectedId(null)}
           />
@@ -526,13 +572,16 @@ function ProgressPill({ label, done, total, color }: { label: string; done: numb
 }
 
 function StageDetail({
-  stage, status, prompt, launching, onLaunch, onSelect, onClose,
+  stage, status, prompt, artifactPath, launching, onLaunch, onOpenArtifact, onSelect, onClose,
 }: {
   stage: StageDef;
   status: StageStatus;
   prompt: string;
+  /** Resolved file in the docs tree, when the artifact exists on disk. */
+  artifactPath: string | null;
   launching: boolean;
   onLaunch: () => void;
+  onOpenArtifact: (relPath: string) => void;
   onSelect: (id: string) => void;
   onClose: () => void;
 }) {
@@ -571,11 +620,31 @@ function StageDetail({
         <Typography sx={{ fontSize: 12.5, color: palette.text }}>{statusReason(status)}</Typography>
 
         <Typography sx={{ ...microLabel, mt: 2.5, mb: 0.75 }}>Artifact</Typography>
-        <Box sx={{ px: 1, py: 0.75, background: palette.bg, border: `1px solid ${palette.hairline}`, borderRadius: 1 }}>
-          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: palette.text, wordBreak: 'break-all' }}>
-            {stage.artifact}
-          </Typography>
-        </Box>
+        {artifactPath ? (
+          <Tooltip title="Open in Docs">
+            <Stack
+              direction="row"
+              onClick={() => onOpenArtifact(artifactPath)}
+              sx={{
+                alignItems: 'center', gap: 0.75, px: 1, py: 0.75, cursor: 'pointer',
+                background: palette.bg, border: `1px solid ${palette.hairline}`, borderRadius: 1,
+                transition: 'border-color 120ms, background 120ms',
+                '&:hover': { borderColor: palette.blue, background: palette.raised },
+              }}
+            >
+              <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: palette.blue, wordBreak: 'break-all', flex: 1 }}>
+                {artifactPath}
+              </Typography>
+              <OpenInNewRoundedIcon sx={{ fontSize: 13, color: palette.blue, flexShrink: 0 }} />
+            </Stack>
+          </Tooltip>
+        ) : (
+          <Box sx={{ px: 1, py: 0.75, background: palette.bg, border: `1px solid ${palette.hairline}`, borderRadius: 1 }}>
+            <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: palette.text, wordBreak: 'break-all' }}>
+              {stage.artifact}
+            </Typography>
+          </Box>
+        )}
 
         {stage.next.length > 0 && (
           <>

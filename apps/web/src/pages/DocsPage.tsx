@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Box, Collapse, InputBase, Stack, Typography } from '@mui/material';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import FolderOpenRoundedIcon from '@mui/icons-material/FolderOpenRounded';
@@ -14,7 +15,11 @@ function TreeNode({
 }: {
   node: DocNode; depth: number; selected: string | null; onSelect: (p: string) => void; filter: string;
 }) {
-  const [open, setOpen] = useState(depth < 1);
+  const holdsSelection = node.type === 'dir' && !!selected?.startsWith(`${node.relPath}/`);
+  const [open, setOpen] = useState(depth < 1 || holdsSelection);
+  useEffect(() => {
+    if (holdsSelection) setOpen(true);
+  }, [holdsSelection]);
   const matches = (n: DocNode): boolean =>
     !filter || n.name.toLowerCase().includes(filter) || (n.children ?? []).some(matches);
   if (!matches(node)) return null;
@@ -62,7 +67,13 @@ function TreeNode({
 export function DocsPage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
   const { data: tree } = useDocsTree(projectId);
-  const [selected, setSelected] = useState<string | null>(null);
+  // Selection lives in the URL (?file=…) so other pages can deep-link to an artifact.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selected = searchParams.get('file');
+  const setSelected = useCallback(
+    (relPath: string) => setSearchParams({ file: relPath }),
+    [setSearchParams],
+  );
   const [filter, setFilter] = useState('');
   const { data: doc, isLoading } = useDocFile(projectId, selected);
 
