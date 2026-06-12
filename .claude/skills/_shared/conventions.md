@@ -63,6 +63,8 @@ Each stage's **frontmatter is the index**: a downstream skill reads the cheap fr
 
 Never silently downgrade or skip the analysis to avoid a hard verdict. The choice is "show the verdict and let the user override on the record" — never "hide the problem."
 
+One narrow exception: a skill may declare a specific gate **non-overridable in-skill** when the override legitimately lives in another skill (e.g. `/quick-spec`'s prototype-tier gate — the tier conversation happens in `/prd`, whose plain-language override is on the record). The skill must name where the override does live; "no override here" never means "no override anywhere."
+
 ## The hotfix path (P0 in shipped code)
 
 A P0 production defect does not queue behind the full chain (prd→design→plan→to-issues→publish→build→qa→ship). `anchor.release_policy.hotfix_path` defines the expedited route: branch from the production ref, fix via `/diagnose`, merge + deploy. The discipline never relaxes — the regression test is non-negotiable and `/mtdd-review` + `/mtdd-verify` still run — and the chain artifacts (the `category: bug` issue file + a `qa-report.md` note) are backfilled within a day, never skipped; `/ship` verifies the backfill or records it pending with a date.

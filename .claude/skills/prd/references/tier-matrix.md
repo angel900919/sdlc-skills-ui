@@ -33,6 +33,6 @@
 
 ## Uplift signals (define-once)
 
-The canonical per-feature uplift list — **money, PII/sensitive data, explicit SLA/availability commitment, external-party dependency, safety/legal/regulatory, explicit "this needs to be solid"** — lives in [`../../anchor/references/defaults.md`](../../anchor/references/defaults.md). Do not duplicate it here; read it.
+The canonical per-feature uplift list lives in [`../../anchor/references/defaults.md` § Tier uplift signals](../../anchor/references/defaults.md). Do not duplicate it here; read it. (A user's explicit "this needs to be solid" is not a separate signal — it is the plain-language tier override of rule 3, recorded as an upgrade.)
 
 **Bump rule:** `prototype + signal → mvp`, `mvp + signal → production`, `production + signal → stays production`. The bump is automatic but **announced**; the user can override in plain language (downgrades warn loudly). Cross-check `anchor.md` frontmatter: if `uplift_signals` already lists the signal, that's expected; if your scan finds one anchor didn't list, mention it (*"anchor didn't flag this — worth revisiting `/anchor` if more features will hit it"*).

@@ -81,6 +81,10 @@ Once per feature. All artifacts land under `.ai/specs/<feature>/`.
 /ship              release gate — flips the feature to shipped (you deploy)
 ```
 
+*Prototype express lane:* `/quick-spec` runs `/prd → /design → /plan` as one
+conversation and writes the same three artifacts — prototype tier only; any uplift
+signal (money, PII, SLA, regulatory, external dependants) bounces it to the full chain.
+
 *Conditional inserts:* `/ux-spec` after `/prd` (UI-bearing feature) · `/research`
 before `/design` (brownfield scout) · `/to-fitness` after `/design` (production) ·
 `/runbook` and `/docs <feature>` between `/qa` and `/ship` (production / external

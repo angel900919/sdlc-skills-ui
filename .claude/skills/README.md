@@ -143,6 +143,10 @@ Runs **once per feature** off the `.ai/features.md` roster. Spec → slices →
 tickets → build → gate → ship. All per-feature artifacts nest under
 `.ai/specs/<feature>/`.
 
+At **prototype** tier the first three stages may take the express lane:
+`/quick-spec` runs the prd → design → plan interviews as one conversation and
+writes the same three artifacts — any uplift signal bounces it to the full chain.
+
 ```mermaid
 flowchart TD
     P["/prd — the WHAT (effective tier computed here)"] --> R
@@ -176,6 +180,7 @@ flowchart TD
 | **`design`** | The per-feature **HOW** (LLD): modules, file layout, schema deltas, API contracts, call flow, test plan, per-feature ADRs. Inherits tier/stack/architecture — never re-decides them; refuses orphan features that map to no component. **Governs every new dependency** against `anchor.approved_dependencies` (slopsquatting fingerprint → refuse). Always writes a `.human` mirror with the sequence diagram. | `READY-FOR-PLAN` |
 | **`to-fitness`** *(production tier only)* | Pure code generator: mechanizes architecture invariants + characteristics (project scope) and PRD NFRs + Unwanted-EARS defenses (feature scope) into one runnable, CI-executable assertion file per rule under `fitness/`, each citing its source `file:line` with red-first discipline (`FAILS WHEN:`). | `READY-FOR-PLAN` |
 | **`plan`** | Decomposes the design into **vertical, dependency-ordered, independently-mergeable slices** — Slice 1 is always the tracer bullet (thinnest real end-to-end path). Each slice = one PR, with mechanical acceptance (tests + NFR target + named fitness fn at production) and a trace to the PRD. | `READY-FOR-ISSUES` |
+| **`quick-spec`** *(prototype tier only)* | The **express lane**: one sitting runs the prototype columns of `/prd → /design → /plan` and writes the same three artifacts (plus design's `.human` mirror) — downstream readers can't tell the difference. The effective-tier gate is non-overridable in-skill: any uplift signal bounces to the full chain (`NEEDS-FULL-CHAIN → /prd`); a partial spec trio routes back to its source skill (`RESUME-FULL-CHAIN`). | `READY-FOR-ISSUES` |
 | **`to-issues`** | The planning→execution seam, content half: converts each plan slice into one **canonical, tracker-agnostic** `issues/SLICE-N.md` work contract (AFK/HITL classification, tests-or-skip, category, traceability). Files only, no tracker writes. Flips the feature `planned → building`. | `READY-TO-PUBLISH` |
 | **`publish-issues`** | The seam's side-effecting half: a **pure idempotent adapter** that pushes the SLICE files to **one** backend per run (`--backend=beads\|jira\|md`), writes the `backend_refs` back, and flips `open → published`. Beads = the machine build queue; Jira/md = the human projections. | `READY-FOR-BUILD` |
 | **`build`** | The execute-phase **queue-brain + router**: reads the canonical slices + live backend state, done-detects across beads/jira/md, dependency-gates, and picks the next unblocked slice. Read-and-route only — never writes code, never mutates the frozen canonical files. | `READY-FOR-MTDD` (next slice) / `READY-FOR-QA` (feature done) |
