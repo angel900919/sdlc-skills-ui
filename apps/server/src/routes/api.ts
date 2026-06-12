@@ -33,6 +33,7 @@ import { getSessionUsage, getUsageBySession, getUsageTotals } from '../state/usa
 import { getAttention, listAttention } from '../state/attention.js';
 import { getSessionRecap, getUnseenCounts, markSessionSeen } from '../state/recap.js';
 import { createPr, getPrContext } from '../state/prFlow.js';
+import { detectDevServers } from '../state/devServers.js';
 import { getSessionDiff, listBranches } from '../state/gitDiff.js';
 import { searchTranscripts } from '../state/search.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
@@ -330,6 +331,9 @@ export function registerApiRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: (err as Error).message });
     }
   });
+
+  // ---- preview pane ---------------------------------------------------------
+  app.get('/api/preview/detect', async () => detectDevServers());
 
   // ---- transcript full-text search -----------------------------------------
   app.get('/api/search', async (req) => {

@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-12T12:10:12.927857+00:00",
-  "generatedAtSha": "9998476",
+  "generatedAt": "2026-06-12T12:13:16.587098+00:00",
+  "generatedAtSha": "4694337",
   "foundation": {
     "discover": {
       "present": false,
@@ -49,6 +49,11 @@
   },
   "progressTail": [],
   "recentCommits": [
+    {
+      "sha": "4694337",
+      "date": "2026-06-12",
+      "subject": "Add human-gated PR flow from the session diff panel"
+    },
     {
       "sha": "9998476",
       "date": "2026-06-12",

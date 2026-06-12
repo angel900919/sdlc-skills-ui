@@ -6,5 +6,6 @@ export * from './usage.js';
 export * from './verdicts.js';
 export * from './recap.js';
 export * from './prDraft.js';
+export * from './previewUrl.js';
 export * from './markdownExport.js';
 export * from './diffStat.js';

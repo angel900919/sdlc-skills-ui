@@ -25,6 +25,7 @@ import { UsageStrip } from '../components/UsageStrip.js';
 import { SubagentsView } from '../components/SubagentsView.js';
 import { DiffView } from '../components/DiffView.js';
 import { RecapBanner } from '../components/RecapBanner.js';
+import { PreviewView } from '../components/PreviewView.js';
 import { formatCostUsd } from '../lib/format.js';
 
 const PERMISSION_MODE_LABELS: Record<PermissionMode, string> = {
@@ -96,7 +97,7 @@ export function WorkspacePage() {
   const spawn = useSpawnSession(projectId);
   const kill = useKillSession();
   const resume = useResumeSession();
-  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity' | 'trace' | 'agents' | 'diff'>('terminal');
+  const [tab, setTab] = useState<'chat' | 'terminal' | 'activity' | 'trace' | 'agents' | 'diff' | 'preview'>('terminal');
   const [launchDraft, setLaunchDraft] = useState('');
   const [permissionMode, setPermissionMode] = useState<PermissionMode>('default');
   const [useWorktree, setUseWorktree] = useState(false);
@@ -221,6 +222,7 @@ export function WorkspacePage() {
                 <Tab value="trace" label="Trace" />
                 <Tab value="agents" label="Agents" />
                 <Tab value="diff" label="Diff" />
+                <Tab value="preview" label="Preview" />
               </Tabs>
               <Box sx={{ flex: 1 }} />
               {usage && <Box sx={{ mr: 1.5 }}><UsageStrip usage={usage} /></Box>}
@@ -309,6 +311,11 @@ export function WorkspacePage() {
             {tab === 'diff' && (
               <Box sx={{ flex: 1, minHeight: 0 }}>
                 <DiffView sessionId={current.id} live={live} />
+              </Box>
+            )}
+            {tab === 'preview' && projectId && (
+              <Box sx={{ flex: 1, minHeight: 0 }}>
+                <PreviewView projectId={projectId} />
               </Box>
             )}
           </>

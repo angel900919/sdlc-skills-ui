@@ -26,6 +26,9 @@ interface AppState {
   /** Chain verdicts (newest first). */
   verdicts: VerdictEvent[];
   pushVerdict: (v: VerdictEvent) => void;
+  /** Preview-pane URL per project (persisted). */
+  previewUrls: Record<string, string>;
+  setPreviewUrl: (projectId: string, url: string) => void;
   wsConnected: boolean;
   setWsConnected: (v: boolean) => void;
   commandPaletteOpen: boolean;
@@ -53,6 +56,8 @@ export const useAppStore = create<AppState>()(
         }),
       verdicts: [],
       pushVerdict: (v) => set((s) => ({ verdicts: [v, ...s.verdicts].slice(0, VERDICT_BUFFER) })),
+      previewUrls: {},
+      setPreviewUrl: (projectId, url) => set((s) => ({ previewUrls: { ...s.previewUrls, [projectId]: url } })),
       wsConnected: false,
       setWsConnected: (v) => set({ wsConnected: v }),
       commandPaletteOpen: false,
@@ -60,7 +65,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'sdlc-command-center',
-      partialize: (s) => ({ selectedProjectId: s.selectedProjectId }),
+      partialize: (s) => ({ selectedProjectId: s.selectedProjectId, previewUrls: s.previewUrls }),
     },
   ),
 );
