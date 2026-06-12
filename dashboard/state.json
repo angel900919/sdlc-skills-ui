@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-12T12:13:16.587098+00:00",
-  "generatedAtSha": "4694337",
+  "generatedAt": "2026-06-12T12:30:12.363357+00:00",
+  "generatedAtSha": "ac7bb30",
   "foundation": {
     "discover": {
       "present": false,
@@ -49,6 +49,21 @@
   },
   "progressTail": [],
   "recentCommits": [
+    {
+      "sha": "ac7bb30",
+      "date": "2026-06-12",
+      "subject": "Fix shared typecheck: URL global missing from ES2022-only lib"
+    },
+    {
+      "sha": "f7f0c05",
+      "date": "2026-06-12",
+      "subject": "Fix 400 on body-less POSTs from the web client"
+    },
+    {
+      "sha": "d1a424f",
+      "date": "2026-06-12",
+      "subject": "Add app preview pane with dev-server detection"
+    },
     {
       "sha": "4694337",
       "date": "2026-06-12",
