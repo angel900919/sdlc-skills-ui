@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
+      { "matcher": "resume",  "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
+      { "matcher": "clear",   "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] }
+    ]
+  }
+}
