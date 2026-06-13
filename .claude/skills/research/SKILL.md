@@ -2,7 +2,7 @@
 name: research
 disable-model-invocation: true
 description: |-
-  Optional brownfield-only per-feature codebase reconnaissance. Spawns an Explore sub-agent to scan the existing code touching a feature and writes a citation-heavy, facts-only research.md under .ai/specs — prior art, conventions, constraints, and the open questions /design must close. Facts, never recommendations (those belong to /design); every claim carries a file:line citation. Tier is inherited from the feature's PRD. Pairs 1:1 with /design and is the destination for design's NEEDS-RESEARCH verdict. Use when the user says "/research", "scout the area", "prior art for X", "what's already in the codebase for X", "scout the integration surface", or before /design on a brownfield feature. Do NOT use for: greenfield projects (nothing to scan), whole-codebase audits, high-level architecture (/architect), feature scope or NFRs (/prd), implementation design or schemas (/design), picking libraries definitively (/design), or writing code (the build phase).
+  Optional brownfield-only per-feature codebase reconnaissance. Spawns a scan sub-agent over the existing code touching a feature and writes a citation-heavy, facts-only research.md under .ai/specs — prior art, conventions, constraints, and the open questions /design must close. Facts, never recommendations (those belong to /design); every claim carries a file:line citation. Tier is inherited from the feature's PRD. Pairs 1:1 with /design and is the destination for design's NEEDS-RESEARCH verdict. Use when the user says "/research", "scout the area", "prior art for X", "what's already in the codebase for X", "scout the integration surface", or before /design on a brownfield feature. Do NOT use for: greenfield projects (nothing to scan), whole-codebase audits, high-level architecture (/architect), feature scope or NFRs (/prd), implementation design or schemas (/design), picking libraries definitively (/design), or writing code (the build phase).
 ---
 
 <what-to-do>
@@ -21,7 +21,7 @@ tier dial, tracker, Talking to the human) before writing. Don't restate it — r
 1. **Brownfield only.** Read `project_type` from `.ai/anchor.md` (fallback `.ai/intake.md`). If `greenfield` → skip: *"Greenfield — nothing to scan. `/design` reads anchor's stack directly. Go to `/design <feature>`."* Write no artifact, append no tracker entry.
 2. **PRD required → it carries the tier + the placement hint.** No `.ai/specs/<feature>/prd.md` → `BLOCKED-ON-PRD → /prd <feature>`. Read the effective `tier:` and the `placement:` component from its frontmatter.
 3. **Anchor required → it scopes the scan.** No `.ai/anchor.md` → `BLOCKED-ON-ANCHOR → /anchor`. The stack (language, framework, db) tells the sub-agent where to look.
-4. **The sub-agent does the scan.** `Agent` tool, `subagent_type=Explore`, the filled prompt skeleton from [references/sub-agent-prompt.md](references/sub-agent-prompt.md). The parent never bulk-reads the codebase — ≤5 `Read` lookups for citation spot-checks only.
+4. **The sub-agent does the scan; the report travels via a draft file.** `Agent` tool, `subagent_type=general-purpose` (NOT `Explore` — it cannot write files and compresses its final message to a conclusion; observed live 2026-06-13), the filled prompt skeleton from [references/sub-agent-prompt.md](references/sub-agent-prompt.md); the sub-agent works read-only and writes its full report to `/tmp/research-draft-<feature>.md`, replying with just the path. The parent reads the draft + ≤5 `Read` lookups for citation spot-checks only.
 5. **Facts only — no recommendations.** A "we should…" moves to *Open questions for design* or gets dropped. Library options are listed as options with citations; the *decision* is `/design`.
 6. **Cite every claim `path:line`.** Uncited claims are dropped — without provenance a claim doesn't survive across sessions. Reject vague stack-level claims (*"the codebase uses TypeScript"* — that's anchor's job); research is finer-grained (files, conventions, prior art).
 7. **Tier inherited from `prd.md`, never recomputed.** Match scan depth + line cap to the inherited tier. Caps (hard): **90 / 185 / 250**. Over → the scan was too broad; re-scope to the feature, not the project.
@@ -40,7 +40,7 @@ research progress:
 - [ ] Phase 0: Load tracker top 5; detect existing research.md (update mode); BROWNFIELD gate
 - [ ] Phase 1: Load prd (REQUIRED → tier + placement) + anchor (REQUIRED → stack); architecture/context warn; announce
 - [ ] Phase 2: Scope the scan (areas + 5 question categories) and confirm
-- [ ] Phase 3: Spawn the Explore sub-agent with the filled prompt skeleton
+- [ ] Phase 3: Spawn the scan sub-agent (draft-file contract) with the filled prompt skeleton
 - [ ] Phase 4: Verify citations (reject uncited; spot-check ≤3; strip "we should…")
 - [ ] Phase 5: Identify open questions for /design (≤5; answerable-how, not scope)
 - [ ] Phase 6: Read back; scan anti-patterns; collect corrections
@@ -62,13 +62,13 @@ Load frontmatter-first:
 | `.ai/context.md` (or `.ai/understanding/<slug>.md`) | glossary so the sub-agent uses repo-native terms | warn |
 | `.ai/intake.md` | `technical_user` → question depth | warn |
 
-Inherit the PRD's `tier:`. **Announce:** *"PRD tier: mvp. Feature: `invoice-send`. Placement (from PRD): `PlaceOrder`. Anchor stack: Next.js 14 + Drizzle + Supabase. Running mvp-tier research: Explore-sub-agent scan of `src/orders/` + `src/payments/`, full citation density, ≤185 lines. Proceed?"*
+Inherit the PRD's `tier:`. **Announce:** *"PRD tier: mvp. Feature: `invoice-send`. Placement (from PRD): `PlaceOrder`. Anchor stack: Next.js 14 + Drizzle + Supabase. Running mvp-tier research: sub-agent scan of `src/orders/` + `src/payments/`, full citation density, ≤185 lines. Proceed?"*
 
 ### Phase 2 — Scope the scan
 Define and confirm before spawning (a wasted sub-agent run costs cache window). Five categories: **code areas** (default from `placement` + anchor layout), **library questions** (deps the feature touches + versions), **convention questions** (naming, error handling, logging, testing), **prior-art questions** (similar shipped features), **constraint questions** (lint, CI gates, code-style). Confirm: *"About to scan `<areas>` for `<categories>`. Right?"*
 
 ### Phase 3 — Spawn the Explore sub-agent
-Use the `Agent` tool with `subagent_type=Explore` and the prompt skeleton from [references/sub-agent-prompt.md](references/sub-agent-prompt.md) — fill the brackets with concrete values (paste the PRD **Scope** verbatim, the anchor stack, the `placement` hint, the five categories, the `path:line` citation requirement, the tier line cap). The sub-agent runs in a fresh window; the parent sees only the structured summary. Set search breadth: `medium` (default), `quick` for a one-folder feature, `very thorough` only if scope genuinely spans subsystems.
+Use the `Agent` tool with `subagent_type=general-purpose` and the prompt skeleton from [references/sub-agent-prompt.md](references/sub-agent-prompt.md) — fill the brackets with concrete values (paste the PRD **Scope** verbatim, the anchor stack, the `placement` hint, the five categories, the `path:line` citation requirement, the tier line cap, the draft path `/tmp/research-draft-<feature>.md`). The sub-agent scans read-only, writes ONLY that draft file, and replies with the path; the parent reads the draft (rule 4). Set search breadth: `medium` (default), `quick` for a one-folder feature, `very thorough` only if scope genuinely spans subsystems.
 
 ### Phase 4 — Verify citations
 Reject any codebase claim without a `path:line`. Reject vague stack-level claims (rule 6). Spot-check 2–3 cited lines with `Read` (parent budget ≤3). Strip any *"we should…"* the sub-agent slipped in — move the real question to Open questions, else drop. Too many uncited claims → ask the sub-agent to refine.
@@ -101,7 +101,7 @@ If the user overrides a negative verdict, set `verdict_overridden: true`, record
 
 ## References
 - The `research.md` skeleton to assemble from: [references/template.md](references/template.md)
-- The Explore sub-agent prompt skeleton (fill the brackets): [references/sub-agent-prompt.md](references/sub-agent-prompt.md)
+- The scan sub-agent prompt skeleton (fill the brackets): [references/sub-agent-prompt.md](references/sub-agent-prompt.md)
 - Question bank — pull 5–10 when stuck, never all: [references/questions.md](references/questions.md)
 - Rejection list to scan before writing: [references/anti-patterns.md](references/anti-patterns.md)
 - Verdict-specific hand-off prose: [references/hand-off.md](references/hand-off.md)

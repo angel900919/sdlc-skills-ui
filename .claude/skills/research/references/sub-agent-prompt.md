@@ -1,9 +1,13 @@
-# Explore sub-agent prompt skeleton
+# Scan sub-agent prompt skeleton
 
-Base template for spawning the `Explore` sub-agent in Phase 3. Fill the brackets with concrete
+Base template for spawning the scan sub-agent in Phase 3. Fill the brackets with concrete
 values from the loaded inputs (the PRD **Scope** verbatim, the anchor stack, the `placement`
-hint from `prd.md` frontmatter). The sub-agent runs in a fresh context — the parent sees only
-its structured summary.
+hint from `prd.md` frontmatter). Spawn `subagent_type=general-purpose` — NOT `Explore`:
+that agent type cannot write files and compresses its final message to a conclusion, so a
+full cited report never reaches the parent (observed live 2026-06-13, /explore dogfood).
+The sub-agent scans READ-ONLY and writes its full report to the draft path the parent
+names (`/tmp/research-draft-<feature>.md`); its final chat message is just that path +
+per-section bullet counts. The parent reads the draft and slots it.
 
 ```
 You are scouting the codebase for feature `<feature>`. Output a vertical slice of what
