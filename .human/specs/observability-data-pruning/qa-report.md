@@ -17,4 +17,27 @@ Bring it up: `npm run dev`, open `http://127.0.0.1:5180`.
 
 *(Autonomous-run note: this script is human-deferred; approval below is the owner's standing authorization, recorded — not a live walk.)*
 
+## Outcome — dry-run smoke 2026-06-13 (agent-driven, at owner instruction)
+
+Run against the live app (`localhost:5180`, server `:4317`). The destructive confirm was **held
+at the human gate and not fired** — the owner accepted preview-level verification, so **no
+records were deleted** (767 rows intact).
+
+- **Step 1 (See storage) — verified live.** The Storage card lists all four kinds with counts
+  (audit 392 · hook 171 · transcript 38 · usage 166), oldest date `2026-06-11`, total file size
+  802,816 B. (DOM read.)
+- **Steps 2 & 4 (Preview / Nothing-to-delete) — verified live at the data layer** via the
+  `prune-preview` dry-run: **0 rows at the UI's 7 / 30 / 90-day cutoffs** (all data is <2 days old
+  → the "Nothing older than… No cleanup needed" path), and **585 rows** at an off-menu
+  `cutoffDays=1` (210 audit · 171 hook · 38 transcript · 166 usage). The dialog click-through, its
+  written promises, and the disabled confirm button were not walked through the UI.
+- **Steps 3, 5 & 6 (Confirm / Abandon / Failure-honesty) — not live-walked.** The destructive
+  delete + chunked vacuum + audit-event emission + idempotency + live-session protection are
+  covered by `apps/server/src/state/storagePrune.test.ts` (in the 179-green suite). Preview and
+  prune share one predicate (storagePrune.ts:46), so the confirmed count equals the deleted count
+  by construction.
+
+**Net:** dry-run pipeline verified live; destructive path accepted as integration-tested; **no
+data modified.**
+
 Machine evidence: [.ai/specs/observability-data-pruning/qa-report.md](../../../.ai/specs/observability-data-pruning/qa-report.md)
