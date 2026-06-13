@@ -131,7 +131,7 @@ Steps 2–5 plus the two packs in [§ Coding standards & AI-code audit](#coding-
 
 Consume its report: spot-check **≤3** of its citations against the diff yourself, then carry its ticks into your `<criteria>` block unchanged — flip a tick only when a spot-check refutes it, and say so when you do.
 
-**Fallback (degraded).** If the launch fails because no `verifier` agent is seeded, say so, point the user at `/mtdd-init --write`, and execute §2–§5 in-context this run; name the degradation (same-context grading) next to your verdict. Under `/mtdd-cycle` the phase already runs inside a subagent and the Agent tool is unavailable there (agents can't nest) — that phase context is itself fresh, so execute §2–§5 directly and name the degradation as "phase-isolated, tool-unrestricted" instead.
+**Fallback (degraded).** If the launch fails because the `verifier` agent type is unknown, say so and execute §2–§5 in-context this run; name the degradation (same-context grading) next to your verdict. Diagnose the cause before advising the user: (a) **not seeded** — `.claude/agents/verifier.md` absent → point them at `/mtdd-init --write`; (b) **seeded but not registered** — the file exists yet the type is still unknown because the agent registry is snapshotted at session start, so a seed written *this* session only takes effect next session → tell them to **restart the session** (re-running `/mtdd-init --write` will NOT help this run). Under `/mtdd-cycle` the phase already runs inside a subagent and the Agent tool is unavailable there (agents can't nest) — that phase context is itself fresh, so execute §2–§5 directly and name the degradation as "phase-isolated, tool-unrestricted" instead.
 
 ### 2. Verify each acceptance criterion
 

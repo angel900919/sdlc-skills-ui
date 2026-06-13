@@ -39,6 +39,20 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 
 **Foundation complete** — 10 stages, 8 issues found, 7 fixed, 1 by-design.
 
+### Per-feature loop — observability-data-pruning (the P0 planned feature)
+
+| # | Stage | Verdict | Issues hit | Fixes applied |
+|---|---|---|---|---|
+| 11 | /prd | READY-FOR-DESIGN | — | — (mvp PRD; also fixed /research's latent I-3 sub-agent bug preemptively) |
+| 12 | /ux-spec (feature) | READY-FOR-DESIGN | — | — (no design-system doc → WARN-and-proceed worked as designed) |
+| 13 | /design | READY-FOR-PLAN | — | — (chunked-vacuum feature ADR; sequence diagram kroki-validated) |
+| 14 | /plan | READY-FOR-ISSUES | — | — (3 vertical slices, tracer first) |
+| 15 | /to-issues | READY-TO-PUBLISH | — | — (planned→building flip; slice 2 HITL) |
+| 16 | /publish-issues (beads) | READY-FOR-BUILD | — | — (3 beads, dep edges, refs written back; frozen-spec ask fired live) |
+| 17 | /build | READY-FOR-MTDD (scc-m7w) | — | — (done-detection + dep-gate picked the tracer correctly) |
+| 18 | /mtdd-implement SLICE-1 | implement done | — | — (TDD red→green→green; 159 tests pass, typecheck clean) |
+| 19 | /mtdd-review SLICE-1 | COMPLETE (degraded) | I-9 | fixed (fallback diagnostics in 3 skills) |
+
 ## Issues & fixes (detail)
 
 _(numbered as I-1, I-2, … — referenced from the table above)_
@@ -98,6 +112,29 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   correctly so: the E2E table maps journeys to owning features, which need
   the roster to exist). One-line footer fix. Fourth ordering inconsistency in
   the brownfield on-ramp.
+- **I-9 (fixed — the verifier delegation's first live test, and it surfaced a
+  real gap)** — At `/mtdd-review` SLICE-1 the `verifier` subagent launch failed:
+  `Agent type 'verifier' not found. Available agents: claude, claude-code-guide,
+  Explore, general-purpose, Plan, statusline-setup`. The agent file **was**
+  seeded — `/mtdd-init --write` wrote `.claude/agents/verifier.md` earlier this
+  same turn (confirmed on disk) — but the harness **snapshots the agent registry
+  at session start**, so an agent seeded mid-session isn't registered until the
+  next session. Consequence for the memory note `verifier-subagent-design.md`
+  ("delegation not yet live-verified"): now live-tested, and the result is that
+  **the very first session after seeding always falls into the degraded
+  in-context fallback** — the delegation can never fire in the same session that
+  seeds it. The skill's fallback behaviour is correct (the Agent tool errors, the
+  skill grades in-context and labels the degradation — done here), but its
+  *diagnostic advice* was wrong for this case: it said "point the user at
+  `/mtdd-init --write`", which re-writes an already-correct file and changes
+  nothing. Fix: all three delegating skills (`mtdd-review` §1.7 fallback,
+  `mtdd-verify` step 2.5 fallback, `qa` rule 3) now distinguish **not seeded**
+  (→ `/mtdd-init --write`) from **seeded-but-not-registered-this-session**
+  (→ restart the session; another `/mtdd-init` won't help). This run's SLICE-1
+  review used the honest in-context grade, labelled "degraded — same-context,
+  agent seeded but not yet registered". The clean same-context bias case the
+  verifier was built to fix will get its true live test on the **next** session's
+  `/mtdd-review` (SLICE-2 or a re-review), now that the agent is on disk.
 - **Observation (no fix)** — `/data-management`'s frontmatter enums
   (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
   file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +

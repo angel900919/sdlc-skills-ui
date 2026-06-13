@@ -51,10 +51,14 @@ agent (seeded at `.claude/agents/verifier.md`; `/mtdd-init --write` copies it fr
 It returns exit codes, counts, and failure output — the **On failure** blocks in
 steps 3–4 are yours to act on from that report.
 
-**Fallback (degraded).** If the launch fails because no `verifier` agent is seeded,
-say so, point the user at `/mtdd-init --write`, and run steps 3–4 in-context this
-run — same commands, same rules, but same-context grading; name the degradation in
-your hand-off. Under `/mtdd-cycle` the phase already runs inside a subagent and the
+**Fallback (degraded).** If the launch fails because the `verifier` agent type is
+unknown, say so and run steps 3–4 in-context this run — same commands, same rules,
+but same-context grading; name the degradation in your hand-off. Diagnose first:
+**not seeded** (`.claude/agents/verifier.md` absent) → point the user at
+`/mtdd-init --write`; **seeded but not registered** (file present, type still
+unknown) → the registry snapshots at session start, so a seed written this session
+takes effect only next session — tell them to **restart** (re-running
+`/mtdd-init --write` won't help this run). Under `/mtdd-cycle` the phase already runs inside a subagent and the
 Agent tool is unavailable there (agents can't nest) — that phase context is itself
 fresh, so run steps 3–4 directly and name the degradation as "phase-isolated,
 tool-unrestricted" instead.
