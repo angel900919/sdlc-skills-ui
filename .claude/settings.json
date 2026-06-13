@@ -1,12 +1,64 @@
 {
   "hooks": {
-    "SessionStart": [
-      { "matcher": "startup", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
-      { "matcher": "resume",  "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] },
-      { "matcher": "clear",   "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/inject-state.sh" }] }
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
     ],
     "PreToolUse": [
-      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "sh .claude/skills/_build_share/hooks/guard-paths.sh" }] }
+      {
+        "hooks": [
+          {
+            "command": "sh .claude/skills/_build_share/hooks/guard-paths.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "sh .claude/skills/_build_share/hooks/inject-state.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup"
+      },
+      {
+        "hooks": [
+          {
+            "command": "sh .claude/skills/_build_share/hooks/inject-state.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "resume"
+      },
+      {
+        "hooks": [
+          {
+            "command": "sh .claude/skills/_build_share/hooks/inject-state.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "clear"
+      },
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
     ]
   }
 }
