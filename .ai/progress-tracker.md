@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — prd landed (architecture-tab) — BEYOND-ROSTER (v2 dogfood)
+- Artifact: `.ai/specs/architecture-tab/prd.md` (151 lines, mvp cap 185) + `.human` mirror — verdict: READY-FOR-DESIGN.
+- Key decisions: tier mvp (no uplift — local-first viz, ai_in_core_path stays false; the orchestrator is a SEPARATE feature, scoped OUT). beyond_roster: true — not in features.md; add via /feature-map (P0) before /build. Placement = DeriveProjectState (parse model + /api/architecture + architecture-changed + watch .ai/architecture/) + RenderFlightDeck (tab; @xyflow/react + stageModel already shipped) + ShareDomainModel (new types) — fits existing components, NOT blocked-on-architect. Scope = the DECLARED-model renderer; drift detection, extra views, portfolio, orchestrator all OUT. First slice (tracer): parse 02-components.md → /api/architecture → render 7 nodes/10 edges. 3 open questions for /design triage: success metric (provisional self-adoption ≥60%), drift-in-v1 (→ fast-follow), model source (→ markdown parser first). Came from the v2 UI-prototype exploration (branch v2-prototype-architecture-tab).
+- Next: /design architecture-tab.
+
 ## 2026-06-13 — ship landed (oldest-record-age) — SHIPPED
 - Artifact: `.ai/features.md` row flipped qa-approved → shipped (18 shipped / 0 planned).
 - Key decisions: local-first → shipped = on develop + runs from source; no remote deploy/tag/CHANGELOG; release smoke = full suite (179/179) green; UI smoke human-deferred; flip authorized on the record. Full per-feature loop complete (prd→design→plan→to-issues→publish→build→qa→ship) — the vehicle that fired /qa's verifier delegation.
