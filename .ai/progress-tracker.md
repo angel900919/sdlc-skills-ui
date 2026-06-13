@@ -1,5 +1,30 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — publish-issues landed (oldest-record-age, backend=beads)
+- Artifact: bead scc-sa4 (the slice work item; ref written back to SLICE-1.md backend_refs). Canonical SLICE-1 status: published.
+- Key decisions: one slice bead per the observability precedent (no feature-epic bead); chain labels applied (feature-oldest-record-age, ready-for-agent, lang:typescript, us-story-1..3, nfr-N1..3); pre-chain tracking bead scc-dni closed as superseded.
+- Next: /mtdd-implement scc-sa4 (TDD: red → green → refactor).
+
+## 2026-06-13 — to-issues landed (oldest-record-age)
+- Artifact: `.ai/specs/oldest-record-age/issues/SLICE-1.md` — verdict: READY-TO-PUBLISH.
+- Key decisions: 1 canonical slice; AFK (no HITL rule fires — read-only, no migration/secret/new-dep), enhancement, tests required, typescript; traces to 3 stories + 3 NFRs. features.md flipped planned → building.
+- Next: /publish-issues oldest-record-age --backend=beads.
+
+## 2026-06-13 — plan landed (oldest-record-age)
+- Artifact: `.ai/specs/oldest-record-age/plan.md` — verdict: READY-FOR-ISSUES.
+- Key decisions: 1 vertical slice (whole feature is one PR — pure formatter + single render site; refused artificial horizontal fragmentation of a ~20-line change). Tracer bullet wires formatRelativeAge end-to-end into StoragePanel. Acceptance: unit specs (N2/N3) + regression + N1 inspection.
+- Next: /to-issues oldest-record-age (flips planned → building).
+
+## 2026-06-13 — design landed (oldest-record-age)
+- Artifact: `.ai/specs/oldest-record-age/design.md` (+ .human mirror, sequenceDiagram validated via mermaid skill) — verdict: READY-FOR-PLAN.
+- Key decisions: 2 modules (NEW formatRelativeAge in @sdlc/shared + MODIFIED StoragePanel Oldest cell); no new deps, no schema, no API; date kept reachable via cell title; months/years rollup declined (days match cutoff domain). Single slice expected.
+- Next: /plan oldest-record-age.
+
+## 2026-06-13 — prd landed (oldest-record-age)
+- Artifact: `.ai/specs/oldest-record-age/prd.md` — verdict: READY-FOR-DESIGN.
+- Key decisions: tier mvp (no uplift — read-only UI); 3 stories, 3 NFRs, dated kill criterion; gap surfaced by the verifier subagent (prune summary says "age", no formatter existed). New planned features.md row (P1). Vehicle for firing /qa's verifier delegation.
+- Next: /design oldest-record-age — pure formatter in @sdlc/shared + StoragePanel render.
+
 ## 2026-06-13 — ship landed (observability-data-pruning) — SHIPPED
 - Artifact: `.ai/features.md` row flipped qa-approved → shipped. **Full per-feature loop complete end-to-end.**
 - Key decisions: local-first → shipped = merged to develop + runs from source; no remote deploy/tag (hosting local-only); no CHANGELOG; smoke (curl /api/health) human-deferred; flip recorded under standing autonomous authorization.
