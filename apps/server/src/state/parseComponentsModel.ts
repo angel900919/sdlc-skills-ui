@@ -14,9 +14,117 @@ export interface ParsedComponentsModel {
 }
 
 export function parseComponentsModel(markdown: string): ParsedComponentsModel {
-  throw new Error('not implemented');
+  return {
+    components: parseComponents(markdown),
+    edges: parseEdges(markdown),
+  };
 }
 
+/**
+ * Serialize back to the two-table markdown form. Canonical (headers normalized,
+ * edge `#` regenerated, API-bearing rendered as yes/no) — it reproduces the
+ * model, not the source byte-for-byte, so parse∘serialize∘parse is the identity
+ * on the model (the NFR-3 round-trip guard).
+ */
 export function serializeComponentsModel(model: ParsedComponentsModel): string {
-  throw new Error('not implemented');
+  const components = [
+    '## Definitions',
+    '| Component | Role | Lives at | API-bearing |',
+    '| :-- | :-- | :-- | :-- |',
+    ...model.components.map(
+      (c) => `| ${c.id} | ${c.role} | ${c.livesAt} | ${c.apiBearing ? 'yes' : 'no'} |`,
+    ),
+  ];
+  const edges = [
+    '## Dependency edges',
+    '| # | From | To | Mode | Evidence |',
+    '| :-- | :-- | :-- | :-- | :-- |',
+    ...model.edges.map((e, i) => `| ${i + 1} | ${e.from} | ${e.to} | ${e.mode} | ${e.evidence} |`),
+  ];
+  return [...components, '', ...edges, ''].join('\n');
+}
+
+function parseComponents(markdown: string): ComponentDecl[] {
+  const table = findTable(markdown, (headers) => headers.some((h) => /^component$/i.test(h)));
+  if (!table) return [];
+  const id = columnIndex(table.headers, /^component$/i);
+  const role = columnIndex(table.headers, /role/i);
+  const lives = columnIndex(table.headers, /lives/i);
+  const api = columnIndex(table.headers, /api/i);
+  return table.rows
+    .map((cells) => ({
+      id: cells[id] ?? '',
+      role: cells[role] ?? '',
+      livesAt: cells[lives] ?? '',
+      apiBearing: /^yes/i.test(cells[api] ?? ''),
+    }))
+    .filter((c) => c.id !== '');
+}
+
+function parseEdges(markdown: string): ArchEdge[] {
+  const table = findTable(
+    markdown,
+    (headers) => headers.some((h) => /^from$/i.test(h)) && headers.some((h) => /^to$/i.test(h)),
+  );
+  if (!table) return [];
+  const from = columnIndex(table.headers, /^from$/i);
+  const to = columnIndex(table.headers, /^to$/i);
+  const mode = columnIndex(table.headers, /mode/i);
+  const evidence = columnIndex(table.headers, /evidence/i);
+  return table.rows
+    .map((cells) => ({
+      from: cells[from] ?? '',
+      to: cells[to] ?? '',
+      mode: cells[mode] ?? '',
+      evidence: cells[evidence] ?? '',
+    }))
+    .filter((e) => e.from !== '' && e.to !== '');
+}
+
+interface MarkdownTable {
+  readonly headers: string[];
+  readonly rows: string[][];
+}
+
+/**
+ * Return the first table whose header row satisfies `matchHeader`, with its
+ * separator and blank rows excluded. A table runs from its header to the first
+ * line that does not start with `|`. Returns null if no such table exists.
+ */
+function findTable(markdown: string, matchHeader: (headers: string[]) => boolean): MarkdownTable | null {
+  let headers: string[] | null = null;
+  const rows: string[][] = [];
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trim();
+    if (!line.startsWith('|')) {
+      if (headers) break; // the matched table has ended
+      continue;
+    }
+    const cells = splitRow(line);
+    if (!headers) {
+      if (matchHeader(cells)) headers = cells;
+      continue;
+    }
+    if (!isSeparatorRow(cells)) rows.push(cells);
+  }
+  return headers ? { headers, rows } : null;
+}
+
+/** Split a markdown table row `| a | b |` into trimmed cells `['a', 'b']`. */
+function splitRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+/** True for a markdown separator row like `| :-- | :-- |`. */
+function isSeparatorRow(cells: string[]): boolean {
+  return cells.every((cell) => /^:?-+:?$/.test(cell));
+}
+
+function columnIndex(headers: string[], pattern: RegExp): number {
+  return headers.findIndex((header) => pattern.test(header));
 }
