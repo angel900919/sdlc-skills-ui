@@ -28,6 +28,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 |---|---|---|---|---|
 | 1 | /onboard | READY-FOR-ANCHOR | I-1, I-2 | I-2 fixed (schema comment) |
 | 2 | /anchor | READY-FOR-ARCHITECT | — (2 observations) | none needed |
+| 3 | /explore | READY-FOR-COMPREHEND | I-3, I-4 | both fixed (skill edits) |
 
 ## Issues & fixes (detail)
 
@@ -42,6 +43,26 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
 - **I-2 (fixed)** — `_shared/ai-schema.md` intake-stub template: the `ready_for`
   comment listed only `discovery`/`feature-map`, but `/onboard` (brownfield)
   always routes to `anchor`. One-line comment fix.
+- **I-3 (fixed — the big one so far)** — `/explore` Phase 3 mandated
+  `subagent_type=Explore` with the report returned as the agent's final message.
+  **The Explore agent type compresses its final message to a conclusion and
+  cannot write files** — two live runs returned a *summary of* the report
+  instead of the report, the second despite an explicit hard output contract
+  (it even misread the 300-line cap as a word cap). The skill's design was
+  structurally incompatible with its own template. Fix: general-purpose
+  sub-agent under read-only discipline writes the full report to a `/tmp`
+  draft path; the parent reads, spot-checks, and slots it. Third run: 183-line
+  report, 161 citations, 3/3 spot-checks accurate. Files: `explore/SKILL.md`
+  (rule 3, Phase 3), `explore/references/sub-agent-prompt.md`, schema prose in
+  `_shared/ai-schema.md`. **`/research` uses the same Explore-returns-report
+  pattern — same latent bug; fix when the loop reaches it.**
+- **I-4 (fixed)** — Routing contradiction: README/QUICKSTART and the canonical
+  order in `_shared/downstream-integration.md` place `/environments` (RECOVERY)
+  and `/data-management` (RECOVERY) **between** `/explore` and `/comprehend`,
+  but `/explore`'s verdict + hand-off prose routed straight to `/comprehend`,
+  silently skipping both. A verdict-following user would never run them. Fix:
+  canonical-order note added to `explore/references/hand-off.md` + SKILL.md
+  Phase 8 bullet.
 
 ## Live verifications banked
 
