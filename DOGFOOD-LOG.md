@@ -238,6 +238,22 @@ right tool for a markdown gate (you can't unit-test it; you trace its preconditi
 against the order). **Caveat, same as the walk:** these fixes are trace-verified, not
 walked — a brownfield re-run is still the gold-standard confirmation.
 
+## Post-ship LIVE smoke (the "never actually ran it" caveat, partly closed)
+
+Curled the shipped endpoints against the **already-running** Command Center on :4317
+(its `tsx watch` had hot-reloaded the merged code) — read-only, against the owner's real DB:
+
+- `GET /api/storage/stats` → real counts (344 audit · 171 hook · 38 transcript · 166 usage,
+  790 KB, oldest 2026-06-11). **Slice 1 data path VERIFIED live** — not a fixture.
+- `GET /api/storage/prune-preview?cutoffDays=30` → `totalRows: 0`, `cutoffDate 2026-05-14`
+  — **correct**: the store is ~2 days old, nothing is older than 30d. Proves the
+  cutoff-date math + the age/live predicate, not just a 200. **Slice 2 preview VERIFIED live.**
+- `cutoffDays=0` → **400**. Input validation VERIFIED live.
+
+NOT run: `POST /api/storage/prune` (deletes the owner's real observability data — needs an
+explicit go; a no-op at 30d regardless) and the browser UI click-through (S1 table / S2
+dialog / S3 readout still human-deferred — but the data they render is now proven).
+
 ## Live verifications banked
 
 - `inject-state.sh` fired at session start (minimal block — no `.ai/` yet). ✓
