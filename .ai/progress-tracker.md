@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — ship landed (oldest-record-age) — SHIPPED
+- Artifact: `.ai/features.md` row flipped qa-approved → shipped (18 shipped / 0 planned).
+- Key decisions: local-first → shipped = on develop + runs from source; no remote deploy/tag/CHANGELOG; release smoke = full suite (179/179) green; UI smoke human-deferred; flip authorized on the record. Full per-feature loop complete (prd→design→plan→to-issues→publish→build→qa→ship) — the vehicle that fired /qa's verifier delegation.
+- Next: merge develop → main (local, no push — per user); success metric is a soft legibility check (no /measure window).
+
 ## 2026-06-13 — qa landed (oldest-record-age) — VERIFIER DELEGATION FIRED
 - Artifact: `.ai/specs/oldest-record-age/qa-report.md` — verdict: READY-FOR-SHIP.
 - Key decisions: 6 PASS / 0 FAIL / 2 WARN (security negligible + a11y date-in-tooltip mouse-only, both mvp-accepted) / 3 SKIP (g/h/k prod-only). **/qa's verifier delegation fired for the first time** — read-only verifier subagent ran bd show + npm test (179/179) + typecheck + greps itself, graded a/b/c/e/f with file:line citations, returned evidence only (no chain verdict / no <promise>). Closes the last unproven delegating-skill path. features.md flipped building → qa-approved; approved as-is on the record.
