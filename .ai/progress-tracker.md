@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — mtdd loop SLICE-3 merged; feature fully built (observability-data-pruning / scc-0bb)
+- Artifact: bead scc-0bb (closed) — merged into `develop` at `6ea9e24`. All 3 slices done.
+- Key decisions: confirm dialog + result readout; pure formatters TDD'd in @sdlc/shared (formatBytes/formatPruneResultLine/pruneWarningCopy); UI wiring smoke-verified. 168/168 tests.
+- Next: /build → READY-FOR-QA → /qa observability-data-pruning.
+
 ## 2026-06-13 — mtdd loop SLICE-2 merged (observability-data-pruning / scc-b51)
 - Artifact: bead scc-b51 (closed) — merged into `develop` at `e644a28`; prune engine API-complete.
 - Key decisions: transactional delete + live-session protection + FTS cascade; boot auto_vacuum=INCREMENTAL; chunked incremental_vacuum (ADR-0001) with non-incremental-mode loop guard; storage.prune audit event = success-metric source. 164/164 tests.

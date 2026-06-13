@@ -52,6 +52,14 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 17 | /build | READY-FOR-MTDD (scc-m7w) | — | — (done-detection + dep-gate picked the tracer correctly) |
 | 18 | /mtdd-implement SLICE-1 | implement done | — | — (TDD red→green→green; 159 tests pass, typecheck clean) |
 | 19 | /mtdd-review SLICE-1 | COMPLETE (degraded) | I-9 | fixed (fallback diagnostics in 3 skills) |
+| 20 | /mtdd-verify + /mtdd-merge SLICE-1 | merged 0327f3f, bead closed | I-10 | noted (beads tracked-export tree-dance) |
+| 21 | /build → SLICE-2 | READY-FOR-MTDD | — | bd ready picked scc-b51 |
+| 22 | /mtdd-* SLICE-2 (HITL prune engine) | merged e644a28, bead closed | — | 5 engine tests; reclaim-loop infinite-loop guard added |
+| 23 | /build → SLICE-3 | READY-FOR-MTDD | — | bd ready picked scc-0bb |
+| 24 | /mtdd-* SLICE-3 (confirm UI) | merged 6ea9e24, bead closed | — | pure formatters TDD'd in shared; UI smoke-deferred |
+| 25 | /build | READY-FOR-QA | — | all 3 slices done |
+
+**Per-feature loop complete** — feature built across 3 slices (16 code/test commits, 168 tests). Verifier delegation degraded all three reviews/verifies (I-9, same session).
 
 ## Issues & fixes (detail)
 
@@ -135,6 +143,21 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   agent seeded but not yet registered". The clean same-context bias case the
   verifier was built to fix will get its true live test on the **next** session's
   `/mtdd-review` (SLICE-2 or a re-review), now that the agent is on disk.
+- **I-10 (noted, no skill fix — environmental)** — Each `bd` write (`note`,
+  `update`, `close`) re-exports `.beads/issues.jsonl`, which this repo
+  git-tracks. During the mtdd loop this repeatedly dirtied the tree at the
+  exact moment `/mtdd-merge` does `git checkout <target>`, twice aborting the
+  checkout ("Aborting … local changes would be overwritten"). The merge skill
+  already warns about the tracked-export revert hazard and tells the human to
+  commit issues.jsonl before any branch switch — so this is *documented*, but
+  the dogfood shows it's not a rare edge: it happens on essentially every
+  merge because verify/review write bead notes right before. Workable
+  (commit the export, then checkout) but it adds a commit-dance to every
+  slice. Candidate improvement (not made — it's a setup choice, not a skill
+  bug): recommend gitignoring `.beads/issues.jsonl` in the chain's beads
+  setup so the Dolt DB is the single source of truth and the export never
+  dirties the tree. Logged for the maintainer; BEADS-SETUP.md already covers
+  the safe config.
 - **Observation (no fix)** — `/data-management`'s frontmatter enums
   (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
   file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +

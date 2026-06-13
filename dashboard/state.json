@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T02:27:06.821932+00:00",
-  "generatedAtSha": "e644a28",
+  "generatedAt": "2026-06-13T02:34:17.358678+00:00",
+  "generatedAtSha": "6ea9e24",
   "foundation": {
     "discover": {
       "present": false,
@@ -128,6 +128,46 @@
   ],
   "recentCommits": [
     {
+      "sha": "6ea9e24",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after scc-0bb verify"
+    },
+    {
+      "sha": "4390d99",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync after scc-0bb review"
+    },
+    {
+      "sha": "f73f1b8",
+      "date": "2026-06-13",
+      "subject": "feat(storage): confirm dialog + result readout wiring (S2/S3)"
+    },
+    {
+      "sha": "58a4fae",
+      "date": "2026-06-13",
+      "subject": "green: prune summary formatters (formatBytes, result line, warning copy)"
+    },
+    {
+      "sha": "e96334f",
+      "date": "2026-06-13",
+      "subject": "red: prune summary formatters \u2014 bytes scaling, result line, confirm-warning copy"
+    },
+    {
+      "sha": "81d3280",
+      "date": "2026-06-13",
+      "subject": "chore(beads): claim scc-0bb"
+    },
+    {
+      "sha": "9545f48",
+      "date": "2026-06-13",
+      "subject": "chore: beads telemetry + dashboard snapshot churn"
+    },
+    {
+      "sha": "66544dc",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after scc-b51 close + tracker breadcrumb"
+    },
+    {
       "sha": "e644a28",
       "date": "2026-06-13",
       "subject": "chore(beads): sync issues.jsonl after scc-b51 verify notes"
@@ -186,52 +226,12 @@
       "sha": "dff812d",
       "date": "2026-06-13",
       "subject": "red: storage stats report zero rows, null oldest, real file size on an empty store"
-    },
-    {
-      "sha": "2d0865b",
-      "date": "2026-06-13",
-      "subject": "chore(mtdd): seed verifier agent + .mtdd config; state.json churn"
-    },
-    {
-      "sha": "ee92ab5",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /publish-issues \u2014 3 beads minted (scc prefix), refs written back"
-    },
-    {
-      "sha": "278962c",
-      "date": "2026-06-13",
-      "subject": "bd init: initialize beads issue tracking"
-    },
-    {
-      "sha": "3f263a8",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /to-issues observability-data-pruning \u2014 3 canonical slices; planned\u2192building"
-    },
-    {
-      "sha": "cb30229",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /plan observability-data-pruning \u2014 3 vertical slices, tracer first"
-    },
-    {
-      "sha": "00c0fd0",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /design observability-data-pruning \u2014 LLD + chunked-vacuum ADR"
-    },
-    {
-      "sha": "ab60f9c",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /ux-spec observability-data-pruning \u2014 3 screens, 4 flows"
-    },
-    {
-      "sha": "5c4317e",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /prd observability-data-pruning \u2014 mvp contract + mirror"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T02:27:05.465772+00:00"
+      "mtime": "2026-06-13T02:34:16.087178+00:00"
     },
     {
       "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
