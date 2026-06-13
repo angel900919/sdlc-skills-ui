@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — mtdd loop SLICE-1 merged (observability-data-pruning / scc-m7w)
+- Artifact: bead scc-m7w (closed) — merged into `develop` at `0327f3f`; 5 commits, 4 code files.
+- Key decisions: tracer bullet — storage stats end-to-end (reportStorageStats + /api/storage/stats + Storage panel S1); 159/159 tests; new tmp-dir SQLite test pattern established. Review/verify degraded in-context (I-9).
+- Next: /build observability-data-pruning → next ready slice (expect scc-b51, the HITL prune engine).
+
 ## 2026-06-13 — publish-issues landed (observability-data-pruning, backend=beads)
 - Artifact: beads scc-m7w / scc-b51 / scc-0bb (+ 2 dep edges); canonical files flipped open → published with refs.
 - Key decisions: bd init (prefix scc) ran as setup; frozen-spec guard ask fired live on the write-back (expected).
