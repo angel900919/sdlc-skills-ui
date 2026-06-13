@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T02:18:42.155536+00:00",
-  "generatedAtSha": "0327f3f",
+  "generatedAt": "2026-06-13T02:27:06.821932+00:00",
+  "generatedAtSha": "e644a28",
   "foundation": {
     "discover": {
       "present": false,
@@ -128,6 +128,36 @@
   ],
   "recentCommits": [
     {
+      "sha": "e644a28",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after scc-b51 verify notes"
+    },
+    {
+      "sha": "a2cfbb0",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after scc-b51 review notes"
+    },
+    {
+      "sha": "288a292",
+      "date": "2026-06-13",
+      "subject": "green: prune engine \u2014 transactional delete, live-session protection, chunked reclaim, audit event + endpoints"
+    },
+    {
+      "sha": "14e6643",
+      "date": "2026-06-13",
+      "subject": "red: prune engine \u2014 old non-live deletes, live-session protection, FTS cascade, audit event, idempotency, cutoff validation"
+    },
+    {
+      "sha": "e375b13",
+      "date": "2026-06-13",
+      "subject": "chore(beads): claim scc-b51"
+    },
+    {
+      "sha": "bd1a0bb",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after scc-m7w close + tracker breadcrumb"
+    },
+    {
       "sha": "0327f3f",
       "date": "2026-06-13",
       "subject": "chore(beads): sync issues.jsonl after verify-phase notes on scc-m7w"
@@ -196,42 +226,12 @@
       "sha": "5c4317e",
       "date": "2026-06-13",
       "subject": "chore(dogfood): /prd observability-data-pruning \u2014 mvp contract + mirror"
-    },
-    {
-      "sha": "4e9e2e3",
-      "date": "2026-06-13",
-      "subject": "fix(skills): research inherits the explore draft-file sub-agent contract"
-    },
-    {
-      "sha": "3d4a003",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /pipeline \u2014 delivery contract locked; FOUNDATION COMPLETE"
-    },
-    {
-      "sha": "a39c096",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /test-strategy \u2014 recovered vitest conventions locked"
-    },
-    {
-      "sha": "7b9394b",
-      "date": "2026-06-13",
-      "subject": "fix(skills): test-strategy footer \u2014 census precedes test-strategy in the canonical order"
-    },
-    {
-      "sha": "9f59f57",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /feature-census \u2014 16 shipped inventoried, P0 planned: observability-data-pruning"
-    },
-    {
-      "sha": "003e314",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /architect \u2014 as-is HLD bundle (7 components, 10 edges, ADR 0004-0007)"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T02:18:40.909436+00:00"
+      "mtime": "2026-06-13T02:27:05.465772+00:00"
     },
     {
       "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
