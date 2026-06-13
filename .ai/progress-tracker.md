@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — architect landed (sdlc-command-center)
+- Artifact: `.ai/architecture/` bundle — verdict: READY-FOR-PRD (features.md absent → /feature-census first).
+- Key decisions: as-is modular monolith + event bus; 7 verb-noun components, 10 edges; ADRs 0004-0007 (continuing docs/adr numbering); api-governance detected ({error} envelope, limit+before pagination, no auth/versioning).
+- Next: /feature-census — inventory shipped features from recon §B, cross-trace to components; /health-audit skipped (optional gate, autonomous default).
+
 ## 2026-06-13 — comprehend landed (sdlc-command-center)
 - Artifact: `.ai/understanding/sdlc-command-center.md` + `.ai/context.md` — verdict: READY-FOR-ARCHITECT.
 - Key decisions: invariants triaged 24→12 (citations kept); 3 journeys; 6 mystery zones resolved or recorded as falsifiable assumptions; no new ADRs.

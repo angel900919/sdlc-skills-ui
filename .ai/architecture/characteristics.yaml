@@ -1,0 +1,12 @@
+# Top-3 architectural characteristics (mvp light) — sdlc-command-center
+# The architecture serves these three well; everything else is best-effort.
+characteristics:
+  - name: observability
+    why: the product IS an observability surface — losing events defeats its purpose
+    fitness_function: "integration test: spawn a session -> hook POST + transcript line -> exactly one audit_events row each + one WS broadcast (no loss, no dup)"
+  - name: recoverability
+    why: sessions outlive server restarts; invariants 3-4 (resume where you left off)
+    fitness_function: "test: kill server with running sessions -> boot marks them interrupted -> resume restores cwd/worktree/permission mode (covered today by sessionManager tests)"
+  - name: responsiveness
+    why: a terminal that lags behind keystrokes is unusable; anchor p95 ceiling 1000ms (tentative)
+    fitness_function: "measure: WS frame round-trip from PTY output to browser under a streaming session stays under the anchor ceiling"

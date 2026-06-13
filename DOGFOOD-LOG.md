@@ -32,6 +32,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 4 | /environments | ENVIRONMENTS-LOCKED | — | — (mermaid sub-invocation worked first try, kroki-validated) |
 | 5 | /data-management | DATA-MANAGEMENT-LOCKED | I-5 | fixed (greenfield-only architecture gate) |
 | 6 | /comprehend | READY-FOR-ARCHITECT | — | — (triage + mystery-zone walk worked as designed; 3/3 diagrams kroki-validated) |
+| 7 | /architect | READY-FOR-PRD (→ /feature-census) | I-6, I-7 | both fixed (skill edits) |
 
 ## Issues & fixes (detail)
 
@@ -75,6 +76,18 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   requirement made greenfield-only (warn on brownfield), rule 3 + Phase 1
   table. Pattern worth a sweep: foundation skills written greenfield-first may
   carry more brownfield-impossible gates.
+- **I-6 (fixed)** — `/architect` rule 1 hard-required `.ai/discovery/`
+  (`BLOCKED-ON-DISCOVERY`), but brownfield skips `/discovery` by design
+  (`/onboard` → `/anchor` directly). Every brownfield run would block. Same
+  class as I-5 (greenfield-written gate impossible on brownfield). Fix: gate
+  made greenfield-only; brownfield substitutes `idea.md` + understanding.
+- **I-7 (fixed)** — `/architect`'s brownfield success verdict hands off to
+  `/prd`, but `/feature-census` (which `/prd` needs for its roster) runs AFTER
+  `/architect` in the canonical order — `features.md` doesn't exist yet, so
+  the verdict-follower blocks. Fix: hand-off now routes to `/feature-census`
+  first when `features.md` is absent. Third routing bug in the brownfield
+  on-ramp (with I-4, I-5): **the brownfield order was documented but its
+  verdict tokens/gates were never walked end-to-end before this dogfood.**
 - **Observation (no fix)** — `/data-management`'s frontmatter enums
   (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
   file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +
