@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatBytes, formatPruneResultLine, type PruneResultLike } from '@sdlc/shared';
+import { formatBytes, formatPruneResultLine, summarizeStorageBreakdown, type PruneResultLike } from '@sdlc/shared';
 import { api, post } from '../api/client.js';
 import { microLabel, palette } from '../theme.js';
 import { PruneConfirmDialog, type PrunePreviewData } from './PruneConfirmDialog.js';
@@ -64,7 +64,9 @@ export function StoragePanel() {
     },
   });
 
-  const totalRows = stats.data?.kinds.reduce((sum, k) => sum + k.rows, 0) ?? 0;
+  const breakdown = stats.data ? summarizeStorageBreakdown(stats.data.kinds) : null;
+  const totalRows = breakdown?.totalRows ?? 0;
+  const kindByName = new Map((stats.data?.kinds ?? []).map((k) => [k.kind as string, k] as const));
 
   return (
     <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -100,28 +102,35 @@ export function StoragePanel() {
         <Typography sx={{ fontSize: 12.5, color: palette.faint }}>Nothing recorded yet.</Typography>
       )}
 
-      {stats.data && totalRows > 0 && (
+      {breakdown && totalRows > 0 && (
         <Box sx={{ flex: 1, minHeight: 0 }}>
           <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell sx={{ ...microLabel }}>Kind</TableCell>
                 <TableCell sx={{ ...microLabel }} align="right">Rows</TableCell>
+                <TableCell sx={{ ...microLabel }} align="right">Share</TableCell>
                 <TableCell sx={{ ...microLabel }} align="right">Oldest</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {stats.data.kinds.map((k) => (
-                <TableRow key={k.kind}>
-                  <TableCell sx={{ fontSize: 12.5 }}>{KIND_LABELS[k.kind]}</TableCell>
-                  <TableCell sx={{ fontSize: 12.5, fontFamily: '"IBM Plex Mono", monospace' }} align="right">
-                    {k.rows.toLocaleString()}
-                  </TableCell>
-                  <TableCell sx={{ fontSize: 12.5, color: palette.faint }} align="right">
-                    {k.oldestAt ? k.oldestAt.slice(0, 10) : '—'}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {breakdown.rows.map((r) => {
+                const full = kindByName.get(r.kind);
+                return (
+                  <TableRow key={r.kind}>
+                    <TableCell sx={{ fontSize: 12.5 }}>{full ? KIND_LABELS[full.kind] : r.kind}</TableCell>
+                    <TableCell sx={{ fontSize: 12.5, fontFamily: '"IBM Plex Mono", monospace' }} align="right">
+                      {r.rows.toLocaleString()}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12.5, color: palette.faint, fontFamily: '"IBM Plex Mono", monospace' }} align="right">
+                      {r.pctOfTotal}%
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12.5, color: palette.faint }} align="right">
+                      {full?.oldestAt ? full.oldestAt.slice(0, 10) : '—'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mt: 1.5 }}>
