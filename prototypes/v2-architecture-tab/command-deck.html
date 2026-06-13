@@ -110,6 +110,25 @@
 
     .seg-title { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
     .badge-count { font: 600 10px var(--mono); padding: 1px 6px; border-radius: 4px; background: var(--raised); color: var(--muted); }
+
+    /* ---- portfolio switcher rail + popover ---- */
+    .switcher { position: relative; }
+    .switcher-btn { width: 100%; text-align: left; cursor: pointer; border: 1px solid var(--hairline); background: var(--bg); border-radius: 8px; padding: 9px 10px; transition: border-color 140ms; font-family: var(--sans); }
+    .switcher-btn:hover { border-color: var(--hairline-bright); }
+    .sw-mark { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--violet), var(--blue)); color: var(--bg); font-size: 12px; }
+    .switcher-next { color: var(--green); }
+    .attn-badge { display: inline-flex; align-items: center; gap: 4px; height: 16px; padding: 0 6px; border-radius: 5px; background: var(--amber); color: var(--bg); font: 700 10px var(--mono); --accent: var(--amber); }
+    .scrim { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 55%, transparent); z-index: 70; }
+    .popover { position: absolute; left: 6px; top: calc(100% + 8px); width: 338px; z-index: 80; background: var(--surface); border: 1px solid var(--hairline-bright); border-radius: 10px; box-shadow: 0 18px 44px rgba(0,0,0,0.55); overflow: hidden; }
+    .po-head { padding: 11px 14px; border-bottom: 1px solid var(--hairline); }
+    .po-row { padding: 11px 14px; border-bottom: 1px solid var(--hairline); cursor: pointer; transition: background 120ms; }
+    .po-row:last-child { border-bottom: none; }
+    .po-row:hover { background: var(--raised); }
+    .po-row.current { background: color-mix(in srgb, var(--green) 7%, transparent); }
+    .po-row.at-risk { border-left: 2px solid var(--red); }
+    .po-run { font: 600 10.5px var(--mono); padding: 4px 9px; border-radius: 5px; cursor: pointer; border: 1px solid color-mix(in srgb, var(--green) 45%, transparent); background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
+    .po-run:hover { filter: brightness(1.15); }
+    .ring { transform: rotate(-90deg); }
   </style>
 </head>
 <body>
@@ -120,15 +139,7 @@
       <div class="micro kicker">SDLC</div>
       <div class="name">Command Center</div>
     </div>
-    <div class="rail-section">
-      <div class="micro" style="margin-bottom:6px;">Project</div>
-      <select class="select">
-        <option>SDLC Command Center</option>
-        <option>acme-billing</option>
-        <option>marketing-site</option>
-        <option>telemetry-pipeline</option>
-      </select>
-    </div>
+    <div class="rail-section switcher" id="switcher"></div>
     <nav class="rail-nav" id="nav"></nav>
     <div class="rail-section">
       <div class="row">
@@ -143,11 +154,7 @@
   <main class="main">
     <!-- top bar -->
     <div class="topbar">
-      <div class="row gap8">
-        <span style="font-weight:600;">SDLC Command Center</span>
-        <span class="chip" style="color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)">brownfield</span>
-        <span class="chip" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent)">mvp</span>
-      </div>
+      <div class="row gap8" id="topbarProj"></div>
       <div class="row gap8" style="margin-left:auto;">
         <span class="micro">Architecture &amp; Progress</span>
         <button class="btn ghost mono" style="font-size:11px;">⌘K</button>
@@ -653,51 +660,159 @@
   };
 
   // ============================================================
-  //  CONDUCTOR STRIP
+  //  PROJECT SWITCHER  (portfolio distilled into a rail switcher)
+  //  You live inside ONE project; the rail switches + ambient-badges the rest.
+  // ============================================================
+  let currentProjectId = (M.projects.find(p => p.current) || M.projects[0]).id;
+  let popoverOpen = false;
+  const curProject = () => M.projects.find(p => p.id === currentProjectId) || M.projects[0];
+  // rank by who needs a human most (mirrors the portfolio dispatcher — no cross-project reasoning, just ranking)
+  const urgency = p => (p.health === 'at-risk' ? 100 : 0) + p.attention * 10 + p.blocked * 6 + p.liveSessions;
+  const completion = p => {
+    const denom = (p.foundationTotal + p.building + p.shipped + p.blocked + p.planned) || 1;
+    return Math.round(((p.foundationDone + p.shipped) / denom) * 100);
+  };
+  const ring = (pct, color, size = 30) => {
+    const r = size / 2 - 3, c = 2 * Math.PI * r, off = c * (1 - pct / 100);
+    return `<span style="position:relative;display:inline-flex;width:${size}px;height:${size}px;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg class="ring" width="${size}" height="${size}" style="position:absolute;inset:0;"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--hairline)" stroke-width="3"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
+      <span style="font:600 9px var(--mono);color:var(--text);">${pct}</span></span>`;
+  };
+
+  const switcherEl = document.getElementById('switcher');
+
+  const renderPopover = () => {
+    const ranked = M.projects.slice().sort((a, b) => urgency(b) - urgency(a));
+    const rows = ranked.map(p => {
+      const pct = completion(p);
+      const col = p.health === 'at-risk' ? 'var(--red)' : (p.id === currentProjectId ? 'var(--green)' : 'var(--blue)');
+      const badges = [];
+      if (p.attention > 0) badges.push(`<span class="attn-badge">✋ ${p.attention}</span>`);
+      if (p.liveSessions > 0) badges.push(`<span class="chip" style="height:16px;color:var(--green);font-size:9.5px;">● ${p.liveSessions} live</span>`);
+      if (p.health === 'at-risk') badges.push(`<span class="chip" style="height:16px;color:var(--red);font-size:9.5px;border-color:color-mix(in srgb,var(--red) 45%,transparent)">at-risk</span>`);
+      return `<div class="po-row ${p.id === currentProjectId ? 'current' : ''} ${p.health === 'at-risk' ? 'at-risk' : ''}" data-proj="${p.id}">
+        <div class="row gap8">
+          ${ring(pct, col, 30)}
+          <div class="col grow" style="min-width:0;gap:3px;">
+            <div class="row gap8"><span class="nowrap" style="font-weight:600;font-size:12.5px;">${p.name}</span>${p.id === currentProjectId ? '<span class="tag" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent)">current</span>' : ''}</div>
+            <div class="row gap4 wrap">${badges.length ? badges.join('') : `<span class="mono faint" style="font-size:10px;">${p.type} · ${p.tier} · ${p.lastActivity}</span>`}</div>
+          </div>
+        </div>
+        <div class="spread" style="margin-top:9px;">
+          <span class="switcher-next mono nowrap" style="font-size:11px;">${p.nextMove}</span>
+          <button class="po-run" data-run="${p.id}">Run ▸</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="scrim" id="scrim"></div>
+      <div class="popover" id="popover">
+        <div class="po-head spread"><span class="micro">Portfolio · ${M.projects.length} projects</span><span class="micro faint">ranked · who needs you</span></div>
+        ${rows}
+      </div>`;
+  };
+
+  const wirePopover = () => {
+    const scrim = switcherEl.querySelector('#scrim');
+    if (scrim) scrim.onclick = () => { popoverOpen = false; renderSwitcher(); };
+    switcherEl.querySelectorAll('[data-proj]').forEach(r => {
+      r.onclick = (e) => {
+        if (e.target.closest('[data-run]')) return;
+        currentProjectId = r.getAttribute('data-proj');
+        popoverOpen = false;
+        renderSwitcher(); renderTopbar(); renderConductor();
+      };
+    });
+    switcherEl.querySelectorAll('[data-run]').forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        b.textContent = 'Confirm?';
+        setTimeout(() => { b.textContent = 'Run ▸'; }, 1500);
+      };
+    });
+  };
+
+  const renderSwitcher = () => {
+    const cur = curProject();
+    const otherAttn = M.projects.filter(p => p.id !== cur.id).reduce((s, p) => s + p.attention, 0);
+    const ambient = otherAttn > 0 ? `<span class="attn-badge live-pulse">✋ ${otherAttn}</span>` : '';
+    switcherEl.innerHTML = `
+      <div class="micro spread" style="margin-bottom:6px;"><span>Project</span>${ambient}</div>
+      <button class="switcher-btn" id="swBtn">
+        <div class="row gap8">
+          <span class="sw-mark">◆</span>
+          <div class="col grow" style="min-width:0;">
+            <span class="nowrap" style="font-weight:600;font-size:12.5px;">${cur.name}</span>
+            <span class="mono faint" style="font-size:10px;">${cur.type} · ${cur.tier}</span>
+          </div>
+          <span class="faint" style="font-size:13px;">⌄</span>
+        </div>
+        <div class="row gap4" style="margin-top:7px;">
+          <span class="micro" style="letter-spacing:.06em;">next</span>
+          <span class="switcher-next mono nowrap" style="font-size:11px;">${cur.nextMove}</span>
+        </div>
+      </button>
+      ${popoverOpen ? renderPopover() : ''}`;
+    switcherEl.querySelector('#swBtn').onclick = (e) => { e.stopPropagation(); popoverOpen = !popoverOpen; renderSwitcher(); };
+    if (popoverOpen) wirePopover();
+  };
+
+  // ============================================================
+  //  TOP BAR (project-driven)
+  // ============================================================
+  const renderTopbar = () => {
+    const p = curProject();
+    document.getElementById('topbarProj').innerHTML = `
+      <span style="font-weight:600;">${p.name}</span>
+      <span class="chip" style="color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)">${p.type}</span>
+      <span class="chip" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent)">${p.tier}</span>
+      ${p.health === 'at-risk' ? '<span class="chip" style="color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)">at-risk</span>' : ''}`;
+  };
+
+  // ============================================================
+  //  CONDUCTOR STRIP  (the CURRENT project's per-project conductor)
   // ============================================================
   const renderConductor = () => {
     const o = M.orchestrator;
-    const rec = o.recommendation;
+    const p = curProject();
+    let here, hereLine, rec, rationale, conf;
+    if (p.id === o.projectId) {
+      here = o.youAreHere.phase;
+      hereLine = `<span class="mono" style="font-size:12px;color:var(--text);">/${o.youAreHere.stage} ${o.youAreHere.feature}</span><span class="mono dim" style="font-size:11px;">· ${o.youAreHere.slice}</span>`;
+      rec = o.recommendation; rationale = o.recommendation.rationale; conf = o.confidence;
+    } else {
+      const parts = p.nextMove.replace(/^\//, '').split(' ');
+      rec = { skill: parts[0], args: parts.slice(1).join(' ') };
+      here = `${p.type} · ${p.tier}`;
+      hereLine = `<span class="mono" style="font-size:12px;color:var(--text);">${p.name}</span>`;
+      rationale = `Highest-priority move for ${p.name} — ${p.shipped} shipped · ${p.building} building · ${p.blocked} blocked.`;
+      conf = p.health === 'at-risk' ? 0.72 : 0.84;
+    }
     const cond = document.getElementById('conductor');
     cond.innerHTML = `
       <div class="avatar">◆</div>
       <div class="col" style="gap:3px;min-width:0;">
-        <div class="micro" style="color:var(--violet);letter-spacing:.12em;">You are here · ${o.youAreHere.phase}</div>
-        <div class="row gap8 nowrap">
-          <span class="mono" style="font-size:12px;color:var(--text);">/${o.youAreHere.stage} ${o.youAreHere.feature}</span>
-          <span class="mono dim" style="font-size:11px;">· ${o.youAreHere.slice}</span>
-        </div>
+        <div class="micro" style="color:var(--violet);letter-spacing:.12em;">You are here · ${here}</div>
+        <div class="row gap8 nowrap">${hereLine}</div>
       </div>
       <div class="col" style="gap:4px;flex:1;min-width:0;">
-        <div class="row gap8 nowrap">
-          <span class="micro">Recommends</span>
-          <span class="rec-chip">/${rec.skill} ${rec.args}</span>
-        </div>
-        <div class="dim nowrap" style="font-size:11px;">${rec.rationale}</div>
+        <div class="row gap8 nowrap"><span class="micro">Recommends</span><span class="rec-chip">/${rec.skill} ${rec.args}</span></div>
+        <div class="dim nowrap" style="font-size:11px;">${rationale}</div>
       </div>
       <div class="col" style="gap:4px;align-items:flex-end;flex-shrink:0;">
         <div class="micro">confidence</div>
-        <div class="row gap8"><div class="conf-meter"><i style="width:${o.confidence * 100}%"></i></div><span class="mono" style="font-size:11px;color:var(--green)">${o.confidence.toFixed(2)}</span></div>
+        <div class="row gap8"><div class="conf-meter"><i style="width:${conf * 100}%"></i></div><span class="mono" style="font-size:11px;color:var(--green)">${conf.toFixed(2)}</span></div>
       </div>
       <div class="row gap8" style="flex-shrink:0;">
         <button class="toggle ${o.autopilot.enabled ? 'on' : ''}" id="apToggle"><span class="pip"></span>Autopilot ▸ ${o.autopilot.mode}</button>
         <button class="btn primary" id="runBtn">Run with confirm</button>
       </div>`;
-
-    cond.querySelector('#apToggle').onclick = (e) => {
-      const t = e.currentTarget;
-      const on = t.classList.toggle('on');
-      t.lastChild.textContent = ` Autopilot ▸ ${on ? 'gated' : 'suggest'}`;
-    };
-    cond.querySelector('#runBtn').onclick = (e) => {
-      const b = e.currentTarget;
-      b.textContent = 'Confirm: /' + rec.skill + ' ' + rec.args + ' ?';
-      b.style.background = 'var(--amber)'; b.style.borderColor = 'var(--amber)';
-      setTimeout(() => { b.textContent = 'Run with confirm'; b.style.background = ''; b.style.borderColor = ''; }, 1800);
-    };
+    cond.querySelector('#apToggle').onclick = (e) => { const t = e.currentTarget; const on = t.classList.toggle('on'); t.lastChild.textContent = ` Autopilot ▸ ${on ? 'gated' : 'suggest'}`; };
+    cond.querySelector('#runBtn').onclick = (e) => { const b = e.currentTarget; b.textContent = 'Confirm: /' + rec.skill + ' ' + rec.args + ' ?'; b.style.background = 'var(--amber)'; b.style.borderColor = 'var(--amber)'; setTimeout(() => { b.textContent = 'Run with confirm'; b.style.background = ''; b.style.borderColor = ''; }, 1800); };
   };
 
   // ---- boot ----
+  renderSwitcher();
+  renderTopbar();
   renderTabs();
   renderCanvas();
   renderInspector();
