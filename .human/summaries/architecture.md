@@ -42,7 +42,7 @@ C4Container
 
 **What we serve well (the top 3):** observability (losing events defeats the product), recoverability (crash mid-session, resume where you left off), responsiveness (a laggy terminal is no terminal).
 
-**Decisions on record:** the existing `docs/adr/0001–0003` (PTY over headless, reuse the chain's state generator, local-first SQLite) plus four newly recovered ones — the monolith + event bus itself (0004), loopback-as-security-boundary (0005), the single multiplexed WebSocket (0006), and shared types consumed as raw source (0007).
+**Decisions on record:** the existing `docs/adr/0001–0003` (PTY over headless, reuse the chain's state generator, local-first SQLite) plus four newly recovered ones — the monolith + event bus itself (0004), loopback-as-security-boundary (0005), the single multiplexed WebSocket (0006), and shared types consumed as raw source (0007) — and two **forward** decisions that frame the planned Architecture & Progress tab as a living digital twin: one unified, graph-based domain model that every view projects over (0008), and a twin that **derives from its sources and never duplicates them** (0009) — so it can't become stale docs. These don't change the containers above; they shape the data model the new tab is built on.
 
 Machine source of truth: [.ai/architecture/](../../.ai/architecture/index.md) — components and the dependency-edge table live in `02-components.md`; API conventions in `api-governance.md`.
 

@@ -35,6 +35,17 @@ code renames implied.
 - Work leaves the machine only through a human gate (ServeApiAndWs owns the PR gate).
 - Self-hosting never recurses (RunClaudeSessions strips nested CLAUDE_* env).
 - The app never observes its own output (DeriveProjectState excludes dashboard/).
+- The twin derives, never duplicates (ADR-0009) — the project graph references authoritative
+  sources (git, beads, audit DB, .ai/, CI) and is recomputed, never a second store.
 
 ## Uplift look-ahead
 anchor.uplift_signals = [] — no placeholder boundaries reserved.
+
+## Forward structure (ADR-0008/0009)
+The unified project-graph domain model is the forward backbone: every view projects over one
+typed node/edge set (defined in ShareDomainModel), DeriveProjectState materializes it by
+derivation, and ServeApiAndWs serves it (`/api/architecture` first). This spreads across the
+existing components — it is **not** a new component. MVP (architecture-tab v1) renders the
+{component, edge, feature, slice, issue, stage} subset; further node/edge types and views
+(agent-activity, data-flow, dependency, traceability, deployment, drift) extend the model, not
+the component set.

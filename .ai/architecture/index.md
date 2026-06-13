@@ -7,7 +7,7 @@ project_type: brownfield
 style: modular-monolith-with-event-bus
 component_count: 7
 edge_count: 10
-adr_count: 4
+adr_count: 6
 api_governance: .ai/architecture/api-governance.md
 verdict: READY-FOR-PRD
 verdict_overridden: false
@@ -32,7 +32,7 @@ evidence base; nothing here redesigns the system.
 | `01-style.md` | style decision + the three determinations |
 | `02-components.md` | component definitions + THE dependency-edge table (source of truth) |
 | `api-governance.md` | cross-feature API conventions (detected, cited) |
-| `adr/0004…0007` | the significant decisions docs/adr/0001–0003 left undocumented |
+| `adr/0004…0009` | recovered as-is decisions (0004–0007) + the forward digital-twin decisions: 0008 unified graph domain model, 0009 twin-derives-never-duplicates |
 
 ## Components (defined in 02-components.md)
 RunClaudeSessions · IngestObservability · ServeApiAndWs · DeriveProjectState ·
@@ -44,3 +44,7 @@ PersistAndBroadcast · RenderFlightDeck · ShareDomainModel
 - Feature trace (Phase 4) is deferred to `/feature-census` — the canonical brownfield
   order runs it after `/architect`; census cross-traces its inventory to these components.
 - API-bearing component: ServeApiAndWs → `api-governance.md` written.
+- Forward (ADR-0008/0009): the unified project-graph domain model — every view projects over one
+  typed graph; the twin derives from authoritative sources, never duplicates them. First consumer
+  is the `architecture-tab` feature; it spreads across existing components (no new component). See
+  `02-components.md` § Forward structure.
