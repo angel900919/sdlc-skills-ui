@@ -9,6 +9,8 @@ verdict_overridden: false
 trace_status: complete
 shipped_count: 18
 planned_count: 0
+building_count: 1
+p0: [system-map]
 p1: none
 source_recon: .ai/recon.md
 source_understanding: .ai/understanding/sdlc-command-center.md
@@ -42,6 +44,10 @@ created: 2026-06-13
 | docs-and-skills-browser | Rendered project docs/artifacts + skills catalog | — | shipped | mvp | — | DeriveProjectState, RenderFlightDeck |
 | observability-data-pruning | Prune old observability data (audit events, usage samples, transcript copies) by age, from the UI | P0 | shipped | mvp | session-observability | PersistAndBroadcast, ServeApiAndWs, RenderFlightDeck · data-management retention follow-up |
 | oldest-record-age | Show each prunable kind's oldest record as a relative age ("63 days ago") beside the date in the Storage panel | P1 | shipped | mvp | observability-data-pruning | RenderFlightDeck · storage-panel legibility |
+| system-map | Architecture tab — live status-colored component graph + inspector + SDLC-progress view over the declared model | P0 | building | mvp | — | DeriveProjectState, RenderFlightDeck, ShareDomainModel · behavior: orient-on-system-shape (new — fold into understanding) |
+
+<!-- row added planned by /feature-map 2026-06-13 (system-map: beyond_roster registration; P0, mvp; prd/design/plan/adr already complete — next hop /to-issues, not /prd) -->
+<!-- status flip planned → building by /to-issues 2026-06-13 (system-map: 4 canonical slices written — SLICE-{1..4}.md; all AFK/typescript; S3 skip-tests) -->
 
 <!-- status flip planned → building by /to-issues 2026-06-13 (3 canonical slices written) -->
 <!-- status flip building → qa-approved by /qa 2026-06-13 (7 PASS / 0 FAIL / 2 WARN; approved on the record) -->
@@ -54,23 +60,34 @@ created: 2026-06-13
 <!-- status: planned | building | qa-approved | shipped | deprecated | removed | blocked | cut -->
 
 ## Deferred
-- none — no planned work deferred with dates.
+| id | revisit | reason |
+| :-- | :-- | :-- |
+| cross-project-orchestrator | 2026-12-31 | The per-project conductor / run-on-confirm + multi-session fleet, routed OUT of `system-map`'s scope to its own feature (prd Scope §Out). Carries understanding § boundaries' "autonomous multi-session fleet orchestration" (revisit 2026-12-31). No spec yet. |
 
 ## Never
 - mobile/remote access — conflicts with the loopback security posture (owner re-rejected 2026-06-12).
 - cloud SaaS of transcripts; API-credit (SDK) execution path (understanding § boundaries).
 
 ## Priority key
-- P0 = build next. Single planned row; cap (mvp 5–8) not in tension.
+- P0 = build next. Single planned row (`system-map`); cap (mvp 5–8 planned) not in tension.
+- Deferred = out of v0.1; revisit on the listed date.
+- Never = hard non-goal; never in scope.
 
 ## Trace status
-- status: complete — every shipped row traces to ≥1 architecture component; behaviors cited where understanding models them (3 journeys cover 5 rows; the rest trace to components + roadmap provenance).
+- status: complete — every shipped row traces to ≥1 architecture component; behaviors cited where understanding models them (3 journeys cover 5 rows; the rest trace to components + roadmap provenance). `system-map` traces to 3 components + a new behavior (below).
+- orphans: [{ feature: system-map, missing_behavior: "orient-on-system-shape — declared in its prd (satisfies) but not yet in understanding.md; fold in on the next /comprehend update. Not a true orphan: traces to DeriveProjectState/RenderFlightDeck/ShareDomainModel." }]
+- beyond_discovery: [{ feature: system-map, reason: "net-new v2 feature past the comprehend-time inventory; registered here after prd/design/plan/adr already landed (beyond_roster). Tier mvp, no uplift." }]
 
 ## Notes
 - Inventory provenance: recon §B6 components × understanding behaviors × the built
   roadmap record (all tiers built as of 2026-06-12, commits 2b1769c/9998476/4694337/d1a424f).
 - Pure-infra components (PersistAndBroadcast, ShareDomainModel) carry no feature row of
-  their own — they appear in traces only.
+  their own — they appear in traces only. (`system-map` is the first feature to surface
+  `ShareDomainModel` in a row, via its new `Architecture*` types.)
 - New planned work sourced from this dogfood run's own findings: the SQLite observability
   store grows unboundedly (db.ts tables have no pruning path; data-management.md names
   retention as the missing lifecycle).
+- `system-map` (added 2026-06-13): the v2 prototype's Architecture tab, registered here
+  after its prd/design/plan/adr already landed (`beyond_roster` → now roster). Its next hop
+  is `/to-issues system-map` (not `/prd` — that's done). It also routes the orchestrator and
+  portfolio switcher out to their own features; the orchestrator is now the Deferred row.

@@ -110,12 +110,13 @@ see Open questions); the animated "Living Blueprint" and C4 modes (later toggles
 
 ## Open questions
 1. **Success metric** — confirm self-adoption (≥60% of code-touching sessions) as the winning
-   number, or switch the north star to model accuracy / staleness (drift = 0).
+   number, or switch to accuracy/staleness. → Resolved (design.md §Observability): self-adoption kept; `nav` event wired as the source.
 2. **Drift detection in v1?** — code↔declared-edge diff is the strongest "living, not stale"
-   differentiator but adds scope. Recommend: **fast-follow**, keep slice 1 thin.
-3. **Model source for the tracer** — parse the existing `02-components.md` markdown server-side
-   (zero chain change, fastest), then add a structured `model.yaml` emit from `/architect` +
-   `/as-built` as hardening. Recommend the markdown-parser path for slice 1.
+   differentiator but adds scope. → Resolved (design.md §Schema/§Placement): OUT (fast-follow); schema reserves it, drift = a query later (ADR-0009).
+3. **Model source for the tracer** — parse `02-components.md` markdown server-side vs a structured
+   `model.yaml` emit. → Resolved (design.md `ParseArchitectureModel`): markdown-parser path, no new dep.
+4. **LikeC4 build-vs-buy** (from Notes) → Resolved (`adr/0001`): defer as renderer, adopt its
+   metadata convention for forward-compat; revisit at the C4-view / drift fast-follow.
 
 ## Vision & forward design constraint
 Slice 1 renders the *declared* model, but it is the first slice of a **living software digital
