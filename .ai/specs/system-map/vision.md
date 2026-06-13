@@ -1,10 +1,10 @@
 ---
 slug: sdlc-command-center
-feature: architecture-tab
+feature: system-map
 stage: vision
 status: roadmap-only
 binds: [design]                 # the "design stance" section is binding; the rest is non-binding roadmap
-relation: companion to .ai/specs/architecture-tab/prd.md
+relation: companion to .ai/specs/system-map/prd.md
 created: 2026-06-13
 ---
 
@@ -38,7 +38,7 @@ and operational state — and is the single **pane of glass** across them. It is
    stage}. The schema and the `/api/architecture` shape must be designed so the remaining node
    and edge types slot in without a rewrite.
 4. **The graph model is an architecture decision** → ratify via `/architect` (new ADR). The
-   architecture-tab feature is its first *consumer*, not its definition.
+   system-map feature is its first *consumer*, not its definition.
 
 ## Deferred capabilities (each a future PRD; schema-reserved, not built in v1)
 

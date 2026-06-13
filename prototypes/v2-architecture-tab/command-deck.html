@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SDLC Command Center — Architecture &amp; Progress</title>
+  <title>SDLC Command Center — System Map</title>
   <link rel="stylesheet" href="_shared.css">
   <style>
     /* ---- layout specific to the Command Deck tab ---- */
@@ -156,7 +156,7 @@
     <div class="topbar">
       <div class="row gap8" id="topbarProj"></div>
       <div class="row gap8" style="margin-left:auto;">
-        <span class="micro">Architecture &amp; Progress</span>
+        <span class="micro">System Map</span>
         <button class="btn ghost mono" style="font-size:11px;">⌘K</button>
       </div>
     </div>
@@ -211,12 +211,12 @@
     Sessions: '<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M4.5 6.5l2 1.5-2 1.5M8 9.5h3.5"/>',
     Docs: '<path d="M4 2h6l3 3v9H4z"/><path d="M10 2v3h3"/>',
     Skills: '<path d="M8 1.5l1.8 3.7 4 .6-2.9 2.8.7 4L8 10.7 4.4 12.6l.7-4L2.2 5.8l4-.6z"/>',
-    Architecture: '<circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><path d="M4 6v2h8V6M8 8v2"/>',
+    'System Map': '<circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><path d="M4 6v2h8V6M8 8v2"/>',
   };
-  const NAV = ['Dashboard', 'Pipeline', 'Board', 'Workspace', 'Sessions', 'Docs', 'Skills', 'Architecture'];
+  const NAV = ['Dashboard', 'Pipeline', 'Board', 'Workspace', 'Sessions', 'Docs', 'Skills', 'System Map'];
   const nav = document.getElementById('nav');
   NAV.forEach(name => {
-    const item = el('div', 'nav-item' + (name === 'Architecture' ? ' active' : ''));
+    const item = el('div', 'nav-item' + (name === 'System Map' ? ' active' : ''));
     item.innerHTML = `<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg><span>${name}</span>`;
     if (name === 'Workspace') item.insertAdjacentHTML('beforeend', '<span class="badge">1</span>');
     nav.appendChild(item);

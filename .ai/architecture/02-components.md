@@ -45,7 +45,7 @@ anchor.uplift_signals = [] — no placeholder boundaries reserved.
 The unified project-graph domain model is the forward backbone: every view projects over one
 typed node/edge set (defined in ShareDomainModel), DeriveProjectState materializes it by
 derivation, and ServeApiAndWs serves it (`/api/architecture` first). This spreads across the
-existing components — it is **not** a new component. MVP (architecture-tab v1) renders the
+existing components — it is **not** a new component. MVP (system-map v1) renders the
 {component, edge, feature, slice, issue, stage} subset; further node/edge types and views
 (agent-activity, data-flow, dependency, traceability, deployment, drift) extend the model, not
 the component set.

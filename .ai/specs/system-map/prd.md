@@ -1,6 +1,6 @@
 ---
 slug: sdlc-command-center
-feature: architecture-tab
+feature: system-map
 stage: prd
 status: complete
 tier: mvp
@@ -12,12 +12,12 @@ beyond_roster: true
 nfr_count: 4
 ai_card: false
 sources: [.ai/anchor.md, .ai/architecture, .ai/understanding/sdlc-command-center.md, .ai/features.md]
-human_summary: .human/specs/architecture-tab/prd.md
+human_summary: .human/specs/system-map/prd.md
 consumed_by: [design, plan, to-fitness]
 created: 2026-06-13
 ---
 
-# PRD — architecture-tab
+# PRD — system-map
 
 ## Status
 `Draft`
@@ -50,7 +50,7 @@ marked — over the existing stage model); **auto-refresh** when the architectur
 state changes.
 **Out:** the orchestrator conductor / run-on-confirm (→ `cross-project-orchestrator`); the
 portfolio switcher / multi-project (→ separate feature); Agent-Activity, Data-Flow and
-Dependency-Matrix views (architecture-tab v2); **code↔model drift detection** (fast-follow —
+Dependency-Matrix views (system-map v2); **code↔model drift detection** (fast-follow —
 see Open questions); the animated "Living Blueprint" and C4 modes (later toggles).
 
 ## Success metric
@@ -135,7 +135,7 @@ twin**, not a one-off diagram. Two constraints bind `/design`:
 Deferred (own PRDs; schema-reserved, not built now): code↔model **drift detection** (the primary
 v1.1 — the differentiator vs static-doc tools); **Agent Activity / Data Flow / Dependency
 Analysis / Requirements Traceability (req→feature→task→component→code→test→deploy) / Deployment**
-views; cross-project portfolio. Full roadmap → `.ai/specs/architecture-tab/vision.md`. The
+views; cross-project portfolio. Full roadmap → `.ai/specs/system-map/vision.md`. The
 unified-graph model is an **architecture decision** → ratify via `/architect` (ADR); this feature
 is its first *consumer*, not its definition.
 
@@ -157,9 +157,16 @@ is its first *consumer*, not its definition.
   observes its own output (model describes app source — must exclude `dashboard/` + `prototypes/`,
   no feedback loop); the pipeline never shows false progress (status derives from real
   artifacts/verdicts, never synthesized).
-- `beyond_roster: true` — `architecture-tab` is not yet a row in `features.md`; add it via
+- `beyond_roster: true` — `system-map` is not yet a row in `features.md`; add it via
   `/feature-map` (P0, mvp) before `/build`. Tech leakage captured for `/design`: `/api/architecture`
   shape, `architecture-changed` WS event, the markdown-vs-yaml model-source decision.
+- **Build-vs-buy input for `/design` (LikeC4):** [LikeC4](https://github.com/likec4/likec4) (MIT,
+  architecture-as-code, renders on the same `@xyflow/react` we ship) offers a `<LikeC4Diagram>`
+  React component, a model-query API (`@likec4/core`: `elementsWhere`, `incoming/outgoing`, tags,
+  multi-view) and a DSL/codegen. It models **declared architecture only** (no status/progress/
+  links/drift — our living layer). Evaluate at `/design` (or a `/research system-map` spike) as
+  the System/C4 renderer + a candidate structured model format (Q3); its model API is also a
+  reference for ADR-0008's graph projections. New dep → needs an `anchor.md` approved-deps add.
 
 ## Verdict
 **READY-FOR-DESIGN** — The contract: a project-scoped Architecture tab whose System graph and
@@ -168,7 +175,7 @@ component inspector render the **declared** architecture model from `.ai/archite
 the existing stage model, kept fresh by auto-refresh on model/state change — within the four
 NFRs (latency, freshness, accuracy, non-interference) and the three honored invariants. Scope is
 deliberately the *declared-model renderer*; the orchestrator, portfolio, extra views, and drift
-detection are out. Next: `/design architecture-tab` — its design must trace to `DeriveProjectState`
+detection are out. Next: `/design system-map` — its design must trace to `DeriveProjectState`
 + `RenderFlightDeck` in `02-components.md`; the three Open questions get triaged at the top of
 `/design`. Provisional success metric to confirm there. **Forward note (Vision §):** the
 unified-graph domain model is an architecture decision — recommend ratifying it via `/architect`

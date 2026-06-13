@@ -1,6 +1,6 @@
 # Architecture tab — what we're building (plain-English)
 
-> Derived from `.ai/specs/architecture-tab/prd.md`. If the two disagree, the `.ai` file wins.
+> Derived from `.ai/specs/system-map/prd.md`. If the two disagree, the `.ai` file wins.
 > Tier: mvp · Verdict: **READY-FOR-DESIGN**
 
 ## In one sentence
@@ -51,7 +51,7 @@ with extra views (agent activity, data flow, dependency analysis, traceability, 
 **drift detection** (catching when code diverges from the diagram). Two rules keep it honest and
 are locked in now: build it on **one unified graph** (every view is a query over it), and
 **derive, don't duplicate** — it links to git/beads/CI/the activity log, it never re-stores them
-(that's what stops it becoming stale docs). Full roadmap: `.ai/specs/architecture-tab/vision.md`.
+(that's what stops it becoming stale docs). Full roadmap: `.ai/specs/system-map/vision.md`.
 None of this expands the first slice; it just shapes the data model. The graph model itself is an
 architecture call → worth an ADR via `/architect` first.
 

@@ -46,5 +46,5 @@ PersistAndBroadcast · RenderFlightDeck · ShareDomainModel
 - API-bearing component: ServeApiAndWs → `api-governance.md` written.
 - Forward (ADR-0008/0009): the unified project-graph domain model — every view projects over one
   typed graph; the twin derives from authoritative sources, never duplicates them. First consumer
-  is the `architecture-tab` feature; it spreads across existing components (no new component). See
+  is the `system-map` feature; it spreads across existing components (no new component). See
   `02-components.md` § Forward structure.

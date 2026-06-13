@@ -3,7 +3,7 @@
  * Real values sourced from .ai/architecture/02-components.md (components + edges),
  * packages/shared/src/stageModel.ts (SDLC stages), dashboard/state.json + .ai/features.md
  * (features), and .beads/issues.jsonl (slice→bead refs). A few PLANNED items
- * (OrchestrateChain, the architecture-tab + cross-project-orchestrator features) and
+ * (OrchestrateChain, the system-map + cross-project-orchestrator features) and
  * three sibling projects are invented so the "planned / building / blocked" states and
  * the portfolio view have something to render. Exposed as window.MOCK.
  */
@@ -14,7 +14,7 @@ window.MOCK = (() => {
       id: 'RenderFlightDeck', name: 'RenderFlightDeck', kind: 'ui', status: 'building',
       role: 'Renders the dashboard, terminals, board, pipeline and docs over the API/WS.',
       livesAt: 'apps/web/src/', apiBearing: false, layer: 5, order: 1,
-      agent: 'session · /mtdd-implement architecture-tab', feature: 'architecture-tab',
+      agent: 'session · /mtdd-implement system-map', feature: 'system-map',
       inputs: ['WS ServerEvent stream', 'REST ProjectState / Metrics'],
       outputs: ['User intent → REST mutations', 'Terminal input over WS'],
       dependsOn: ['ServeApiAndWs', 'ShareDomainModel', 'OrchestrateChain'],
@@ -62,7 +62,7 @@ window.MOCK = (() => {
       id: 'DeriveProjectState', name: 'DeriveProjectState', kind: 'engine', status: 'building',
       role: 'Computes chain/project state (via project-state.py), watches artifacts, detects verdicts, raises attention, builds recaps.',
       livesAt: 'apps/server/src/state/', apiBearing: false, layer: 3, order: 1,
-      agent: 'session · /mtdd-implement architecture-api', feature: 'architecture-tab',
+      agent: 'session · /mtdd-implement architecture-api', feature: 'system-map',
       inputs: ['.ai / .human / docs / fitness / tickets file changes', 'project-state.py output'],
       outputs: ['ProjectState (state.json)', 'state-changed events', 'attention flags', 'ArchitectureModel (planned)'],
       dependsOn: ['PersistAndBroadcast', 'ShareDomainModel'],
@@ -184,7 +184,7 @@ window.MOCK = (() => {
       slices: [{ id: 'scc-sa4', title: 'formatRelativeAge + StoragePanel render', status: 'merged', mark: 'AFK' }],
     },
     {
-      slug: 'architecture-tab', status: 'Building', tier: 'mvp', priority: 'P0',
+      slug: 'system-map', status: 'Building', tier: 'mvp', priority: 'P0',
       mapsToComponent: 'RenderFlightDeck',
       slices: [
         { id: 'scc-arc1', title: 'living-arch graph view', status: 'in-progress', mark: 'AFK' },
@@ -214,7 +214,7 @@ window.MOCK = (() => {
       id: 'scc', name: 'SDLC Command Center', type: 'brownfield', tier: 'mvp', current: true,
       foundationDone: 8, foundationTotal: 8, building: 1, shipped: 2, blocked: 1, planned: 1,
       liveSessions: 2, attention: 1, lastActivity: '2m ago',
-      nextMove: '/mtdd-review architecture-tab', health: 'on-track',
+      nextMove: '/mtdd-review system-map', health: 'on-track',
     },
     {
       id: 'billing', name: 'acme-billing', type: 'greenfield', tier: 'production', current: false,
@@ -271,7 +271,7 @@ window.MOCK = (() => {
   // ---- Orchestrator's current read (the conductor) ----
   const orchestrator = {
     projectId: 'scc',
-    youAreHere: { phase: 'execution', stage: 'mtdd-implement', feature: 'architecture-tab', slice: 'scc-arc1' },
+    youAreHere: { phase: 'execution', stage: 'mtdd-implement', feature: 'system-map', slice: 'scc-arc1' },
     confidence: 0.86,
     recommendation: {
       skill: 'mtdd-review', args: 'scc-arc1',
@@ -281,13 +281,13 @@ window.MOCK = (() => {
     alternative: { skill: 'mtdd-implement', args: 'scc-arc1', why: 'if review surfaces gaps, stay in implement' },
     blockers: [
       { feature: 'global-hooks-observe', reason: 'BLOCKED-ON: settings.json write needs human confirm', gate: 'HITL' },
-      { feature: 'architecture-tab', reason: 'scc-arc3 (/api/architecture) waits on scc-arc1 merge', gate: 'dependency' },
+      { feature: 'system-map', reason: 'scc-arc3 (/api/architecture) waits on scc-arc1 merge', gate: 'dependency' },
     ],
     autopilot: { enabled: false, mode: 'suggest', gatesRespected: ['AFK-only', 'stop-at-HITL', 'stop-at-PR'] },
     digest: [
       'observability-data-pruning shipped ✓ (3/3 slices merged)',
       'oldest-record-age shipped ✓',
-      'architecture-tab building — 1/3 slices in flight',
+      'system-map building — 1/3 slices in flight',
       'cross-project-orchestrator planned (P0) — awaiting /prd',
     ],
   };
