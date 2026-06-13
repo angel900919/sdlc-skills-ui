@@ -110,7 +110,7 @@ If the user overrides a negative verdict, set `verdict_overridden: true`, record
 ## Position in the SDLC
 ```
 greenfield:  /architect → /test-strategy (HERE) + /bootstrap → /prd → per-feature loop
-brownfield:  /explore → /comprehend → /architect → /test-strategy (HERE) → [/health-audit] → /feature-census → /prd
+brownfield:  /explore → /comprehend → /architect → [/health-audit] → /feature-census → /test-strategy (HERE) → /pipeline → /prd
 ```
 
 ## References
