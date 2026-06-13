@@ -39,7 +39,7 @@ created: YYYY-MM-DD
 - core_things: [<thing>, <thing>]
 
 ## Next
-- ready_for: discovery        # or feature-map directly, if prototype skips deep stages
+- ready_for: discovery        # greenfield; brownfield (/onboard) → anchor; prototype may skip to feature-map
 ```
 
 ---
