@@ -20,7 +20,7 @@ Architecture knowledge lives in **two registers, same content**:
 
 ## Critical rules
 
-1. **`.ai/anchor.md` is required; `.ai/discovery/` is required.** No `anchor.md` or no `project_tier` → `BLOCKED-ON-ANCHOR → /anchor`; nothing written. No discovery artifact → `BLOCKED-ON-DISCOVERY → /discovery`; nothing written. Check anchor first (you need the tier), then discovery.
+1. **`.ai/anchor.md` is required; `.ai/discovery/` is required on greenfield.** No `anchor.md` or no `project_tier` → `BLOCKED-ON-ANCHOR → /anchor`; nothing written. Greenfield with no discovery artifact → `BLOCKED-ON-DISCOVERY → /discovery`; nothing written. **Brownfield has no discovery by design** (`/onboard` skips it — the app already ships): the JTBD/scope inputs come from `.human/intake/idea.md` + `.ai/understanding/<slug>.md` instead — warn if those are missing, never block on discovery. Check anchor first (you need the tier).
 2. **Inherit the tier — never ask it.** `project_tier` is LOCKED in `anchor.md`; read it and tier-gate every phase below. A request to "bump the tier" routes to `/promote`, not here. Don't draw a 12-container C4 for a prototype.
 3. **The diagram split is absolute.** Structure → `.ai/`; every diagram → `.human/` via the mermaid skill (rule above). No Mermaid or ASCII in any `.ai/` file, ever.
 4. **Reject the Entity Trap.** Entity-bucket names (`Manager`, `Handler`, `Service`, `Engine`, `Processor`, `Controller`) get rejected and renamed verb-noun (`AuthenticateUser`, not `AuthService`). Banned suffixes + the rescue probe: [references/naming.md](references/naming.md). Enforce in both the `.ai` component table and the `.human` diagram labels.
@@ -65,7 +65,7 @@ Read frontmatter first (the index), then only the sections you consume:
 | :-- | :-- | :-- |
 | `.ai/anchor.md` | `project_tier` (LOCKED authority), `project_type` (routes the success verdict), stack, `ai_in_core_path`, `uplift_signals`, security gate (prod) | **BLOCKED-ON-ANCHOR** |
 | `.ai/intake.md` | `technical_user` (question depth), uplift context | warn |
-| `.ai/discovery/<slug>.md` | JTBD, scope, success metric, constraints | **BLOCKED-ON-DISCOVERY** |
+| `.ai/discovery/<slug>.md` | JTBD, scope, success metric, constraints | **BLOCKED-ON-DISCOVERY** (greenfield) · n/a brownfield — use `idea.md` + understanding |
 | `.ai/understanding/<slug>.md` | invariants (→ architecture-level rules), journeys, glossary | warn (lighter invariants) |
 | `.ai/context.md` | entities + relationships → inform component boundaries | warn |
 | `.ai/features.md` | roster → components trace to real features | warn |
@@ -114,7 +114,7 @@ Read back the design in plain English (rule 13). Enforce the tier line cap. Then
 Append a tracker entry on a success verdict (name changed artifacts on an update-mode run); skip on refusals. The success verdict **branches on `project_type`** (from `anchor.md`) so the agentic dispatcher routes on the token, not on prose. Issue exactly one verdict:
 
 - **`READY-FOR-BOOTSTRAP → /bootstrap`** *(greenfield)* — architecture complete (see success criteria below) and no code exists yet. Hand off: *"Architecture is set. Next: `/bootstrap` to scaffold the project against this design, then `/prd <feature>` for the highest-priority P0."*
-- **`READY-FOR-PRD → /prd`** *(brownfield)* — architecture complete and the codebase already exists. Hand off: *"Architecture is set. Next: `/prd <feature>` for the highest-priority P0 — its design must trace to a component in `02-components.md`."*
+- **`READY-FOR-PRD → /prd`** *(brownfield)* — architecture complete and the codebase already exists. Hand off: *"Architecture is set. Next: `/prd <feature>` for the highest-priority P0 — its design must trace to a component in `02-components.md`."* **When `.ai/features.md` is absent** (the usual brownfield case — `/feature-census` runs after `/architect` in the canonical order), hand off to `/feature-census` first: the census inventories shipped features and cross-traces them to these components; `/prd` needs its roster.
   - Success criteria for both: components named (no Entity Trap), style chosen + ADR'd, dependency edges recorded, (production) characteristics + risk storming done.
 - **`NEEDS-STRATEGIC-DESIGN → /ddd-strategy`** — DDD-shaped domain, `strategic-design.md` missing. STOP; save partial work as `Status: Blocked`.
 - **`BLOCKED-ON-ANCHOR → /anchor`** — no `anchor.md`/`project_tier`; nothing written.
