@@ -20,3 +20,6 @@ data/
 
 # bv (beads viewer) local config and caches
 .bv/
+
+# Playwright MCP browser-smoke artifacts (console logs, snapshots, screenshots)
+.playwright-mcp/
