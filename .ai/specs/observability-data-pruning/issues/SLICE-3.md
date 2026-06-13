@@ -4,7 +4,7 @@ feature: observability-data-pruning
 slice: 3
 stage: issue
 title: Confirm dialog and result readout (the no-accidents UX)
-status: open
+status: published
 category: enhancement
 type: afk
 priority: P0
@@ -23,7 +23,7 @@ files:
 hitl_reason: ""
 skip_tests_reason: ""
 backend_refs:
-  beads: null
+  beads: "scc-0bb"
   jira: null
   md: null
 source_plan: .ai/specs/observability-data-pruning/plan.md

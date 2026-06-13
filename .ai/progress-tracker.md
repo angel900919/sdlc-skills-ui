@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — publish-issues landed (observability-data-pruning, backend=beads)
+- Artifact: beads scc-m7w / scc-b51 / scc-0bb (+ 2 dep edges); canonical files flipped open → published with refs.
+- Key decisions: bd init (prefix scc) ran as setup; frozen-spec guard ask fired live on the write-back (expected).
+- Next: /build — pick the next unblocked slice (expect scc-m7w, the tracer) → READY-FOR-MTDD.
+
 ## 2026-06-13 — to-issues landed (observability-data-pruning)
 - Artifact: `.ai/specs/observability-data-pruning/issues/SLICE-{1..3}.md` — verdict: READY-TO-PUBLISH.
 - Key decisions: slices 1/3 AFK, slice 2 HITL (db.ts schema-block review rule + invariant-1 adjacency); all tests-required; feature flipped planned → building.

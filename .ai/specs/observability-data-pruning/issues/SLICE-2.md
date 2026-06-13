@@ -4,7 +4,7 @@ feature: observability-data-pruning
 slice: 2
 stage: issue
 title: Prune engine and endpoints (API-complete cleanup)
-status: open
+status: published
 category: enhancement
 type: hitl
 priority: P0
@@ -24,7 +24,7 @@ files:
 hitl_reason: "data-management.md § Migration policy review rule: slice touches the db.ts schema block (boot auto_vacuum conversion); also invariant-1-adjacent (chunked vacuum, feature ADR-0001)"
 skip_tests_reason: ""
 backend_refs:
-  beads: null
+  beads: "scc-b51"
   jira: null
   md: null
 source_plan: .ai/specs/observability-data-pruning/plan.md

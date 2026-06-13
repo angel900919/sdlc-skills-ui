@@ -4,7 +4,7 @@ feature: observability-data-pruning
 slice: 1
 stage: issue
 title: Show storage stats end-to-end (tracer bullet)
-status: open
+status: published
 category: enhancement
 type: afk
 priority: P0
@@ -25,7 +25,7 @@ files:
 hitl_reason: ""
 skip_tests_reason: ""
 backend_refs:
-  beads: null
+  beads: "scc-m7w"
   jira: null
   md: null
 source_plan: .ai/specs/observability-data-pruning/plan.md

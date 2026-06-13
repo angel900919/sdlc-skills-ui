@@ -110,6 +110,18 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
 - `inject-state.sh` fired at session start (minimal block — no `.ai/` yet). ✓
 - `guard-paths.sh` allow path: silent pass-through on `.ai/`/`.human/`/root
   writes, and on the (unguarded by design) `_shared/ai-schema.md` edit. ✓
+- `guard-paths.sh` **frozen-spec ask path fired live** during /publish-issues:
+  the slice-2 write-back ran as two edits instead of the skill's mandated one
+  atomic write, so edit #2 hit an already-`published` file → ask (probe
+  confirms the decision + reason verbatim). Lesson: the adapter's "write
+  atomically" rule is load-bearing — non-atomic write-backs trip the freeze. ✓
+- mermaid skill sub-invocation: 8 diagrams generated, 8/8 kroki-validated
+  across environments/understanding/architecture/features/test-strategy/
+  pipeline/ux/design mirrors. ✓
+- beads adapter end-to-end: bd init (prefix scc), 3 beads created with full
+  label vocabulary + acceptance blobs, 2 dependency edges, refs written back.
+  Note: bd init wires its own `bd prime` hooks into .claude/settings.json —
+  the chain's hooks and beads' hooks now demonstrably coexist. ✓
 
 ## Lessons learned
 
