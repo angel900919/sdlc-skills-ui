@@ -14,12 +14,12 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client.js';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatBytes, formatPruneResultLine, type PruneResultLike } from '@sdlc/shared';
+import { api, post } from '../api/client.js';
 import { microLabel, palette } from '../theme.js';
+import { PruneConfirmDialog, type PrunePreviewData } from './PruneConfirmDialog.js';
 
-// Local response types: the slice boundary keeps @sdlc/shared untouched (slice 3
-// owns the api/hooks.ts wiring; until then the shape lives with its one consumer).
 interface StorageKindStats {
   kind: 'audit-events' | 'hook-events' | 'transcript-copies' | 'usage-samples';
   rows: number;
@@ -29,6 +29,7 @@ interface StorageStats {
   fileSizeBytes: number;
   kinds: StorageKindStats[];
 }
+type PruneResult = PruneResultLike & { deleted: { kind: string; rows: number }[] };
 
 const KIND_LABELS: Record<StorageKindStats['kind'], string> = {
   'audit-events': 'Audit events',
@@ -37,17 +38,30 @@ const KIND_LABELS: Record<StorageKindStats['kind'], string> = {
   'usage-samples': 'Usage samples',
 };
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 export function StoragePanel() {
+  const qc = useQueryClient();
   const [cutoffDays, setCutoffDays] = useState(30);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [result, setResult] = useState<PruneResult | null>(null);
+
   const stats = useQuery({
     queryKey: ['storage-stats'],
     queryFn: () => api<StorageStats>('/api/storage/stats'),
+  });
+
+  const preview = useQuery({
+    queryKey: ['storage-prune-preview', cutoffDays],
+    queryFn: () => api<PrunePreviewData>(`/api/storage/prune-preview?cutoffDays=${cutoffDays}`),
+    enabled: dialogOpen,
+  });
+
+  const prune = useMutation({
+    mutationFn: () => post<PruneResult>('/api/storage/prune', { cutoffDays }),
+    onSuccess: (r) => {
+      setResult(r);
+      setDialogOpen(false);
+      void qc.invalidateQueries({ queryKey: ['storage-stats'] });
+    },
   });
 
   const totalRows = stats.data?.kinds.reduce((sum, k) => sum + k.rows, 0) ?? 0;
@@ -82,7 +96,7 @@ export function StoragePanel() {
         </Stack>
       )}
 
-      {stats.data && totalRows === 0 && (
+      {stats.data && totalRows === 0 && !result && (
         <Typography sx={{ fontSize: 12.5, color: palette.faint }}>Nothing recorded yet.</Typography>
       )}
 
@@ -123,13 +137,35 @@ export function StoragePanel() {
               <MenuItem value={30}>30 days</MenuItem>
               <MenuItem value={90}>90 days</MenuItem>
             </Select>
-            {/* Inert until slice 2 wires the preview endpoint. */}
-            <Button size="small" variant="outlined" disabled>
+            <Button size="small" variant="outlined" onClick={() => { setResult(null); setDialogOpen(true); }}>
               Preview cleanup…
             </Button>
           </Stack>
         </Box>
       )}
+
+      {/* S3 — result readout (success) or the database-unchanged failure copy. */}
+      {result && (
+        <Typography sx={{ fontSize: 12.5, color: palette.green, mt: 1.5, fontFamily: '"IBM Plex Mono", monospace' }}>
+          {formatPruneResultLine(result)} · recorded to the audit trail.
+        </Typography>
+      )}
+      {prune.isError && (
+        <Typography sx={{ fontSize: 12.5, color: palette.red, mt: 1.5 }}>
+          Cleanup failed — nothing was deleted. The database is unchanged. ({prune.error.message})
+        </Typography>
+      )}
+
+      <PruneConfirmDialog
+        open={dialogOpen}
+        preview={preview.data}
+        isLoading={preview.isPending}
+        isError={preview.isError}
+        errorMessage={preview.error?.message}
+        isPruning={prune.isPending}
+        onConfirm={() => prune.mutate()}
+        onCancel={() => setDialogOpen(false)}
+      />
     </Paper>
   );
 }
