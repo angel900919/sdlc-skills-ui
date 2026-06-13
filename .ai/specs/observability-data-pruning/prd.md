@@ -88,6 +88,7 @@ data I'll never look at again.** Whose problem: the owner (the app's one user).
 ## Open questions
 1. Should hook events share the one cutoff with audit/transcript/usage records in v1, or
    need their own? (Proposal: one cutoff for all four kinds; revisit on real use.)
+   → Resolved in design.md § PRD Open questions: one cutoffDays for all four kinds.
 
 ## Notes
 - Component placement (proposed; `/design` finalizes): PersistAndBroadcast (delete +
