@@ -36,6 +36,7 @@ import { createPr, getPrContext } from '../state/prFlow.js';
 import { detectDevServers } from '../state/devServers.js';
 import { getSessionDiff, listBranches } from '../state/gitDiff.js';
 import { searchTranscripts } from '../state/search.js';
+import { reportStorageStats } from '../state/storageStats.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
 
 export function registerApiRoutes(app: FastifyInstance) {
@@ -46,6 +47,9 @@ export function registerApiRoutes(app: FastifyInstance) {
     now: new Date().toISOString(),
     activeSessions: listSessions().filter((s) => s.status === 'running' || s.status === 'starting').length,
   }));
+
+  // ---- storage ------------------------------------------------------------
+  app.get('/api/storage/stats', async () => reportStorageStats());
 
   // ---- projects -----------------------------------------------------------
   app.get('/api/projects', async () => listProjects());

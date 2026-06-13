@@ -8,6 +8,7 @@ import { palette, microLabel, statusColor } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import { useMetrics, useProjectState, useSessions, useSpawnSession } from '../api/hooks.js';
 import { ActivityFeed } from '../components/ActivityFeed.js';
+import { StoragePanel } from '../components/StoragePanel.js';
 import { post } from '../api/client.js';
 import { formatCostUsd, formatTokens } from '../lib/format.js';
 
@@ -280,6 +281,10 @@ export function DashboardPage() {
                   {formatTokens(metrics?.tokens.output ?? 0)} tokens generated
                 </Typography>
               </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <StoragePanel />
             </Grid>
           </Grid>
         </Grid>
