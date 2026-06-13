@@ -11,3 +11,4 @@ export * from './markdownExport.js';
 export * from './diffStat.js';
 export * from './pruneSummary.js';
 export * from './storageBreakdown.js';
+export * from './relativeAge.js';
