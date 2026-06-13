@@ -1,44 +1,46 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-12T12:30:12.363357+00:00",
-  "generatedAtSha": "ac7bb30",
+  "generatedAt": "2026-06-13T01:44:35.844839+00:00",
+  "generatedAtSha": "278962c",
   "foundation": {
     "discover": {
       "present": false,
       "files": []
     },
     "understand": {
-      "present": false,
-      "files": [],
-      "hasContext": false
+      "present": true,
+      "files": [
+        ".ai/understanding/sdlc-command-center.md"
+      ],
+      "hasContext": true
     },
     "eventStorm": {
       "present": false
     },
     "featureMap": {
-      "present": false
+      "present": true
     },
     "anchor": {
-      "present": false,
-      "tier": "unknown",
-      "projectType": "unknown",
+      "present": true,
+      "tier": "mvp",
+      "projectType": "brownfield",
       "language": "unknown"
     },
     "dddStrategy": {
       "present": false
     },
     "architect": {
-      "present": false,
-      "bundled": false,
-      "adrCount": 0
+      "present": true,
+      "bundled": true,
+      "adrCount": 4
     },
     "bootstrap": {
       "present": false,
       "complete": false
     },
     "explore": {
-      "present": false
+      "present": true
     }
   },
   "features": [],
@@ -47,91 +49,266 @@
     "perFeature": {},
     "hasCodeowners": false
   },
-  "progressTail": [],
-  "recentCommits": [
+  "progressTail": [
     {
-      "sha": "ac7bb30",
-      "date": "2026-06-12",
-      "subject": "Fix shared typecheck: URL global missing from ES2022-only lib"
+      "date": "2026-06-13",
+      "skill": "publish-issues",
+      "scope": "observability-data-pruning, backend=beads"
     },
     {
-      "sha": "f7f0c05",
-      "date": "2026-06-12",
-      "subject": "Fix 400 on body-less POSTs from the web client"
+      "date": "2026-06-13",
+      "skill": "to-issues",
+      "scope": "observability-data-pruning"
     },
     {
-      "sha": "d1a424f",
-      "date": "2026-06-12",
-      "subject": "Add app preview pane with dev-server detection"
+      "date": "2026-06-13",
+      "skill": "plan",
+      "scope": "observability-data-pruning"
     },
     {
-      "sha": "4694337",
-      "date": "2026-06-12",
-      "subject": "Add human-gated PR flow from the session diff panel"
+      "date": "2026-06-13",
+      "skill": "design",
+      "scope": "observability-data-pruning"
     },
     {
-      "sha": "9998476",
-      "date": "2026-06-12",
-      "subject": "Add session recap badges \u2014 what happened while you were away"
+      "date": "2026-06-13",
+      "skill": "prd",
+      "scope": "observability-data-pruning"
     },
     {
-      "sha": "574b5e0",
-      "date": "2026-06-12",
-      "subject": "Add CLAUDE.md with persistent engineering rules for agent sessions"
+      "date": "2026-06-13",
+      "skill": "pipeline",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "2b1769c",
-      "date": "2026-06-12",
-      "subject": "Add session telemetry, attention, verdicts, search, diff review and worktrees"
+      "date": "2026-06-13",
+      "skill": "test-strategy",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "2e41615",
-      "date": "2026-06-12",
-      "subject": "Wire pipeline artifact links to Docs and fix empty MiniMap"
+      "date": "2026-06-13",
+      "skill": "feature-census",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "337d23a",
-      "date": "2026-06-11",
-      "subject": "imrpvoing pipeline"
+      "date": "2026-06-13",
+      "skill": "architect",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "9b2a7f1",
-      "date": "2026-06-11",
-      "subject": "adding claude --dangerously-skip-permissions to startSession function"
+      "date": "2026-06-13",
+      "skill": "comprehend",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "75166b8",
-      "date": "2026-06-11",
-      "subject": "Set up vitest with tests for trace, stage model, hooks, and docs guard"
+      "date": "2026-06-13",
+      "skill": "data-management",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "d15541f",
-      "date": "2026-06-11",
-      "subject": "Wire opt-in OpenTelemetry trace export"
+      "date": "2026-06-13",
+      "skill": "environments",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "30ccd82",
-      "date": "2026-06-11",
-      "subject": "Add opt-in global hook install/uninstall"
+      "date": "2026-06-13",
+      "skill": "explore",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "19b0fb2",
-      "date": "2026-06-11",
-      "subject": "Add per-session trace timeline from hook events"
+      "date": "2026-06-13",
+      "skill": "anchor",
+      "scope": "sdlc-command-center"
     },
     {
-      "sha": "f715b71",
-      "date": "2026-06-11",
-      "subject": "Add Kanban board page for feature slices"
-    },
-    {
-      "sha": "44df3ed",
-      "date": "2026-06-11",
-      "subject": "SDLC Command Center: visual OS over Claude Code CLI + the 54-skill chain"
+      "date": "2026-06-13",
+      "skill": "onboard",
+      "scope": "sdlc-command-center"
     }
   ],
-  "recentlyModified": [],
-  "nextActions": [
-    "/anchor \u2014 lock stack + tier"
-  ]
+  "recentCommits": [
+    {
+      "sha": "278962c",
+      "date": "2026-06-13",
+      "subject": "bd init: initialize beads issue tracking"
+    },
+    {
+      "sha": "3f263a8",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /to-issues observability-data-pruning \u2014 3 canonical slices; planned\u2192building"
+    },
+    {
+      "sha": "cb30229",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /plan observability-data-pruning \u2014 3 vertical slices, tracer first"
+    },
+    {
+      "sha": "00c0fd0",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /design observability-data-pruning \u2014 LLD + chunked-vacuum ADR"
+    },
+    {
+      "sha": "ab60f9c",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /ux-spec observability-data-pruning \u2014 3 screens, 4 flows"
+    },
+    {
+      "sha": "5c4317e",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /prd observability-data-pruning \u2014 mvp contract + mirror"
+    },
+    {
+      "sha": "4e9e2e3",
+      "date": "2026-06-13",
+      "subject": "fix(skills): research inherits the explore draft-file sub-agent contract"
+    },
+    {
+      "sha": "3d4a003",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /pipeline \u2014 delivery contract locked; FOUNDATION COMPLETE"
+    },
+    {
+      "sha": "a39c096",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /test-strategy \u2014 recovered vitest conventions locked"
+    },
+    {
+      "sha": "7b9394b",
+      "date": "2026-06-13",
+      "subject": "fix(skills): test-strategy footer \u2014 census precedes test-strategy in the canonical order"
+    },
+    {
+      "sha": "9f59f57",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /feature-census \u2014 16 shipped inventoried, P0 planned: observability-data-pruning"
+    },
+    {
+      "sha": "003e314",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /architect \u2014 as-is HLD bundle (7 components, 10 edges, ADR 0004-0007)"
+    },
+    {
+      "sha": "02972b0",
+      "date": "2026-06-13",
+      "subject": "fix(skills): architect brownfield gates \u2014 discovery greenfield-only, census-first hand-off"
+    },
+    {
+      "sha": "e70a508",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /comprehend \u2014 domain recovered (12 invariants, 3 journeys, context.md)"
+    },
+    {
+      "sha": "bc88221",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /data-management \u2014 RECOVERY policy locked (boot DDL, additive-only)"
+    },
+    {
+      "sha": "1d3af49",
+      "date": "2026-06-13",
+      "subject": "fix(skills): data-management architecture gate is greenfield-only"
+    },
+    {
+      "sha": "b714463",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /environments \u2014 RECOVERY spec locked (1 env, 11 vars, 0 secrets)"
+    },
+    {
+      "sha": "1057afc",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /explore \u2014 recon.md (161 citations, 7 components)"
+    },
+    {
+      "sha": "616136e",
+      "date": "2026-06-13",
+      "subject": "fix(skills): explore sub-agent report must travel via a draft file; routing prose"
+    },
+    {
+      "sha": "6108e91",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /anchor \u2014 mvp tier locked, detected stack, CLAUDE.md.suggested"
+    }
+  ],
+  "recentlyModified": [
+    {
+      "path": ".ai/progress-tracker.md",
+      "mtime": "2026-06-13T01:44:34.537358+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
+      "mtime": "2026-06-13T01:43:23.933069+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/issues/SLICE-2.md",
+      "mtime": "2026-06-13T01:43:08.455502+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/issues/SLICE-1.md",
+      "mtime": "2026-06-13T01:41:44.608179+00:00"
+    },
+    {
+      "path": ".ai/features.md",
+      "mtime": "2026-06-13T01:39:10.069934+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/plan.md",
+      "mtime": "2026-06-13T01:37:18.077545+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/prd.md",
+      "mtime": "2026-06-13T01:35:44.030077+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/adr/0001-chunked-incremental-vacuum.md",
+      "mtime": "2026-06-13T01:34:46.323769+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/design.md",
+      "mtime": "2026-06-13T01:34:28.578257+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/ux.md",
+      "mtime": "2026-06-13T01:31:54.951896+00:00"
+    },
+    {
+      "path": ".ai/pipeline.md",
+      "mtime": "2026-06-13T01:25:20.205938+00:00"
+    },
+    {
+      "path": ".ai/test-strategy.md",
+      "mtime": "2026-06-13T01:22:25.418793+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0007-shared-types-as-raw-source.md",
+      "mtime": "2026-06-13T01:15:20.182628+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0006-single-multiplexed-websocket.md",
+      "mtime": "2026-06-13T01:15:20.180236+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0005-loopback-no-auth-boundary.md",
+      "mtime": "2026-06-13T01:15:20.177827+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0004-modular-monolith-event-bus.md",
+      "mtime": "2026-06-13T01:15:20.175046+00:00"
+    },
+    {
+      "path": ".ai/architecture/api-governance.md",
+      "mtime": "2026-06-13T01:15:01.714229+00:00"
+    },
+    {
+      "path": ".ai/architecture/02-components.md",
+      "mtime": "2026-06-13T01:14:42.875085+00:00"
+    },
+    {
+      "path": ".ai/architecture/01-style.md",
+      "mtime": "2026-06-13T01:14:25.867669+00:00"
+    },
+    {
+      "path": ".ai/architecture/index.md",
+      "mtime": "2026-06-13T01:14:02.799169+00:00"
+    }
+  ],
+  "nextActions": []
 }

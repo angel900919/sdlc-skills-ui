@@ -1,0 +1,7 @@
+# .mtdd/config — written by mtdd-init. Edit by hand or re-run /mtdd-init.
+# Read by the mtdd-* phases; sh-sourceable (key=value) so the gates can read it too.
+mtdd_target_branch=develop
+mtdd_language=javascript
+mtdd_typecheck_cmd="npm run typecheck"
+mtdd_test_cmd="npm test"
+mtdd_task_source=beads
