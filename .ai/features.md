@@ -40,7 +40,9 @@ created: 2026-06-13
 | recap-badges | Structural "what happened while unfocused" recaps | — | shipped | mvp | session-observability | DeriveProjectState |
 | pr-handoff | Human-gated PR creation from a session branch | — | shipped | mvp | worktree-isolation | ServeApiAndWs · behavior: ship-as-pr (gh unverified end-to-end — gh CLI absent) |
 | docs-and-skills-browser | Rendered project docs/artifacts + skills catalog | — | shipped | mvp | — | DeriveProjectState, RenderFlightDeck |
-| observability-data-pruning | Prune old observability data (audit events, usage samples, transcript copies) by age, from the UI | P0 | planned | mvp | session-observability | PersistAndBroadcast, ServeApiAndWs, RenderFlightDeck · data-management retention follow-up |
+| observability-data-pruning | Prune old observability data (audit events, usage samples, transcript copies) by age, from the UI | P0 | building | mvp | session-observability | PersistAndBroadcast, ServeApiAndWs, RenderFlightDeck · data-management retention follow-up |
+
+<!-- status flip planned → building by /to-issues 2026-06-13 (3 canonical slices written) -->
 
 <!-- priority: P0 | P1 | P2 · applies to planned rows only -->
 <!-- status: planned | building | qa-approved | shipped | deprecated | removed | blocked | cut -->

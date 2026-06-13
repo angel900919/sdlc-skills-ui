@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — to-issues landed (observability-data-pruning)
+- Artifact: `.ai/specs/observability-data-pruning/issues/SLICE-{1..3}.md` — verdict: READY-TO-PUBLISH.
+- Key decisions: slices 1/3 AFK, slice 2 HITL (db.ts schema-block review rule + invariant-1 adjacency); all tests-required; feature flipped planned → building.
+- Next: /publish-issues observability-data-pruning --backend=beads (bd CLI present).
+
 ## 2026-06-13 — plan landed (observability-data-pruning)
 - Artifact: `.ai/specs/observability-data-pruning/plan.md` — verdict: READY-FOR-ISSUES.
 - Key decisions: 3 slices — tracer = stats end-to-end; prune engine API-complete; confirm UX last. No mapped E2E journey (deliberate); N1 mechanical proxy = bounded vacuum chunks.
