@@ -37,6 +37,7 @@ import { detectDevServers } from '../state/devServers.js';
 import { getSessionDiff, listBranches } from '../state/gitDiff.js';
 import { searchTranscripts } from '../state/search.js';
 import { reportStorageStats } from '../state/storageStats.js';
+import { previewPrune, pruneObservabilityRecords } from '../state/storagePrune.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
 
 export function registerApiRoutes(app: FastifyInstance) {
@@ -50,6 +51,22 @@ export function registerApiRoutes(app: FastifyInstance) {
 
   // ---- storage ------------------------------------------------------------
   app.get('/api/storage/stats', async () => reportStorageStats());
+
+  app.get('/api/storage/prune-preview', async (req, reply) => {
+    const cutoffDays = Number((req.query as { cutoffDays?: string }).cutoffDays);
+    if (!Number.isInteger(cutoffDays) || cutoffDays <= 0) {
+      return reply.code(400).send({ error: 'cutoffDays must be a positive integer' });
+    }
+    return previewPrune(cutoffDays);
+  });
+
+  app.post('/api/storage/prune', async (req, reply) => {
+    const cutoffDays = Number((req.body as { cutoffDays?: number }).cutoffDays);
+    if (!Number.isInteger(cutoffDays) || cutoffDays <= 0) {
+      return reply.code(400).send({ error: 'cutoffDays must be a positive integer' });
+    }
+    return pruneObservabilityRecords(cutoffDays);
+  });
 
   // ---- projects -----------------------------------------------------------
   app.get('/api/projects', async () => listProjects());

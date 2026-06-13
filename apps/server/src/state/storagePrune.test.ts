@@ -15,20 +15,21 @@ const OLD = '2020-01-01T00:00:00Z'; // well before any sane cutoff
 const recent = new Date().toISOString(); // within the cutoff window
 
 function reset() {
-  for (const t of ['audit_events', 'hook_events', 'transcript_messages', 'usage_samples', 'sessions']) {
+  for (const t of ['audit_events', 'hook_events', 'transcript_messages', 'usage_samples', 'sessions', 'projects']) {
     db.prepare(`DELETE FROM ${t}`).run();
   }
   db.prepare(`DELETE FROM transcript_fts`).run();
 }
 
 function seed() {
+  // sessions.project_id has a NOT NULL FK to projects — seed the parent first.
+  db.prepare(`INSERT INTO projects (id, name, root_path, created_at) VALUES ('p1', 'p1', '/x', ?)`).run(OLD);
   // sessions: one live (running), one finished (exited)
   db.prepare(
     `INSERT INTO sessions (id, project_id, cwd, title, status, created_at)
      VALUES ('live-1', 'p1', '/x', 'live', 'running', ?),
             ('dead-1', 'p1', '/x', 'dead', 'exited', ?)`,
   ).run(OLD, OLD);
-  // projects FK target (audit/sessions reference loosely; sessions.project_id has no FK to keep seed light)
   // audit: old+null (prunable), old+live (protected), recent (too new)
   db.prepare(`INSERT INTO audit_events (at, source, kind, session_id, summary) VALUES (?, 'server', 'k', NULL, 'old-null')`).run(OLD);
   db.prepare(`INSERT INTO audit_events (at, source, kind, session_id, summary) VALUES (?, 'server', 'k', 'live-1', 'old-live')`).run(OLD);

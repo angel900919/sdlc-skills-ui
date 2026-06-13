@@ -9,6 +9,15 @@ export const db: Database.Database = new Database(path.join(config.dataDir, 'com
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
+// Incremental auto-vacuum lets observability-data-pruning reclaim freed pages in
+// bounded chunks instead of one blocking VACUUM. Switching modes only takes effect
+// after a full VACUUM, so do it once at boot (before serving) when not already set.
+// Idempotent: the pragma read makes re-runs a no-op. (auto_vacuum: 0=NONE 1=FULL 2=INCREMENTAL)
+if ((db.pragma('auto_vacuum', { simple: true }) as number) !== 2) {
+  db.pragma('auto_vacuum = INCREMENTAL');
+  db.exec('VACUUM');
+}
+
 db.exec(`
 CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
