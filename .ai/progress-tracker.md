@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — plan landed (observability-data-pruning)
+- Artifact: `.ai/specs/observability-data-pruning/plan.md` — verdict: READY-FOR-ISSUES.
+- Key decisions: 3 slices — tracer = stats end-to-end; prune engine API-complete; confirm UX last. No mapped E2E journey (deliberate); N1 mechanical proxy = bounded vacuum chunks.
+- Next: /to-issues observability-data-pruning — canonical SLICE-N.md files; flips feature planned → building.
+
 ## 2026-06-13 — design landed (observability-data-pruning)
 - Artifact: `.ai/specs/observability-data-pruning/design.md` — verdict: READY-FOR-PLAN.
 - Key decisions: 4 modules (CQS split stats/prune); zero new deps; chunked incremental_vacuum (feature ADR-0001 — monolithic VACUUM would stall the event loop and violate invariant 1); transactional delete backs the UI's "unchanged" promise; audit event storage.prune = success-metric source.
