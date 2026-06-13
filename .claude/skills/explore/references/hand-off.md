@@ -6,6 +6,8 @@ Pick the block matching the verdict issued in Phase 8.
 
 > Recon landed: `.ai/recon.md`. Citations verified. Next: **`/comprehend`** (the brownfield domain-recovery skill — *not* greenfield `/understand`).
 >
+> Canonical order note: `/environments` (RECOVERY) and `/data-management` (RECOVERY, datastore projects) ride **between** recon and `/comprehend` — they need only disk facts, not the domain model. Run them first if they haven't run yet (see `_shared/downstream-integration.md` § canonical routing).
+>
 > When `/comprehend` confirms the domain, paste **Section C** (glossary candidates + invariants + inferred journeys) as starting input. The glossary terms come from real identifiers in the code — `/comprehend` confirms them into `.ai/context.md` and surfaces any conflicts with terms you already use.
 >
 > **Section E (Mystery zones)** is the list of things the code can't answer — `/comprehend` will ask you about each one directly. Skim it now so you're ready.

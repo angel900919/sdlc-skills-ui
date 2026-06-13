@@ -625,7 +625,7 @@ Body (fixed order; fill only what the tier requires): `## Test pyramid` (table: 
 
 ## `.ai/recon.md` — whole-repo reconnaissance (written by /explore)
 
-The **brownfield-only, once-per-project** facts-only map of an existing codebase. An `Explore` sub-agent scans the whole repo; the artifact records what already exists — with a `path:line` citation on every claim — across five fixed sections, plus a `## Handoff` block routing each section to its consumer. **Facts, never recommendations** (a decision is `/architect` or `/design`); **structure over prose, no diagrams.** Tier-scaled line cap: prototype (≤150) → mvp (≤300) → production (≤450). **No `.human` mirror** — a facts-for-the-next-skill machine artifact; the read-back is the checkpoint. Greenfield projects skip the skill entirely (nothing to scan).
+The **brownfield-only, once-per-project** facts-only map of an existing codebase. A read-only scan sub-agent scans the whole repo (general-purpose with a draft-file return contract — see `explore/SKILL.md` rule 3); the artifact records what already exists — with a `path:line` citation on every claim — across five fixed sections, plus a `## Handoff` block routing each section to its consumer. **Facts, never recommendations** (a decision is `/architect` or `/design`); **structure over prose, no diagrams.** Tier-scaled line cap: prototype (≤150) → mvp (≤300) → production (≤450). **No `.human` mirror** — a facts-for-the-next-skill machine artifact; the read-back is the checkpoint. Greenfield projects skip the skill entirely (nothing to scan).
 
 ```yaml
 ---

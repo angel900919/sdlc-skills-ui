@@ -1,16 +1,20 @@
 # Sub-agent prompt skeleton
 
-Base template for spawning the `Explore` sub-agent in `/explore` Phase 3. Fill the brackets with concrete values from the loaded inputs (anchor stack, tier, whether a glossary/architecture doc exists).
+Base template for spawning the scan sub-agent in `/explore` Phase 3. Fill the brackets with concrete values from the loaded inputs (anchor stack, tier, whether a glossary/architecture doc exists, the draft path).
 
 Spawn it with:
-- `subagent_type=Explore`
+- `subagent_type=general-purpose` — NOT `Explore`: that agent type cannot write files and compresses its final message to a conclusion, so the full cited report never reaches the parent (observed live 2026-06-13)
 - `description="Whole-codebase recon"`
-- search breadth: `very thorough`
 
 ```
 You are doing whole-codebase reconnaissance for a brownfield SDLC bootstrap.
 Two downstream skills (/comprehend and /architect) will consume your output —
 you are NOT making decisions, you are surfacing facts they need.
+
+You work READ-ONLY across the repo, with exactly one exception: write your
+finished report to <draft path, e.g. /tmp/recon-draft-<slug>.md>. Touch no
+other file. Your final chat message is just that path plus per-section bullet
+counts — the report itself lives in the file.
 
 Tier: <prototype | mvp | production> (from .ai/anchor.md)
 Anchor stack: <language, framework, db, hosting, auth>
@@ -75,4 +79,9 @@ feeds which downstream skill.
 
 Match the template at references/template.md — your output will be slotted
 into it.
+
+OUTPUT CONTRACT (hard rule): write the COMPLETE report — every section, every
+bullet, every `path:line` citation — to the draft path given above. The parent
+reads that file and has no other access to your findings; a summary in chat is
+a failed run. The file starts at `## Section A` and ends after `## Handoff`.
 ```
