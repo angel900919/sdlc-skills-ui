@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T08:30:30.762323+00:00",
-  "generatedAtSha": "b0a8d7d",
+  "generatedAt": "2026-06-13T13:14:29.164573+00:00",
+  "generatedAtSha": "774611c",
   "foundation": {
     "discover": {
       "present": false,
@@ -33,7 +33,7 @@
     "architect": {
       "present": true,
       "bundled": true,
-      "adrCount": 4
+      "adrCount": 6
     },
     "bootstrap": {
       "present": false,
@@ -50,6 +50,41 @@
     "hasCodeowners": false
   },
   "progressTail": [
+    {
+      "date": "2026-06-13",
+      "skill": "publish-issues",
+      "scope": "system-map, backend=beads"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "to-issues",
+      "scope": "system-map"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "feature-map",
+      "scope": "system-map"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "plan",
+      "scope": "system-map"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "design",
+      "scope": "system-map"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "prd",
+      "scope": "system-map"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "ship",
+      "scope": "oldest-record-age"
+    },
     {
       "date": "2026-06-13",
       "skill": "qa",
@@ -114,44 +149,79 @@
       "date": "2026-06-13",
       "skill": "prd",
       "scope": "observability-data-pruning"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "pipeline",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "test-strategy",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "feature-census",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "architect",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "comprehend",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "data-management",
-      "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "environments",
-      "scope": "sdlc-command-center"
     }
   ],
   "recentCommits": [
+    {
+      "sha": "774611c",
+      "date": "2026-06-13",
+      "subject": "refactor: rename feature architecture-tab -> system-map; + LikeC4 design input"
+    },
+    {
+      "sha": "42e1966",
+      "date": "2026-06-13",
+      "subject": "arch(adr): 0008 unified graph domain model + 0009 derive-don't-duplicate"
+    },
+    {
+      "sha": "587ca1a",
+      "date": "2026-06-13",
+      "subject": "docs(prd): architecture-tab \u2014 fold in living-digital-twin vision (design constraint)"
+    },
+    {
+      "sha": "9fd853e",
+      "date": "2026-06-13",
+      "subject": "docs(prd): architecture-tab \u2014 READY-FOR-DESIGN (mvp, beyond_roster)"
+    },
+    {
+      "sha": "43a0b47",
+      "date": "2026-06-13",
+      "subject": "spike(v2): fold portfolio into prototype A as a rail switcher + popover"
+    },
+    {
+      "sha": "7504d6e",
+      "date": "2026-06-13",
+      "subject": "spike(v2): Architecture & Progress tab + orchestrator \u2014 4 UI direction mockups"
+    },
+    {
+      "sha": "b54e2cd",
+      "date": "2026-06-13",
+      "subject": "chore: drop redundant AGENTS.md"
+    },
+    {
+      "sha": "2ab1872",
+      "date": "2026-06-13",
+      "subject": "feat(gates): add secrets-scan PreToolUse gate for git commit + push"
+    },
+    {
+      "sha": "ecde356",
+      "date": "2026-06-13",
+      "subject": "chore: gitignore .playwright-mcp/ browser-smoke artifacts"
+    },
+    {
+      "sha": "482f7fc",
+      "date": "2026-06-13",
+      "subject": "docs(qa): record live smoke outcomes for oldest-record-age + pruning"
+    },
+    {
+      "sha": "55bc549",
+      "date": "2026-06-13",
+      "subject": "ship(oldest-record-age): qa-approved -> shipped (local-first)"
+    },
+    {
+      "sha": "3fe2e17",
+      "date": "2026-06-13",
+      "subject": "chore(dashboard): regen state.json \u2014 qa/oldest-record-age progress"
+    },
+    {
+      "sha": "f662a0d",
+      "date": "2026-06-13",
+      "subject": "chore(beads): gitignore issues.jsonl + interactions.jsonl (fix I-10)"
+    },
+    {
+      "sha": "5e80282",
+      "date": "2026-06-13",
+      "subject": "feat(qa): oldest-record-age qa-approved \u2014 /qa verifier delegation fired"
+    },
     {
       "sha": "b0a8d7d",
       "date": "2026-06-13",
@@ -181,158 +251,88 @@
       "sha": "2ef634a",
       "date": "2026-06-13",
       "subject": "red: formatRelativeAge \u2014 whole-day relative age, clamped, NaN-safe"
-    },
-    {
-      "sha": "814e92d",
-      "date": "2026-06-13",
-      "subject": "docs(oldest-record-age): prd\u2192design\u2192plan\u2192to-issues\u2192publish (specs)"
-    },
-    {
-      "sha": "a44a010",
-      "date": "2026-06-13",
-      "subject": "docs(dogfood): DOGFOOD-LOG-v2.md \u2014 clean brownfield re-run record"
-    },
-    {
-      "sha": "bd0cea4",
-      "date": "2026-06-13",
-      "subject": "feat(storage): order observability breakdown largest-first with share-of-total"
-    },
-    {
-      "sha": "9b1f16c",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): live API smoke \u2014 slices 1+2 verified against the running server's real DB"
-    },
-    {
-      "sha": "ee0d361",
-      "date": "2026-06-13",
-      "subject": "fix(skills): close the brownfield gate-impossibility class (audit A-1/A-2/A-3)"
-    },
-    {
-      "sha": "6230dda",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /ship observability-data-pruning \u2014 SHIPPED; chain complete end-to-end"
-    },
-    {
-      "sha": "acf6c76",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /qa observability-data-pruning \u2014 READY-FOR-SHIP, building\u2192qa-approved"
-    },
-    {
-      "sha": "6cd3680",
-      "date": "2026-06-13",
-      "subject": "test(storage): tag N1/N3/N4 assertions with NFR ids for /qa traceability"
-    },
-    {
-      "sha": "18a8af4",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): per-feature loop complete (3 slices merged); log I-10 + READY-FOR-QA"
-    },
-    {
-      "sha": "6ea9e24",
-      "date": "2026-06-13",
-      "subject": "chore(beads): sync issues.jsonl after scc-0bb verify"
-    },
-    {
-      "sha": "4390d99",
-      "date": "2026-06-13",
-      "subject": "chore(beads): sync after scc-0bb review"
-    },
-    {
-      "sha": "f73f1b8",
-      "date": "2026-06-13",
-      "subject": "feat(storage): confirm dialog + result readout wiring (S2/S3)"
-    },
-    {
-      "sha": "58a4fae",
-      "date": "2026-06-13",
-      "subject": "green: prune summary formatters (formatBytes, result line, warning copy)"
-    },
-    {
-      "sha": "e96334f",
-      "date": "2026-06-13",
-      "subject": "red: prune summary formatters \u2014 bytes scaling, result line, confirm-warning copy"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T08:30:29.490727+00:00"
+      "mtime": "2026-06-13T13:14:27.804982+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/qa-report.md",
-      "mtime": "2026-06-13T08:30:14.759943+00:00"
+      "path": ".ai/specs/system-map/issues/SLICE-4.md",
+      "mtime": "2026-06-13T13:13:42.499465+00:00"
+    },
+    {
+      "path": ".ai/specs/system-map/issues/SLICE-3.md",
+      "mtime": "2026-06-13T13:13:13.327659+00:00"
+    },
+    {
+      "path": ".ai/specs/system-map/issues/SLICE-2.md",
+      "mtime": "2026-06-13T13:12:58.585902+00:00"
+    },
+    {
+      "path": ".ai/specs/system-map/issues/SLICE-1.md",
+      "mtime": "2026-06-13T13:12:33.456096+00:00"
     },
     {
       "path": ".ai/features.md",
-      "mtime": "2026-06-13T08:29:50.176621+00:00"
+      "mtime": "2026-06-13T13:06:09.354084+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/prd.md",
-      "mtime": "2026-06-13T08:21:23.906722+00:00"
+      "path": ".ai/specs/system-map/plan.md",
+      "mtime": "2026-06-13T12:43:13.849517+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/plan.md",
-      "mtime": "2026-06-13T08:21:23.906391+00:00"
+      "path": ".ai/specs/system-map/prd.md",
+      "mtime": "2026-06-13T12:38:25.592095+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/issues/SLICE-1.md",
-      "mtime": "2026-06-13T08:21:23.906097+00:00"
+      "path": ".ai/specs/system-map/adr/0001-defer-likec4-render-our-own.md",
+      "mtime": "2026-06-13T12:33:42.405825+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/design.md",
-      "mtime": "2026-06-13T08:21:23.905628+00:00"
+      "path": ".ai/specs/system-map/design.md",
+      "mtime": "2026-06-13T12:33:14.392515+00:00"
+    },
+    {
+      "path": ".ai/specs/system-map/vision.md",
+      "mtime": "2026-06-13T12:07:04.616398+00:00"
+    },
+    {
+      "path": ".ai/architecture/index.md",
+      "mtime": "2026-06-13T12:07:04.607759+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0008-unified-graph-domain-model.md",
+      "mtime": "2026-06-13T12:07:04.605476+00:00"
+    },
+    {
+      "path": ".ai/architecture/02-components.md",
+      "mtime": "2026-06-13T12:07:04.602824+00:00"
+    },
+    {
+      "path": ".ai/architecture/adr/0009-twin-derives-not-duplicates.md",
+      "mtime": "2026-06-13T11:50:18.556881+00:00"
     },
     {
       "path": ".ai/understanding/sdlc-command-center.md",
-      "mtime": "2026-06-13T07:40:57.639664+00:00"
+      "mtime": "2026-06-13T08:40:33.670738+00:00"
     },
     {
       "path": ".ai/test-strategy.md",
-      "mtime": "2026-06-13T07:40:57.639155+00:00"
+      "mtime": "2026-06-13T08:40:33.670522+00:00"
     },
     {
-      "path": ".ai/specs/observability-data-pruning/ux.md",
-      "mtime": "2026-06-13T07:40:57.638761+00:00"
+      "path": ".ai/specs/oldest-record-age/qa-report.md",
+      "mtime": "2026-06-13T08:40:33.670362+00:00"
     },
     {
-      "path": ".ai/specs/observability-data-pruning/qa-report.md",
-      "mtime": "2026-06-13T07:40:57.638513+00:00"
+      "path": ".ai/specs/oldest-record-age/prd.md",
+      "mtime": "2026-06-13T08:40:33.670191+00:00"
     },
     {
-      "path": ".ai/specs/observability-data-pruning/prd.md",
-      "mtime": "2026-06-13T07:40:57.638351+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/plan.md",
-      "mtime": "2026-06-13T07:40:57.638111+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
-      "mtime": "2026-06-13T07:40:57.637695+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/issues/SLICE-2.md",
-      "mtime": "2026-06-13T07:40:57.637481+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/issues/SLICE-1.md",
-      "mtime": "2026-06-13T07:40:57.637220+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/design.md",
-      "mtime": "2026-06-13T07:40:57.636936+00:00"
-    },
-    {
-      "path": ".ai/specs/observability-data-pruning/adr/0001-chunked-incremental-vacuum.md",
-      "mtime": "2026-06-13T07:40:57.636664+00:00"
-    },
-    {
-      "path": ".ai/recon.md",
-      "mtime": "2026-06-13T07:40:57.636130+00:00"
-    },
-    {
-      "path": ".ai/pipeline.md",
-      "mtime": "2026-06-13T07:40:57.635184+00:00"
+      "path": ".ai/specs/oldest-record-age/plan.md",
+      "mtime": "2026-06-13T08:40:33.670033+00:00"
     }
   ],
   "nextActions": []

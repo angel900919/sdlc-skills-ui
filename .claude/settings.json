@@ -74,6 +74,17 @@
         ],
         "matcher": ""
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/skills/_build_share/hooks/handoff-watchdog.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
     ]
   }
 }
