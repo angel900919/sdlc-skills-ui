@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — qa landed (observability-data-pruning)
+- Artifact: `.ai/specs/observability-data-pruning/qa-report.md` — verdict: READY-FOR-SHIP.
+- Key decisions: 7 PASS / 0 FAIL / 2 WARN (security + a11y, mvp-accepted) / 1 SKIP; features.md flipped building → qa-approved; approval on the record (autonomous standing auth). I-11: tagged NFR ids in tests so check e traces.
+- Next: /ship observability-data-pruning (release gate; runbook is production-only, skipped at mvp).
+
 ## 2026-06-13 — mtdd loop SLICE-3 merged; feature fully built (observability-data-pruning / scc-0bb)
 - Artifact: bead scc-0bb (closed) — merged into `develop` at `6ea9e24`. All 3 slices done.
 - Key decisions: confirm dialog + result readout; pure formatters TDD'd in @sdlc/shared (formatBytes/formatPruneResultLine/pruneWarningCopy); UI wiring smoke-verified. 168/168 tests.
