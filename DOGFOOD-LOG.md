@@ -34,6 +34,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 6 | /comprehend | READY-FOR-ARCHITECT | — | — (triage + mystery-zone walk worked as designed; 3/3 diagrams kroki-validated) |
 | 7 | /architect | READY-FOR-PRD (→ /feature-census) | I-6, I-7 | both fixed (skill edits) |
 | 8 | /feature-census | READY-FOR-PRD | — | — (two-population model worked; P0 sourced from the run's own data-management finding) |
+| 9 | /test-strategy | TEST-STRATEGY-LOCKED | I-8 | fixed (footer order matched to canonical) |
 
 ## Issues & fixes (detail)
 
@@ -89,6 +90,11 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   first when `features.md` is absent. Third routing bug in the brownfield
   on-ramp (with I-4, I-5): **the brownfield order was documented but its
   verdict tokens/gates were never walked end-to-end before this dogfood.**
+- **I-8 (fixed)** — `/test-strategy`'s "Position in the SDLC" footer put it
+  BEFORE `/feature-census`, contradicting the canonical order (census first —
+  correctly so: the E2E table maps journeys to owning features, which need
+  the roster to exist). One-line footer fix. Fourth ordering inconsistency in
+  the brownfield on-ramp.
 - **Observation (no fix)** — `/data-management`'s frontmatter enums
   (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
   file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +

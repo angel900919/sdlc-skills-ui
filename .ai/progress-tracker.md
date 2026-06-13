@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — test-strategy landed (sdlc-command-center)
+- Artifact: `.ai/test-strategy.md` — verdict: TEST-STRATEGY-LOCKED.
+- Key decisions: recovered vitest workspace + make<Entity> builder idiom; (new) tmp-dir SQLite rule, builder growth rule, Playwright journey suite named-not-materialized (dep_adds flags @playwright/test for anchor).
+- Next: /pipeline (RECOVERY — no CI exists; gap table will be honest), then /prd observability-data-pruning.
+
 ## 2026-06-13 — feature-census landed (sdlc-command-center)
 - Artifact: `.ai/features.md` — verdict: READY-FOR-PRD.
 - Key decisions: 16 shipped features inventoried (component+behavior traced); 1 planned P0 = observability-data-pruning (retention gap surfaced by this run's data-management stage).
