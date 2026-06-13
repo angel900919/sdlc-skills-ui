@@ -45,7 +45,7 @@ feature renders an honest "unlinked" rather than a synthesized link, and its sta
 ## Acceptance criteria
 - [ ] `deriveComponentStatus.test.ts` over a `makeState` fixture: the join resolves a feature/slice/issue for the majority of the 7 components (R-2)
 - [ ] Status maps real `FeatureState`/`SliceState`: any-blocked → blocked, any-in-progress → in-progress, all-merged → done, no-feature → done as-built
-- [ ] NFR-1: the enriched `GET …/architecture` stays p95 ≤ 300 ms (server OTel span, local)
+- [ ] NFR-1 (latency): the enriched route stays non-blocking — the join is derived off the request path (see NFR-4); no standalone p95/OTel-span gate at tracer scope (route OTel instrumentation is out of MVP boundary)
 - [ ] NFR-4: the join is derived off the request path (no per-call recompute)
 - [ ] Smoke: clicking each node opens the inspector with non-empty role/files/deps; owner + linked refs render, or show an honest "unlinked"
 - [ ] typecheck passes

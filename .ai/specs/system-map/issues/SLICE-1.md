@@ -54,7 +54,7 @@ dirs so the twin never describes its own output.
 - [ ] `parseComponentsModel.test.ts` round-trips the real components model → 7 components / 10 edges; parse→serialize→diff = 0 dropped or invented (NFR-3)
 - [ ] `architecture.test.ts` → 200 with the model for a known project, 404 for an unknown project
 - [ ] `architectureModel.test.ts` covers the `rollupStatus` helper as a unit
-- [ ] NFR-1: `GET /api/projects/:id/architecture` p95 ≤ 300 ms (server OTel span, local) — parse cached after first load
+- [ ] NFR-1 (latency): descoped from the tracer — latency is met structurally by the off-path cache (see NFR-4 below), so the served route is an in-memory return after the first load; no standalone p95/OTel-span gate at tracer scope (route OTel instrumentation is out of MVP boundary)
 - [ ] NFR-4: parse is off the request path (lazy-cached, projectState TTL idiom) — the route test confirms it does not re-parse per call
 - [ ] Smoke: the tab renders 7 nodes / 10 edges status-colored (no E2E spec — system-map maps to none in test-strategy; manual smoke)
 - [ ] typecheck passes
