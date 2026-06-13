@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — prd landed (observability-data-pruning)
+- Artifact: `.ai/specs/observability-data-pruning/prd.md` — verdict: READY-FOR-DESIGN.
+- Key decisions: mvp tier (no uplift); 6 stories, 4 numeric NFRs; live-session records unprunable (new rule for /design); kill criterion 2026-09-13.
+- Next: /research skipped candidate? No — brownfield optional scout: small feature, db.ts already recon'd; straight to /design observability-data-pruning.
+
 ## 2026-06-13 — pipeline landed (sdlc-command-center)
 - Artifact: `.ai/pipeline.md` — verdict: PIPELINE-LOCKED. FOUNDATION COMPLETE.
 - Key decisions: no CI exists; 5 gates recorded (2 agent-time enforced, 3 manual); gaps G1-G3 left open for the owner (route or waive) — autonomous run never waives.
