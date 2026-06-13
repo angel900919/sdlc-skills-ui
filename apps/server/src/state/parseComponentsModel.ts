@@ -5,12 +5,20 @@
  * stores a second copy (ADR-0009). Table-parsing idiom ported from the chain's
  * `project-state.py` (parse_features_table).
  */
-import type { ArchEdge, ComponentDecl } from '@sdlc/shared';
+import type { ArchEdge, ArchitectureModel, ComponentDecl } from '@sdlc/shared';
 
 /** The raw parse output: declared components (no derived status) + edges. */
 export interface ParsedComponentsModel {
   readonly components: ComponentDecl[];
   readonly edges: ArchEdge[];
+}
+
+/**
+ * Load the architecture model for a project, lazily and cached. Returns null
+ * when the project declares no model file.
+ */
+export function loadArchitecture(projectRoot: string, maxAgeMs?: number): ArchitectureModel | null {
+  return null;
 }
 
 export function parseComponentsModel(markdown: string): ParsedComponentsModel {

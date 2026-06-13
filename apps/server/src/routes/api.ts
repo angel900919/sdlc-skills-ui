@@ -10,6 +10,7 @@ import {
   removeProject,
 } from '../state/projects.js';
 import { getProjectState, refreshProjectState } from '../state/projectState.js';
+import { loadArchitecture } from '../state/parseComponentsModel.js';
 import { loadSkills } from '../state/skillsCatalog.js';
 import { buildDocsTree, readDocFile } from '../state/docsTree.js';
 import {
@@ -100,6 +101,15 @@ export function registerApiRoutes(app: FastifyInstance) {
     const state = await refreshProjectState(project.rootPath);
     bus.broadcast({ type: 'state-changed', projectId: id });
     return { project, state };
+  });
+
+  app.get('/api/projects/:id/architecture', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const project = getProject(id);
+    if (!project) return reply.code(404).send({ error: 'not found' });
+    const architecture = loadArchitecture(project.rootPath);
+    if (!architecture) return reply.code(404).send({ error: 'architecture not found' });
+    return architecture;
   });
 
   app.get('/api/projects/:id/skills', async (req, reply) => {
