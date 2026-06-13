@@ -9,7 +9,7 @@ describe('formatRelativeAge', () => {
     expect(formatRelativeAge('2026-06-13T01:00:00Z', NOW)).toBe('today'); // 11h earlier
   });
 
-  it('reads "1 day ago" at the singular boundary and floors partial days down', () => {
+  it('reads "1 day ago" at the singular boundary and floors partial days down (N2)', () => {
     expect(formatRelativeAge('2026-06-12T12:00:00Z', NOW)).toBe('1 day ago'); // exactly 1d
     expect(formatRelativeAge('2026-06-12T00:00:00Z', NOW)).toBe('1 day ago'); // 1.5d floors to 1
   });
