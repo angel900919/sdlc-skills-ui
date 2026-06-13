@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatBytes, formatPruneResultLine, summarizeStorageBreakdown, type PruneResultLike } from '@sdlc/shared';
+import { formatBytes, formatPruneResultLine, formatRelativeAge, summarizeStorageBreakdown, type PruneResultLike } from '@sdlc/shared';
 import { api, post } from '../api/client.js';
 import { microLabel, palette } from '../theme.js';
 import { PruneConfirmDialog, type PrunePreviewData } from './PruneConfirmDialog.js';
@@ -125,8 +125,12 @@ export function StoragePanel() {
                     <TableCell sx={{ fontSize: 12.5, color: palette.faint, fontFamily: '"IBM Plex Mono", monospace' }} align="right">
                       {r.pctOfTotal}%
                     </TableCell>
-                    <TableCell sx={{ fontSize: 12.5, color: palette.faint }} align="right">
-                      {full?.oldestAt ? full.oldestAt.slice(0, 10) : '—'}
+                    <TableCell
+                      sx={{ fontSize: 12.5, color: palette.faint }}
+                      align="right"
+                      title={full?.oldestAt ? full.oldestAt.slice(0, 10) : undefined}
+                    >
+                      {full?.oldestAt ? formatRelativeAge(full.oldestAt, Date.now()) : '—'}
                     </TableCell>
                   </TableRow>
                 );
