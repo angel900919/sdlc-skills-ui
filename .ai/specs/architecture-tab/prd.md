@@ -117,6 +117,28 @@ see Open questions); the animated "Living Blueprint" and C4 modes (later toggles
    (zero chain change, fastest), then add a structured `model.yaml` emit from `/architect` +
    `/as-built` as hardening. Recommend the markdown-parser path for slice 1.
 
+## Vision & forward design constraint
+Slice 1 renders the *declared* model, but it is the first slice of a **living software digital
+twin**, not a one-off diagram. Two constraints bind `/design`:
+1. **Unified graph domain model** — model the data as a strict *subset* of one typed graph:
+   nodes {requirement, feature, slice/task, component, api, datastore, workflow, source-file,
+   test, deployment, issue, agent-session, person}; edges {depends-on, maps-to, implements,
+   traces-to, calls, emits, owns}. Every future view is then a *projection* over the one graph,
+   never a bespoke shape. MVP ships only {component, edge, feature, slice, issue, stage}; the
+   schema must not preclude the rest.
+2. **Derive, don't duplicate** — the twin is a unified *index/projection* that **references**
+   authoritative sources (git = code/PRs, beads = issues, audit DB = agent activity, `.ai/` =
+   reqs/architecture, CI = deploys). It is SoT for the *architecture model* and a single *pane
+   of glass* over the rest — never a second store that drifts (mirrors `DeriveProjectState`:
+   derive, never own). This IS the living-twin property.
+
+Deferred (own PRDs; schema-reserved, not built now): code↔model **drift detection** (the primary
+v1.1 — the differentiator vs static-doc tools); **Agent Activity / Data Flow / Dependency
+Analysis / Requirements Traceability (req→feature→task→component→code→test→deploy) / Deployment**
+views; cross-project portfolio. Full roadmap → `.ai/specs/architecture-tab/vision.md`. The
+unified-graph model is an **architecture decision** → ratify via `/architect` (ADR); this feature
+is its first *consumer*, not its definition.
+
 ## Notes
 - **Architectural placement:** `DeriveProjectState` (parse the model + `/api/architecture` +
   `architecture-changed` event + extend the `.ai/` watcher to `.ai/architecture/`),
@@ -148,4 +170,7 @@ NFRs (latency, freshness, accuracy, non-interference) and the three honored inva
 deliberately the *declared-model renderer*; the orchestrator, portfolio, extra views, and drift
 detection are out. Next: `/design architecture-tab` — its design must trace to `DeriveProjectState`
 + `RenderFlightDeck` in `02-components.md`; the three Open questions get triaged at the top of
-`/design`. Provisional success metric to confirm there.
+`/design`. Provisional success metric to confirm there. **Forward note (Vision §):** the
+unified-graph domain model is an architecture decision — recommend ratifying it via `/architect`
+(ADR) so `/design` consumes it rather than inventing it; the MVP schema must be a strict subset.
+Slice 1 is unchanged.

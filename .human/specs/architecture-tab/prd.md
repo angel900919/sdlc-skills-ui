@@ -44,6 +44,17 @@ A thin end-to-end path: the server reads the architecture file → a small `/api
 feed → the tab draws the 7 boxes and 10 connections with status colors. Everything else builds
 inside that proven spine.
 
+## Where this is heading (vision, not v1)
+This tab is slice 1 of a **living software digital twin** — eventually one model linking
+requirements → features → tasks → components → code → tests → deployments → issues → agents,
+with extra views (agent activity, data flow, dependency analysis, traceability, deployment) and
+**drift detection** (catching when code diverges from the diagram). Two rules keep it honest and
+are locked in now: build it on **one unified graph** (every view is a query over it), and
+**derive, don't duplicate** — it links to git/beads/CI/the activity log, it never re-stores them
+(that's what stops it becoming stale docs). Full roadmap: `.ai/specs/architecture-tab/vision.md`.
+None of this expands the first slice; it just shapes the data model. The graph model itself is an
+architecture call → worth an ADR via `/architect` first.
+
 ## Open question for you
 1. Is "I open this tab to orient in ≥60% of coding sessions" the right success measure, or should
    it be **accuracy/freshness** of the model (never more than a commit behind)?
