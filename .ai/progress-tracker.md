@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — data-management landed (sdlc-command-center)
+- Artifact: `.ai/data-management.md` — verdict: DATA-MANAGEMENT-LOCKED.
+- Key decisions: RECOVERY — no migration tool (boot DDL + ensureColumn), additive-only with argued-irreversible rollback (local re-derivable store), data transforms = idempotent boot backfills, seeds none.
+- Next: /comprehend — confirm recon §C glossary/invariants into .ai/context.md; §E mystery zones are the open questions.
+
 ## 2026-06-13 — environments landed (sdlc-command-center)
 - Artifact: `.ai/environments.md` — verdict: ENVIRONMENTS-LOCKED.
 - Key decisions: RECOVERY mode — 1 env (local, two run modes), 11 vars all optional-with-defaults, 0 secrets, no flags/IaC/CI; mirror + validated diagram written.

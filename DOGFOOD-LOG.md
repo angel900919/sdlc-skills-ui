@@ -30,6 +30,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 2 | /anchor | READY-FOR-ARCHITECT | — (2 observations) | none needed |
 | 3 | /explore | READY-FOR-COMPREHEND | I-3, I-4 | both fixed (skill edits) |
 | 4 | /environments | ENVIRONMENTS-LOCKED | — | — (mermaid sub-invocation worked first try, kroki-validated) |
+| 5 | /data-management | DATA-MANAGEMENT-LOCKED | I-5 | fixed (greenfield-only architecture gate) |
 
 ## Issues & fixes (detail)
 
@@ -64,6 +65,21 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   silently skipping both. A verdict-following user would never run them. Fix:
   canonical-order note added to `explore/references/hand-off.md` + SKILL.md
   Phase 8 bullet.
+- **I-5 (fixed)** — I-4's sibling, one level deeper: `/data-management` rule 3
+  hard-required `.ai/architecture` (`BLOCKED-ON-ARCHITECT`), but the canonical
+  brownfield order runs it BEFORE `/comprehend → /architect` — every
+  order-following brownfield run would block. The gate exists for greenfield
+  (architecture decides where data lives); in RECOVERY the datastore is on
+  disk and `anchor.db` + recon §A4 answer the gate. Fix: architecture
+  requirement made greenfield-only (warn on brownfield), rule 3 + Phase 1
+  table. Pattern worth a sweep: foundation skills written greenfield-first may
+  carry more brownfield-impossible gates.
+- **Observation (no fix)** — `/data-management`'s frontmatter enums
+  (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
+  file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +
+  `ensureColumn`) fits none of them. Used `n-a-*` values following the
+  schema's own `backup_last_tested: n-a` precedent. The schema could bless
+  `none`/`n-a` for these fields explicitly.
 
 ## Live verifications banked
 
