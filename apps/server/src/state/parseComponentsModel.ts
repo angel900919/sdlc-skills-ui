@@ -5,7 +5,12 @@
  * stores a second copy (ADR-0009). Table-parsing idiom ported from the chain's
  * `project-state.py` (parse_features_table).
  */
-import type { ArchEdge, ArchitectureModel, ComponentDecl } from '@sdlc/shared';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import type { ArchEdge, ArchitectureModel, ComponentDecl, ComponentNode } from '@sdlc/shared';
+
+import { deriveComponentStatus } from './deriveComponentStatus.js';
 
 /** The raw parse output: declared components (no derived status) + edges. */
 export interface ParsedComponentsModel {
@@ -13,12 +18,36 @@ export interface ParsedComponentsModel {
   readonly edges: ArchEdge[];
 }
 
+const MODEL_RELATIVE_PATH = path.join('.ai', 'architecture', '02-components.md');
+const CACHE_TTL_MS = 15_000;
+
+interface CacheEntry {
+  readonly at: number;
+  readonly model: ArchitectureModel;
+}
+const cache = new Map<string, CacheEntry>();
+
 /**
- * Load the architecture model for a project, lazily and cached. Returns null
- * when the project declares no model file.
+ * Load the architecture model for a project, lazily and cached (mirrors the
+ * projectState TTL idiom). The markdown parse runs at most once per TTL window,
+ * keeping it off the request path (NFR-4). Returns null when the project
+ * declares no model file.
  */
-export function loadArchitecture(projectRoot: string, maxAgeMs?: number): ArchitectureModel | null {
-  return null;
+export function loadArchitecture(projectRoot: string, maxAgeMs = CACHE_TTL_MS): ArchitectureModel | null {
+  const cached = cache.get(projectRoot);
+  if (cached && Date.now() - cached.at < maxAgeMs) return cached.model;
+
+  const modelPath = path.join(projectRoot, MODEL_RELATIVE_PATH);
+  if (!fs.existsSync(modelPath)) return null;
+
+  const parsed = parseComponentsModel(fs.readFileSync(modelPath, 'utf8'));
+  const components: ComponentNode[] = parsed.components.map((decl) => ({
+    ...decl,
+    status: deriveComponentStatus(decl),
+  }));
+  const model: ArchitectureModel = { components, edges: parsed.edges };
+  cache.set(projectRoot, { at: Date.now(), model });
+  return model;
 }
 
 export function parseComponentsModel(markdown: string): ParsedComponentsModel {
