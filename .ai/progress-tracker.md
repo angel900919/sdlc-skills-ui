@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — mtdd loop SLICE-2 merged (observability-data-pruning / scc-b51)
+- Artifact: bead scc-b51 (closed) — merged into `develop` at `e644a28`; prune engine API-complete.
+- Key decisions: transactional delete + live-session protection + FTS cascade; boot auto_vacuum=INCREMENTAL; chunked incremental_vacuum (ADR-0001) with non-incremental-mode loop guard; storage.prune audit event = success-metric source. 164/164 tests.
+- Next: /build → scc-0bb (slice 3, confirm-dialog UI), last slice before /qa.
+
 ## 2026-06-13 — mtdd loop SLICE-1 merged (observability-data-pruning / scc-m7w)
 - Artifact: bead scc-m7w (closed) — merged into `develop` at `0327f3f`; 5 commits, 4 code files.
 - Key decisions: tracer bullet — storage stats end-to-end (reportStorageStats + /api/storage/stats + Storage panel S1); 159/159 tests; new tmp-dir SQLite test pattern established. Review/verify degraded in-context (I-9).
