@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T01:44:35.844839+00:00",
-  "generatedAtSha": "278962c",
+  "generatedAt": "2026-06-13T02:18:42.155536+00:00",
+  "generatedAtSha": "0327f3f",
   "foundation": {
     "discover": {
       "present": false,
@@ -128,6 +128,46 @@
   ],
   "recentCommits": [
     {
+      "sha": "0327f3f",
+      "date": "2026-06-13",
+      "subject": "chore(beads): sync issues.jsonl after verify-phase notes on scc-m7w"
+    },
+    {
+      "sha": "a2c85de",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): I-9 \u2014 verifier seeded mid-session isn't registered until restart"
+    },
+    {
+      "sha": "5fdac86",
+      "date": "2026-06-13",
+      "subject": "feat(storage): stats endpoint + dashboard Storage panel (S1, picker inert)"
+    },
+    {
+      "sha": "e45f8e2",
+      "date": "2026-06-13",
+      "subject": "green: seeded-store coverage \u2014 exact per-kind counts, oldest dates, N2 timing"
+    },
+    {
+      "sha": "ae99c6e",
+      "date": "2026-06-13",
+      "subject": "green: reportStorageStats \u2014 per-kind counts/oldest + page-math file size"
+    },
+    {
+      "sha": "dff812d",
+      "date": "2026-06-13",
+      "subject": "red: storage stats report zero rows, null oldest, real file size on an empty store"
+    },
+    {
+      "sha": "2d0865b",
+      "date": "2026-06-13",
+      "subject": "chore(mtdd): seed verifier agent + .mtdd config; state.json churn"
+    },
+    {
+      "sha": "ee92ab5",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /publish-issues \u2014 3 beads minted (scc prefix), refs written back"
+    },
+    {
       "sha": "278962c",
       "date": "2026-06-13",
       "subject": "bd init: initialize beads issue tracking"
@@ -186,52 +226,12 @@
       "sha": "003e314",
       "date": "2026-06-13",
       "subject": "chore(dogfood): /architect \u2014 as-is HLD bundle (7 components, 10 edges, ADR 0004-0007)"
-    },
-    {
-      "sha": "02972b0",
-      "date": "2026-06-13",
-      "subject": "fix(skills): architect brownfield gates \u2014 discovery greenfield-only, census-first hand-off"
-    },
-    {
-      "sha": "e70a508",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /comprehend \u2014 domain recovered (12 invariants, 3 journeys, context.md)"
-    },
-    {
-      "sha": "bc88221",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /data-management \u2014 RECOVERY policy locked (boot DDL, additive-only)"
-    },
-    {
-      "sha": "1d3af49",
-      "date": "2026-06-13",
-      "subject": "fix(skills): data-management architecture gate is greenfield-only"
-    },
-    {
-      "sha": "b714463",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /environments \u2014 RECOVERY spec locked (1 env, 11 vars, 0 secrets)"
-    },
-    {
-      "sha": "1057afc",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /explore \u2014 recon.md (161 citations, 7 components)"
-    },
-    {
-      "sha": "616136e",
-      "date": "2026-06-13",
-      "subject": "fix(skills): explore sub-agent report must travel via a draft file; routing prose"
-    },
-    {
-      "sha": "6108e91",
-      "date": "2026-06-13",
-      "subject": "chore(dogfood): /anchor \u2014 mvp tier locked, detected stack, CLAUDE.md.suggested"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T01:44:34.537358+00:00"
+      "mtime": "2026-06-13T02:18:40.909436+00:00"
     },
     {
       "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
