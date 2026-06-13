@@ -26,6 +26,6 @@ Then append the matching greenfield/brownfield next-step block above.
 
 > *"Heads-up: uplift signals are present ([list], carried from intake). `/architect` will read these and reserve room for the higher-tier subsystems; `/prd` applies per-feature uplift automatically when a feature touches one of these signals. The signals don't change `project_tier` — that's a `/promote` decision."*
 
-## BLOCKED-ON-DISCOVERY → /discovery
+## BLOCKED-ON-INTAKE → /onboard | /intake
 
-> *"Can't anchor yet — there's no `.ai/intake.md` (or the project itself isn't defined enough to pick a tier and stack). Run `/discovery` to nail down JTBD, target user, and success metric first, then come back. Nothing was written."*
+> *"Can't anchor yet — there's no `.ai/intake.md` (or the project itself isn't defined enough to pick a tier and stack). Start at the front door: `/onboard` if this is an existing repo, `/intake` if it's a fresh idea — that writes the intake stub anchor reads. Then come back. Nothing was written."* (Don't send them to `/discovery`: brownfield skips it, and without the intake stub anchor can't tell which path they're on.)

@@ -19,7 +19,7 @@ Anchor is **decide-and-lock**, not deliberate-and-compare. Each input is the sou
 - **`.ai/features.md` = the roster** — sizes tier-relevant choices (how broad `approved_dependencies` is, whether AI is genuinely in the core path, whether the stack must carry N features).
 - **`.ai/anchor.md` (if it exists) = update mode** — re-elicit only the fields the user names; preserve the rest, and never move `lifecycle_stage`/`project_tier` (that's `/promote`'s job).
 
-If `.ai/intake.md` is missing, the project isn't defined enough to anchor → `BLOCKED-ON-DISCOVERY → /discovery`. Nothing written.
+If `.ai/intake.md` is missing, the project isn't defined enough to anchor → `BLOCKED-ON-INTAKE → /onboard (existing repo) | /intake (new idea)`. Nothing written. (Never route to `/discovery` — brownfield skips it, and anchor can't know `project_type` without the very intake stub that's missing.)
 
 ## Critical rules
 
@@ -58,7 +58,7 @@ anchor progress:
 ```
 
 ### Phase 0 — Session context + mode
-Read `.ai/intake.md` frontmatter first: `slug`, `predicted_tier`, `technical_user`, `project_type`, `uplift_signals`. Missing → `BLOCKED-ON-DISCOVERY → /discovery`; stop. Read `.ai/features.md` frontmatter for the roster (tier, in-scope count, P0). Read `.ai/progress-tracker.md` top 5; seed from the [`../_shared/conventions.md`](../_shared/conventions.md) stub if absent. Read `.ai/anchor.md` — if present, restate the stack in 3–5 lines, ask which fields to update, and switch to **update mode** (rule 10): preserve everything not named, and never touch `lifecycle_stage`/`project_tier`/`stage_history`.
+Read `.ai/intake.md` frontmatter first: `slug`, `predicted_tier`, `technical_user`, `project_type`, `uplift_signals`. Missing → `BLOCKED-ON-INTAKE → /onboard | /intake`; stop. Read `.ai/features.md` frontmatter for the roster (tier, in-scope count, P0). Read `.ai/progress-tracker.md` top 5; seed from the [`../_shared/conventions.md`](../_shared/conventions.md) stub if absent. Read `.ai/anchor.md` — if present, restate the stack in 3–5 lines, ask which fields to update, and switch to **update mode** (rule 10): preserve everything not named, and never touch `lifecycle_stage`/`project_tier`/`stage_history`.
 
 ### Phase 1 — Confirm + lock the tier
 State intake's prediction and confirm it (rule 1): *"Intake predicted `<predicted_tier>` because [reason]. Lock that, or adjust?"* Write the result as `project_tier`. Seed `lifecycle_stage` to the same value (the frontmatter `lifecycle_stage` is the single source of truth for the current stage; the body `current:` line only restates it) and the first `stage_history` entry in the canonical one-shape form: `{ from: none, to: <tier>, date: <today>, by: /anchor, rationale: initial stage set by /anchor, overridden: false }`. Then confirm AI-in-core-path (rule 8) → `ai_in_core_path`.
@@ -93,7 +93,7 @@ Enforce the **tier line cap** first (40 / 100 / 200); over cap → cut non-requi
 **Verdict:** issue exactly one (extended hand-off prose: [references/hand-off.md](references/hand-off.md)):
 
 - **READY-FOR-ARCHITECT** — anchor written. If ≥1 required field is tentative, the verdict is **still** READY-FOR-ARCHITECT — list the tentatives explicitly in the hand-off and tell the user to revisit before a tier bump. Always add the lifecycle line: *"This project is at stage `<tier>`; run `/promote` to advance — don't bump the tier by hand."* Hand-off branches on `project_type` (greenfield → `/architect` → `/bootstrap` → per-feature loop; brownfield → `/explore` → `/comprehend` → `/architect`), with the uplift-signals append when signals fired.
-- **BLOCKED-ON-DISCOVERY → /discovery** — no `.ai/intake.md`, or the project is too fuzzy to answer Phase 1. Nothing written; state why.
+- **BLOCKED-ON-INTAKE → /onboard | /intake** — no `.ai/intake.md` (route by what they have: existing repo → `/onboard`, fresh idea → `/intake`), or the project is too fuzzy to answer Phase 1. Nothing written; state why.
 
 If the user overrides a negative verdict, set `verdict_overridden: true`, record the reason in the artifact, and route onward.
 

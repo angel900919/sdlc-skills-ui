@@ -202,6 +202,42 @@ true test is the next session. And every live UI/app smoke was human-deferred �
 the chain's automated evidence is real (168 tests, integration over a real DB),
 but no browser/curl was driven this run.
 
+## Follow-up: static gate audit (post-run, generalize the I-4…I-8 class)
+
+The walk fixed five gate/routing bugs (I-4…I-8) as I tripped them — on **one** path,
+**one** feature, **one** tier. To catch the rest of the *class* without re-walking, I
+swept all 55 `SKILL.md` gates statically against the canonical orders. Method + result:
+
+**The class reduces to one artifact.** The brownfield twins write the *same* files as
+the greenfield front (`onboard`→intake, `comprehend`→understanding+context,
+`feature-census`→features), so the **only greenfield-exclusive artifact is
+`.ai/discovery/<slug>.md`**. Therefore every "brownfield-impossible gate" is a hard
+dependency on `discovery` (or a verdict that routes to `/discovery`). That made the
+audit a closed search, not a vibe check.
+
+**Enumerated all `BLOCKED-ON-*` gates (78 across 39 skills); cross-checked each against
+the greenfield / brownfield / per-feature / prototype-express orders.** Everything
+non-discovery is satisfiable on every path it runs (the path-scoped gates —
+`environments`/`pipeline` BLOCKED-ON-BOOTSTRAP, `bootstrap` greenfield-only — were
+authored correctly; `quick-spec` correctly accepts the thin prototype architecture).
+The discovery-coupled set, fully resolved:
+
+| Skill | Gate | Verdict | Fix |
+| :-- | :-- | :-- | :-- |
+| architect | discovery hard-required | already fixed I-6 | greenfield-only ✓ |
+| feature-map / understand | discovery | safe — greenfield-only skills | none |
+| **prd** (A-1) | `BLOCKED-ON-DISCOVERY` verdict | **fixed** | fuzzy-JTBD on brownfield now routes `/onboard`\|`/comprehend` (`BLOCKED-ON-INTENT`), not `/discovery` |
+| **measure** (A-2) | PROJECT mode hard-requires discovery | **fixed** | brownfield (no bet by design) → new `NO-PROJECT-BET` verdict → `/measure <feature>`\|`/discovery`-to-retrofit; greenfield still `BLOCKED-ON-DISCOVERY` |
+| **anchor** (A-3) | `BLOCKED-ON-DISCOVERY` (fires on missing *intake*) | **fixed** | renamed `BLOCKED-ON-INTAKE` → `/onboard`\|`/intake` (token + schema enum + hand-off + probes); never `/discovery` |
+
+**Audit verdict:** the gate-impossibility bug class is now **closed** — 5 found by walking
++ 3 found by sweeping = the complete discovery-dependency set; no other artifact creates
+the hazard. A-1/A-2 are latent (brownfield-only, off the path this run took); A-3 was a
+mislabel that only bites if intake is missing. All three fixed by tracing, which is the
+right tool for a markdown gate (you can't unit-test it; you trace its precondition
+against the order). **Caveat, same as the walk:** these fixes are trace-verified, not
+walked — a brownfield re-run is still the gold-standard confirmation.
+
 ## Live verifications banked
 
 - `inject-state.sh` fired at session start (minimal block — no `.ai/` yet). ✓

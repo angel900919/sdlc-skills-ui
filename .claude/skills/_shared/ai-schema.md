@@ -323,7 +323,7 @@ uplift_signals: []            # carried verbatim from intake (+ any surfaced in 
                               #   any of: money, pii, sla, external-dependants, regulatory
 approved_dependencies: []     # mvp+ — package names only here; the why lives in the body
 tentative_fields: []          # field names picked from defaults on "I don't know"
-verdict: READY-FOR-ARCHITECT | BLOCKED-ON-DISCOVERY
+verdict: READY-FOR-ARCHITECT | BLOCKED-ON-INTAKE
 verdict_overridden: false
 source_intake: .ai/intake.md
 source_features: .ai/features.md

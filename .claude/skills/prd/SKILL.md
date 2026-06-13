@@ -92,7 +92,7 @@ Append a tracker entry on `READY-FOR-DESIGN` (skip on refusals). Issue exactly o
 - **`READY-FOR-DESIGN → /design <feature>`** — passes the tier's SMART bar, scope is sharp, NFRs measurable. Hand off: *"PRD is the contract. Next: `/design <feature>` — its design must trace to a component in `02-components.md`. Open questions get triaged at the top of `/design`."*
 - **`NEEDS-MORE-CLARITY → <item>`** — one section couldn't be made SMART (usually success metric or kill criterion). Name the blocker + what unblocks it. (Brownfield edge: if the gap is codebase-shape — a baseline, an integration surface — and `project_type: brownfield`, route to `/research <feature>` first.)
 - **`BLOCKED-ON-ARCHITECTURE → /architect`** — feature needs an architectural decision not in `anchor.md`/`architecture` (name it), or architecture is missing at mvp+. Save partial as `Status: Blocked`.
-- **`BLOCKED-ON-DISCOVERY → /discovery`** — JTBD or target user too fuzzy to PRD against. Save partial as `Status: Blocked`.
+- **`BLOCKED-ON-DISCOVERY → /discovery`** *(greenfield)* — JTBD or target user too fuzzy to PRD against. Save partial as `Status: Blocked`. **On brownfield** (`project_type: brownfield` — no `/discovery` in its chain): route the same fuzzy-JTBD block to **`/onboard`** (re-capture the product knowledge the code can't supply) or **`/comprehend`** (sharpen the domain), never `/discovery`; name it `BLOCKED-ON-INTENT → /onboard | /comprehend`.
 - **`BLOCKED-ON-ANCHOR → /anchor`** — no `anchor.md`/`project_tier`; nothing written.
 
 If the user overrides a negative verdict, set `verdict_overridden: true`, record the reason, and route onward.

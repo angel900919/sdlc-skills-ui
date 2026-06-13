@@ -47,7 +47,7 @@ measure progress:
 Arg present → FEATURE mode; bare → PROJECT mode. Read `.ai/progress-tracker.md` top 5. Then load and gate:
 - `.ai/features.md` — **REQUIRED** both modes (shipped statuses). Missing → refuse, point at `/feature-map`.
 - `.ai/specs/<feature>/prd.md` — **REQUIRED** FEATURE mode (the Success metric table). Missing → refuse, point at `/prd`.
-- `.ai/discovery/<slug>.md` — **REQUIRED** PROJECT mode (success_metric + Kill criteria). Missing → `BLOCKED-ON-DISCOVERY`. FEATURE mode: warn-if-missing (the discovery framing contextualizes the feature metric).
+- `.ai/discovery/<slug>.md` — PROJECT mode: required to reckon a project-level bet (success_metric + Kill criteria). Missing splits on `project_type` (from `.ai/intake.md`/`.ai/anchor.md`): **greenfield** → `BLOCKED-ON-DISCOVERY → /discovery` (the bet should exist); **brownfield** → `NO-PROJECT-BET` (brownfield skips `/discovery` by design — the app was its own validation, so there is no project-level kill-criteria bet to settle; reckon per shipped feature with `/measure <feature>`, or run `/discovery` only to *retrofit* project goals). FEATURE mode: warn-if-missing (the discovery framing contextualizes the feature metric).
 - `.ai/specs/<feature>/qa-report.md` — warn-if-missing (ship evidence; accepted WARN/SKIP items explain a partial).
 - `.ai/anchor.md` — warn-if-missing (Observability section names where numbers likely live).
 - Apply rule 3 (shipped gate). Announce: mode, feature/slug, tier, metric to be measured, ship date source.
@@ -80,7 +80,7 @@ Append the tracker entry per rule 12, then issue exactly one verdict with a hand
 - **`TOO-EARLY`** (with the due date) · **`BLOCKED-ON-SHIP → /ship | /qa | /build`**.
 - **`ON-TRACK`** — "no kill criterion fired; actuals recorded. Next: keep building; re-run `/measure` after the next ship."
 - **`KILL-CRITERIA-MET → kill | /discovery | override`** — state which criterion fired and the number that fired it.
-- **`NOTHING-SHIPPED → /build | /ship`** · **`BLOCKED-ON-DISCOVERY → /discovery`**.
+- **`NOTHING-SHIPPED → /build | /ship`** · **`BLOCKED-ON-DISCOVERY → /discovery`** (greenfield project, bet missing) · **`NO-PROJECT-BET → /measure <feature> | /discovery`** (brownfield project — no discovery bet by design; reckon per shipped feature, or retrofit goals with `/discovery`).
 
 </what-to-do>
 

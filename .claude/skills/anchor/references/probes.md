@@ -8,7 +8,7 @@ Markers: `[P]` prototype · `[M]` mvp · `[Pr]` production · `[AI]` only if AI=
 
 ## Phase 0 — Existing anchor / mode
 - *"`.ai/anchor.md` already exists — here's the stack [restate 3–5 lines]. Which fields should we update? I'll preserve the rest."* (update mode; never touch `lifecycle_stage`/`project_tier`)
-- (no `.ai/intake.md`) *"There's no intake stub — the project isn't defined enough to anchor. Run `/discovery` first."* → stop, `BLOCKED-ON-DISCOVERY`.
+- (no `.ai/intake.md`) *"There's no intake stub — the project isn't defined enough to anchor. Run `/onboard` (existing repo) or `/intake` (fresh idea) first."* → stop, `BLOCKED-ON-INTAKE`.
 
 ## Phase 1 — Confirm + lock the tier (never ask cold)
 - *"Intake predicted **`<predicted_tier>`** because [reason it gives]. Lock that as the project tier, or adjust?"*
