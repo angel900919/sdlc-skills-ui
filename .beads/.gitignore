@@ -56,6 +56,13 @@ backup/
 # Per-project environment file (Dolt connection config, GH#2520)
 .env
 
+# Passive JSONL exports (Dolt is the source of truth; sync via refs/dolt/data).
+# Tracking these is the one ingredient that flips this repo from safe to exposed
+# for the silent-close-revert bug, and re-exports on every bd call churn the tree
+# (gotcha I-10). See _build_share/BEADS-SETUP.md. Keep them gitignored.
+issues.jsonl
+interactions.jsonl
+
 # Legacy files (from pre-Dolt versions)
 *.db
 *.db?*
