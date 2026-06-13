@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture · Blueprint-as-Code · SDLC Command Center</title>
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* ---- layout unique to this prototype ---- */
+  .split { display: flex; height: 100%; min-height: 0; }
+  .diagram-pane { flex: 1 1 62%; min-width: 0; display: flex; flex-direction: column; }
+  .source-pane {
+    flex: 0 0 38%; min-width: 0; border-left: 1px solid var(--hairline);
+    background: var(--bg); display: flex; flex-direction: column;
+  }
+
+  /* control row */
+  .control-row {
+    flex-shrink: 0; border-bottom: 1px solid var(--hairline); background: var(--surface);
+    display: flex; align-items: center; gap: 16px; padding: 10px 16px;
+  }
+  .breadcrumb { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; }
+  .breadcrumb .crumb { color: var(--muted); white-space: nowrap; }
+  .breadcrumb .crumb.cur { color: var(--text); }
+  .breadcrumb .crumb.link { cursor: pointer; }
+  .breadcrumb .crumb.link:hover { color: var(--blue); }
+  .breadcrumb .sep { color: var(--faint); }
+
+  .drift {
+    display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px;
+    height: 24px; padding: 0 9px; border-radius: 4px; cursor: pointer;
+    background: color-mix(in srgb, var(--amber) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent); color: var(--amber);
+  }
+  .drift:hover { background: color-mix(in srgb, var(--amber) 18%, transparent); }
+  .drift.synced { background: color-mix(in srgb, var(--green) 10%, transparent);
+    border-color: color-mix(in srgb, var(--green) 40%, transparent); color: var(--green); cursor: default; }
+
+  /* diagram canvas */
+  .canvas-wrap { flex: 1; overflow: auto; min-height: 0; position: relative; }
+  .canvas-wrap svg { display: block; }
+
+  /* C4 box visuals (driven by SVG, but legend/footers here) */
+  .legend {
+    flex-shrink: 0; border-top: 1px solid var(--hairline); background: var(--surface);
+    display: flex; align-items: center; gap: 18px; padding: 7px 16px; flex-wrap: wrap;
+  }
+  .legend .li { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .swatch { width: 18px; height: 11px; border-radius: 2px; border: 1px solid var(--hairline-bright); }
+
+  .gen-caption {
+    flex-shrink: 0; border-top: 1px solid var(--hairline); background: var(--bg);
+    padding: 7px 16px; font-family: var(--mono); font-size: 10px; color: var(--faint);
+    letter-spacing: 0.02em; display: flex; align-items: center; gap: 8px;
+  }
+  .gen-caption b { color: var(--muted); font-weight: 500; }
+
+  /* source pane */
+  .src-head {
+    flex-shrink: 0; height: 36px; border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: center; gap: 8px; padding: 0 12px; background: var(--surface);
+  }
+  .src-head .fname { font-family: var(--mono); font-size: 11px; color: var(--text); }
+  .src-head .pill {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 1px 6px; border-radius: 3px; border: 1px solid var(--hairline-bright); color: var(--muted);
+  }
+  .code { flex: 1; overflow: auto; min-height: 0; padding: 8px 0 16px; }
+  .ln {
+    display: flex; font-family: var(--mono); font-size: 11px; line-height: 1.62;
+    border-left: 2px solid transparent; padding-right: 12px; white-space: pre;
+  }
+  .ln .num {
+    flex-shrink: 0; width: 38px; text-align: right; padding-right: 12px; color: var(--faint);
+    user-select: none; -webkit-user-select: none;
+  }
+  .ln .txt { color: var(--text); flex: 1; }
+  .ln .txt .key { color: var(--blue); }
+  .ln .txt .str { color: var(--green); }
+  .ln .txt .punc { color: var(--muted); }
+  .ln .txt .cmt { color: var(--faint); font-style: italic; }
+  .ln .txt .drift-cmt { color: var(--amber); }
+  /* highlighted source lines (two-way binding) */
+  .ln.hot {
+    background: color-mix(in srgb, var(--blue) 14%, transparent);
+    border-left-color: var(--blue);
+  }
+  .ln.hot-amber {
+    background: color-mix(in srgb, var(--amber) 13%, transparent);
+    border-left-color: var(--amber);
+  }
+  .ln.dim-out { opacity: 0.34; }
+
+  /* SVG node interactivity */
+  .c4node { cursor: pointer; }
+  .c4node .box-fill { transition: fill 120ms, stroke 120ms; }
+  .c4node:hover .box-fill { filter: brightness(1.22); }
+  .c4node.sel .box-fill { stroke-width: 2; }
+  .c4node.faded { opacity: 0.34; transition: opacity 120ms; }
+  .c4label { font-family: var(--sans); fill: var(--text); pointer-events: none; }
+  .c4stereo { font-family: var(--mono); fill: var(--muted); letter-spacing: 0.06em; pointer-events: none; }
+  .c4tech { font-family: var(--mono); fill: var(--blue); pointer-events: none; }
+  .c4desc { font-family: var(--sans); fill: var(--muted); pointer-events: none; }
+  .c4rel-label {
+    font-family: var(--mono); fill: var(--muted); paint-order: stroke;
+    stroke: var(--bg); stroke-width: 3px; pointer-events: none;
+  }
+  .boundary-label { font-family: var(--mono); fill: var(--faint); letter-spacing: 0.1em; pointer-events: none; }
+
+  .topchips { display: flex; align-items: center; gap: 6px; }
+  .kbd {
+    margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted);
+    border: 1px solid var(--hairline); border-radius: 5px; padding: 3px 8px; background: var(--bg);
+  }
+  .hint { font-family: var(--mono); font-size: 10px; color: var(--faint); letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ LEFT RAIL ============ -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="micro kicker">SDLC</div>
+      <div class="name">Command Center</div>
+    </div>
+    <div class="rail-section">
+      <select class="select" aria-label="Project">
+        <option>SDLC Command Center</option>
+        <option>acme-billing</option>
+        <option>marketing-site</option>
+        <option>telemetry-pipeline</option>
+      </select>
+    </div>
+    <nav class="rail-nav" id="nav"></nav>
+    <div class="rail-section">
+      <div class="row gap8">
+        <span class="dot bg-done live-pulse"></span>
+        <span class="micro" style="color:var(--green)">Link up</span>
+        <span class="micro" style="margin-left:auto">2 active</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="topbar">
+      <div class="row gap8">
+        <span class="h3" style="font-size:14px">SDLC Command Center</span>
+        <span class="chip" style="color:var(--blue)">brownfield</span>
+        <span class="chip" style="color:var(--green)">mvp</span>
+      </div>
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <div class="content">
+      <div class="split">
+
+        <!-- ====== DIAGRAM PANE ====== -->
+        <section class="diagram-pane">
+          <div class="control-row">
+            <div class="tabs" id="levelTabs">
+              <div class="tab" data-level="context">CONTEXT</div>
+              <div class="tab active" data-level="container">CONTAINER</div>
+              <div class="tab" data-level="component">COMPONENT</div>
+            </div>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="drift" id="driftBadge" title="The model detected edges in code that the diagram doesn't declare. Click to highlight.">
+              <span>&#9888;</span><span id="driftText">2 undeclared edges in code</span>
+            </div>
+          </div>
+
+          <div class="canvas-wrap" id="canvas"></div>
+
+          <div class="legend" id="legend">
+            <div class="li"><span class="swatch" style="background:color-mix(in srgb,var(--blue) 22%,var(--surface));border-color:var(--blue)"></span><span class="micro">Person / System</span></div>
+            <div class="li"><span class="swatch" style="background:color-mix(in srgb,var(--green) 18%,var(--surface));border-color:var(--green)"></span><span class="micro">Container · done</span></div>
+            <div class="li"><span class="swatch" style="background:color-mix(in srgb,var(--amber) 16%,var(--surface));border-color:var(--amber)"></span><span class="micro">Building</span></div>
+            <div class="li"><span class="swatch" style="background:transparent;border-style:dashed;border-color:var(--blue)"></span><span class="micro">Planned</span></div>
+            <div class="li"><span class="swatch" style="background:color-mix(in srgb,var(--muted) 10%,var(--surface));border-style:dashed;border-color:var(--muted)"></span><span class="micro">External</span></div>
+          </div>
+
+          <div class="gen-caption">
+            <span>&#9881;</span>
+            <span>Generated from <b>.ai/architecture/</b> · regenerated on every <b>/architect</b> &amp; on file-watch · last synced <b>2m ago</b> (git@ecde356)</span>
+          </div>
+        </section>
+
+        <!-- ====== SOURCE PANE ====== -->
+        <aside class="source-pane">
+          <div class="src-head">
+            <span class="fname" id="srcFile">.ai/architecture/02-components.md</span>
+            <span class="pill">YAML</span>
+            <span class="pill" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent)">model</span>
+            <span class="hint" style="margin-left:auto" id="srcHint">hover a node →</span>
+          </div>
+          <div class="code" id="code"></div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(() => {
+  const M = window.MOCK;
+  const byId = id => M.components.find(c => c.id === id);
+
+  // ---------- left rail nav ----------
+  const NAV = [
+    ['Dashboard', 'M3 12h6v8H3zM11 4h6v16h-6zM3 4h6v6H3z'],
+    ['Pipeline', 'M4 7h10M4 12h16M4 17h7'],
+    ['Board', 'M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v7h-4z'],
+    ['Workspace', 'M4 5h16v14H4zM4 9h16'],
+    ['Sessions', 'M4 5h16v12H4zM8 21h8'],
+    ['Docs', 'M6 3h9l3 3v15H6zM14 3v4h4'],
+    ['Skills', 'M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z'],
+    ['Architecture', 'M4 20V8l8-5 8 5v12M4 20h16M9 20v-6h6v6'],
+  ];
+  const nav = document.getElementById('nav');
+  NAV.forEach(([label, d], i) => {
+    const el = document.createElement('div');
+    el.className = 'nav-item' + (label === 'Architecture' ? ' active' : '');
+    el.innerHTML =
+      `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>` +
+      `<span>${label}</span>` +
+      (label === 'Workspace' ? `<span class="badge">1</span>` : '');
+    nav.appendChild(el);
+  });
+
+  // ---------- status → color mapping for SVG ----------
+  const COLOR = {
+    done:   'var(--green)', shipped: 'var(--green)',
+    building:'var(--amber)', 'in-progress':'var(--amber)',
+    planned:'var(--blue)',  blocked:'var(--red)', external:'var(--muted)',
+  };
+  const fillFor = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, var(--surface))`;
+
+  // =====================================================================
+  //  SVG diagram builder — pre-computed node positions per C4 level
+  // =====================================================================
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs) => {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+
+  // text wrapping helper for descriptions
+  function wrapText(parent, str, x, y, max, lineH, cls) {
+    const words = str.split(' ');
+    let line = '', dy = 0;
+    const flush = txt => {
+      const t = mk('text', { x, y: y + dy, class: cls });
+      t.textContent = txt; parent.appendChild(t); dy += lineH;
+    };
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (test.length * 5.4 > max && line) { flush(line); line = w; }
+      else line = test;
+    }
+    if (line) flush(line);
+    return dy;
+  }
+
+  // draw one C4 box; returns the <g>
+  function drawBox(g, n) {
+    const { x, y, w, h, comp, title, stereo, tech, desc, dashed, pulse } = n;
+    const color = comp ? COLOR[comp.kind === 'external' ? 'external' : comp.status] || 'var(--muted)' : (n.color || 'var(--blue)');
+    const grp = mk('g', { class: 'c4node', 'data-id': n.id || '' });
+
+    const fillPct = dashed ? 6 : (comp && comp.status === 'building' ? 16 : comp && comp.kind==='external' ? 9 : 18);
+    const rect = mk('rect', {
+      x, y, width: w, height: h, rx: 3,
+      class: 'box-fill',
+      fill: fillFor(color, fillPct),
+      stroke: color, 'stroke-width': 1.4,
+      'stroke-dasharray': dashed ? '6 4' : 'none',
+    });
+    if (pulse) rect.classList.add('live-pulse');
+    grp.appendChild(rect);
+
+    let ty = y + 20;
+    const title_t = mk('text', { x: x + 12, y: ty, class: 'c4label', 'font-size': 13, 'font-weight': 600 });
+    title_t.textContent = title; grp.appendChild(title_t); ty += 16;
+
+    const st = mk('text', { x: x + 12, y: ty, class: 'c4stereo', 'font-size': 9.5 });
+    st.textContent = stereo; grp.appendChild(st); ty += 15;
+
+    if (tech) {
+      const te = mk('text', { x: x + 12, y: ty, class: 'c4tech', 'font-size': 10 });
+      te.textContent = '[' + tech + ']'; grp.appendChild(te); ty += 15;
+    }
+    if (desc) wrapText(grp, desc, x + 12, ty, w - 20, 13, 'c4desc');
+
+    g.appendChild(grp);
+    grp.addEventListener('click', e => { e.stopPropagation(); onNodeClick(n); });
+    grp.addEventListener('mouseenter', () => highlightNode(n.id, true));
+    grp.addEventListener('mouseleave', () => highlightNode(null));
+    n._g = grp;
+    return grp;
+  }
+
+  // arrow + label between two box rects (uses precomputed anchor points)
+  function drawRel(g, x1, y1, x2, y2, label, opts = {}) {
+    const color = opts.color || 'var(--hairline-bright)';
+    const p = mk('path', {
+      d: `M ${x1} ${y1} L ${x2} ${y2}`,
+      fill: 'none', stroke: color, 'stroke-width': opts.w || 1.3,
+      'marker-end': opts.dashed ? 'url(#arrow-dash)' : 'url(#arrow)',
+    });
+    if (opts.dashed) { p.setAttribute('stroke-dasharray', '5 4'); }
+    if (opts.flow) p.classList.add('edge-flow');
+    g.appendChild(p);
+    if (label) {
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const t = mk('text', { x: mx, y: my - 4, class: 'c4-rel-label c4rel-label', 'font-size': 9.5, 'text-anchor': 'middle' });
+      t.setAttribute('fill', opts.labelColor || 'var(--muted)');
+      t.textContent = label; g.appendChild(t);
+    }
+    return p;
+  }
+
+  function svgRoot(w, h) {
+    const svg = mk('svg', { viewBox: `0 0 ${w} ${h}`, width: w, height: h });
+    const defs = mk('defs', {});
+    const arrow = mk('marker', { id: 'arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+    arrow.appendChild(mk('path', { d: 'M0 0 L10 5 L0 10 z', fill: 'var(--hairline-bright)' }));
+    const arrowD = mk('marker', { id: 'arrow-dash', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+    arrowD.appendChild(mk('path', { d: 'M0 0 L10 5 L0 10 z', fill: 'var(--blue)' }));
+    defs.appendChild(arrow); defs.appendChild(arrowD);
+    svg.appendChild(defs);
+    svg.addEventListener('click', () => onNodeClick(null));
+    return svg;
+  }
+
+  // ---------------------------------------------------------------
+  //  LEVEL 1 — CONTEXT
+  // ---------------------------------------------------------------
+  function renderContext() {
+    const W = 920, H = 540;
+    const svg = svgRoot(W, H);
+    const g = mk('g', {});
+    svg.appendChild(g);
+
+    const person = { id: 'owner', x: 60, y: 200, w: 200, h: 140,
+      title: 'Owner / Operator', stereo: '«person»', tech: '',
+      desc: 'The human conductor. Steers the chain, holds every HITL & PR gate.', color: 'var(--blue)' };
+    const system = { id: 'scc-system', x: 360, y: 175, w: 220, h: 190,
+      title: 'SDLC Command Center', stereo: '«software system»', tech: 'TS · React · Node · SQLite',
+      desc: 'The Flight Deck: observes, derives & drives the SDLC skills chain over the Claude CLI.', color: 'var(--green)' };
+    const cli = { id: 'claudeCli', x: 690, y: 200, w: 200, h: 140, comp: byId('claudeCli'),
+      title: 'Claude Code CLI', stereo: '«external system»', tech: 'PTY process',
+      desc: 'Runs in each PTY; emits lifecycle hooks via curl.', dashed: true };
+
+    drawBox(g, person); drawBox(g, system); drawBox(g, cli);
+
+    drawRel(g, 260, 270, 360, 270, 'steers · gates', { color: 'var(--blue)', labelColor: 'var(--text)', flow: true });
+    drawRel(g, 580, 250, 690, 250, 'spawns sessions', { color: 'var(--hairline-bright)' });
+    drawRel(g, 690, 290, 580, 290, 'hooks · transcript', { color: 'var(--green)', labelColor: 'var(--green)', flow: true });
+
+    // banner
+    const bl = mk('text', { x: 60, y: 64, class: 'boundary-label', 'font-size': 10 });
+    bl.textContent = 'SYSTEM CONTEXT — LEVEL 1'; g.appendChild(bl);
+    const bl2 = mk('text', { x: 60, y: 96, class: 'c4label', 'font-size': 18, 'font-weight': 600 });
+    bl2.textContent = 'Who uses the Command Center, and what it talks to'; g.appendChild(bl2);
+
+    setCanvas(svg);
+  }
+
+  // ---------------------------------------------------------------
+  //  LEVEL 2 — CONTAINER  (real components, hand-placed)
+  // ---------------------------------------------------------------
+  const CONTAINER_POS = {
+    RenderFlightDeck:   { x: 60,  y: 90,  w: 250, h: 118 },
+    ServeApiAndWs:      { x: 60,  y: 268, w: 250, h: 118 },
+    DeriveProjectState: { x: 430, y: 90,  w: 250, h: 118 },
+    RunClaudeSessions:  { x: 430, y: 268, w: 250, h: 118 },
+    IngestObservability:{ x: 430, y: 446, w: 250, h: 118 },
+    PersistAndBroadcast:{ x: 760, y: 268, w: 250, h: 118 },
+    ShareDomainModel:   { x: 760, y: 446, w: 250, h: 95 },
+    OrchestrateChain:   { x: 60,  y: 446, w: 250, h: 118 },
+  };
+  const TECH = {
+    RenderFlightDeck: 'React SPA · Zustand · WS', ServeApiAndWs: 'Express · ws · REST',
+    DeriveProjectState: 'TS engine · chokidar', RunClaudeSessions: 'node-pty · worktrees',
+    IngestObservability: 'hook routes · tailer', PersistAndBroadcast: 'better-sqlite3 · bus',
+    ShareDomainModel: 'shared TS package', OrchestrateChain: 'planned · conductor',
+  };
+
+  function renderContainer() {
+    const W = 1080, H = 640;
+    const svg = svgRoot(W, H);
+    const g = mk('g', {});
+    svg.appendChild(g);
+
+    // outer boundary
+    const bx = 30, by = 56, bw = 1020, bh = 558;
+    g.appendChild(mk('rect', { x: bx, y: by, width: bw, height: bh, rx: 6,
+      fill: 'color-mix(in srgb, var(--green) 3%, transparent)',
+      stroke: 'var(--hairline-bright)', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+    const blab = mk('text', { x: bx + 14, y: by + 22, class: 'boundary-label', 'font-size': 10 });
+    blab.textContent = 'SYSTEM BOUNDARY · SDLC COMMAND CENTER'; g.appendChild(blab);
+
+    // banner
+    const bl2 = mk('text', { x: bx + 14, y: by - 24, class: 'boundary-label', 'font-size': 10 });
+    bl2.textContent = 'CONTAINER — LEVEL 2'; g.appendChild(bl2);
+
+    const nodes = {};
+    Object.keys(CONTAINER_POS).forEach(id => {
+      const comp = byId(id); const pos = CONTAINER_POS[id];
+      const n = {
+        id, comp, ...pos,
+        title: comp.name, stereo: '«container»', tech: TECH[id],
+        dashed: comp.status === 'planned' || comp.kind === 'external',
+        pulse: comp.status === 'building',
+      };
+      drawBox(g, n); nodes[id] = n;
+    });
+
+    // relationships — anchor on rect edges (precomputed)
+    const cx = n => n.x + n.w / 2, cy = n => n.y + n.h / 2;
+    const R = (a, b, label, o = {}) => {
+      const A = nodes[a], B = nodes[b];
+      // pick horizontal/vertical anchor by dominant axis
+      let x1, y1, x2, y2;
+      if (Math.abs(cx(A) - cx(B)) >= Math.abs(cy(A) - cy(B))) {
+        const right = cx(B) > cx(A);
+        x1 = right ? A.x + A.w : A.x; y1 = cy(A);
+        x2 = right ? B.x : B.x + B.w; y2 = cy(B);
+      } else {
+        const down = cy(B) > cy(A);
+        x1 = cx(A); y1 = down ? A.y + A.h : A.y;
+        x2 = cx(B); y2 = down ? B.y : B.y + B.h;
+      }
+      drawRel(g, x1, y1, x2, y2, label, o);
+    };
+
+    R('RenderFlightDeck', 'ServeApiAndWs', 'fetch + WS', { color: 'var(--green)', flow: true });
+    R('ServeApiAndWs', 'DeriveProjectState', 'reads state', { color: 'var(--hairline-bright)' });
+    R('ServeApiAndWs', 'RunClaudeSessions', 'spawns', { color: 'var(--hairline-bright)' });
+    R('RunClaudeSessions', 'IngestObservability', 'PTY out', { color: 'var(--amber)', flow: true });
+    R('IngestObservability', 'PersistAndBroadcast', 'writes', { color: 'var(--green)', flow: true });
+    R('DeriveProjectState', 'PersistAndBroadcast', 'events', { color: 'var(--hairline-bright)' });
+    R('OrchestrateChain', 'ServeApiAndWs', 'spawns (v2)', { color: 'var(--blue)', dashed: true });
+    R('OrchestrateChain', 'DeriveProjectState', 'reads (v2)', { color: 'var(--blue)', dashed: true });
+
+    setCanvas(svg);
+  }
+
+  // ---------------------------------------------------------------
+  //  LEVEL 3 — COMPONENT (zoom into ServeApiAndWs)
+  // ---------------------------------------------------------------
+  function renderComponent() {
+    const W = 1000, H = 600;
+    const svg = svgRoot(W, H);
+    const g = mk('g', {});
+    svg.appendChild(g);
+
+    const bl2 = mk('text', { x: 44, y: 36, class: 'boundary-label', 'font-size': 10 });
+    bl2.textContent = 'COMPONENT — LEVEL 3'; g.appendChild(bl2);
+
+    // boundary = the ServeApiAndWs container
+    const bx = 30, by = 60, bw = 560, bh = 500;
+    g.appendChild(mk('rect', { x: bx, y: by, width: bw, height: bh, rx: 6,
+      fill: 'color-mix(in srgb, var(--green) 4%, transparent)',
+      stroke: 'var(--green)', 'stroke-width': 1.2, 'stroke-dasharray': '3 4' }));
+    const blab = mk('text', { x: bx + 14, y: by + 22, class: 'boundary-label', 'font-size': 10 });
+    blab.setAttribute('fill', 'var(--green)');
+    blab.textContent = 'CONTAINER · ServeApiAndWs'; g.appendChild(blab);
+
+    // internal components (the parts of api.ts + ws.ts) — invented sub-parts but plausible
+    const parts = [
+      { id: 'p-rest', x: bx + 40, y: by + 70, w: 220, h: 96, color: 'var(--green)',
+        title: 'REST Router', stereo: '«component»', tech: 'routes/api.ts',
+        desc: 'Maps HTTP verbs → component calls; owns the PR gate.' },
+      { id: 'p-ws', x: bx + 300, y: by + 70, w: 220, h: 96, color: 'var(--green)',
+        title: 'WS Multiplexer', stereo: '«component»', tech: 'ws.ts',
+        desc: 'Single socket; subscribe + terminal-input fan-in.' },
+      { id: 'p-broadcast', x: bx + 40, y: by + 210, w: 220, h: 96, color: 'var(--green)',
+        title: 'Event Forwarder', stereo: '«component»', tech: 'ws.ts → bus',
+        desc: 'Relays ServerEvent broadcasts to subscribers.' },
+      { id: 'p-spawn', x: bx + 300, y: by + 210, w: 220, h: 96, color: 'var(--green)',
+        title: 'Session Controller', stereo: '«component»', tech: 'api.ts:16-22',
+        desc: 'Translates intent → spawn / resume / kill.' },
+      { id: 'p-gate', x: bx + 170, y: by + 350, w: 220, h: 96, color: 'var(--amber)',
+        title: 'Human PR Gate', stereo: '«component»', tech: 'invariant',
+        desc: 'Work leaves the machine only through a human gate.', pulse: false },
+    ];
+    parts.forEach(p => drawBox(g, p));
+
+    // external collaborators (other containers, shown ghosted on the right)
+    const ext = [
+      { id: 'RunClaudeSessions', x: 660, y: 110, w: 300, h: 96 },
+      { id: 'DeriveProjectState', x: 660, y: 250, w: 300, h: 96 },
+      { id: 'ShareDomainModel',  x: 660, y: 390, w: 300, h: 80 },
+    ];
+    ext.forEach(e => {
+      const comp = byId(e.id);
+      drawBox(g, { id: e.id, comp, x: e.x, y: e.y, w: e.w, h: e.h,
+        title: comp.name, stereo: '«container»', tech: TECH[e.id], dashed: true });
+    });
+
+    // internal rels
+    drawRel(g, bx + 260, by + 118, bx + 300, by + 118, '', { color: 'var(--hairline-bright)' });
+    drawRel(g, bx + 150, by + 166, bx + 150, by + 210, 'broadcast', { color: 'var(--green)', flow: true });
+    drawRel(g, bx + 410, by + 166, bx + 410, by + 210, 'intent', { color: 'var(--hairline-bright)' });
+    drawRel(g, bx + 410, by + 306, bx + 380, by + 350, 'gate', { color: 'var(--amber)' });
+    // to externals
+    drawRel(g, bx + 520, by + 258, 660, 158, 'spawns', { color: 'var(--hairline-bright)', dashed: true });
+    drawRel(g, bx + 260, by + 118, 660, 298, 'reads state', { color: 'var(--hairline-bright)', dashed: true });
+    drawRel(g, bx + 390, by + 446, 660, 430, 'compile-time', { color: 'var(--hairline-bright)', dashed: true });
+
+    setCanvas(svg);
+  }
+
+  // ---------- canvas mount ----------
+  function setCanvas(svg) {
+    const c = document.getElementById('canvas');
+    c.innerHTML = '';
+    c.appendChild(svg);
+  }
+
+  // =====================================================================
+  //  SOURCE PANE — render edges as YAML, build line↔node binding map
+  // =====================================================================
+  // Each source line records: text(html), and the set of node-ids it belongs to.
+  const codeLines = [];  // {html, ids:Set, amber:bool}
+  function L(html, ids = [], amber = false) { codeLines.push({ html, ids: new Set(ids), amber }); }
+
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const yk = (k, v) => `<span class="punc">- </span><span class="key">${k}:</span> <span class="str">${esc(v)}</span>`;
+  const yk2 = (k, v) => `  <span class="key">${k}:</span> <span class="str">${esc(v)}</span>`;
+
+  function buildSource() {
+    L(`<span class="cmt"># .ai/architecture/02-components.md  —  edge model</span>`);
+    L(`<span class="cmt"># generated by /architect · do not hand-edit below</span>`);
+    L(`<span class="key">edges:</span>`);
+    M.edges.forEach(e => {
+      const ids = [e.from, e.to];
+      const amber = e.status === 'planned';
+      L(`  ${yk('from', e.from)}`, ids, amber);
+      L(`    ${yk2('to', e.to)}`, ids, amber);
+      L(`    ${yk2('mode', e.mode)}`, ids, amber);
+      L(`    ${yk2('evidence', e.evidence)}`, ids, amber);
+      L(`    ${yk2('status', e.status)}`, ids, amber);
+      L('');
+    });
+    // drift entries — detected in code, not in model
+    L(`<span class="drift-cmt"># ⚠ DRIFT — detected in code, absent from model (2):</span>`, [], true);
+    driftLine('RunClaudeSessions', 'PersistAndBroadcast',
+      'apps/server/src/claude/sessionManager.ts:201 → bus.emit()');
+    driftLine('RenderFlightDeck', 'IngestObservability',
+      'apps/web/src/api/client.ts:54 POST /hooks/manual (test harness)');
+  }
+  function driftLine(from, to, where) {
+    const ids = [from, to];
+    L(`  <span class="drift-cmt">- # + edge ${esc(from)} → ${esc(to)}</span>`, ids, true);
+    L(`    <span class="drift-cmt">  found: ${esc(where)}</span>`, ids, true);
+    L(`    <span class="drift-cmt">  action: declare in model or remove in code</span>`, ids, true);
+  }
+
+  // map node-id → array of line indices (built after buildSource)
+  const nodeToLines = {};
+  const driftLineIdx = [];
+  function indexLines() {
+    codeLines.forEach((ln, i) => {
+      ln.ids.forEach(id => { (nodeToLines[id] ||= []).push(i); });
+      if (ln.amber) driftLineIdx.push(i);
+    });
+  }
+
+  function renderSource() {
+    const code = document.getElementById('code');
+    code.innerHTML = '';
+    codeLines.forEach((ln, i) => {
+      const row = document.createElement('div');
+      row.className = 'ln';
+      row.dataset.idx = i;
+      row.innerHTML = `<span class="num">${i + 1}</span><span class="txt">${ln.html || ' '}</span>`;
+      code.appendChild(row);
+      ln._el = row;
+    });
+  }
+
+  // =====================================================================
+  //  TWO-WAY BINDING:  node hover/select ⇄ source lines
+  // =====================================================================
+  let driftActive = false;
+
+  function clearHighlights() {
+    document.querySelectorAll('.ln').forEach(l => l.classList.remove('hot', 'hot-amber', 'dim-out'));
+    document.querySelectorAll('.c4node').forEach(n => n.classList.remove('faded'));
+  }
+
+  function highlightNode(id, scroll = false) {
+    if (driftActive) return;        // drift view owns the highlights
+    clearHighlights();
+    const sel = document.querySelector('.c4node.sel');
+    const activeId = id || (sel && sel.dataset.id);
+    if (!activeId) { setHint('hover a node →'); return; }
+
+    const lines = nodeToLines[activeId] || [];
+    if (lines.length) {
+      // dim everything, then light the matching lines
+      document.querySelectorAll('.ln').forEach(l => l.classList.add('dim-out'));
+      lines.forEach(i => {
+        const el = codeLines[i]._el;
+        el.classList.remove('dim-out');
+        el.classList.add(codeLines[i].amber ? 'hot-amber' : 'hot');
+      });
+      if (scroll) codeLines[lines[0]]._el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    // fade non-related nodes
+    document.querySelectorAll('.c4node').forEach(n => {
+      const nid = n.dataset.id;
+      if (nid && nid !== activeId && !isRelated(activeId, nid)) n.classList.add('faded');
+    });
+    const c = byId(activeId);
+    setHint(c ? `${activeId} · ${lines.length} model line${lines.length === 1 ? '' : 's'}` : activeId);
+  }
+
+  function isRelated(a, b) {
+    return M.edges.some(e => (e.from === a && e.to === b) || (e.from === b && e.to === a));
+  }
+
+  function onNodeClick(n) {
+    document.querySelectorAll('.c4node').forEach(x => x.classList.remove('sel'));
+    if (!n) { highlightNode(null); return; }
+    if (n._g) n._g.classList.add('sel');
+    driftActive = false;
+    syncDriftBadge();
+    highlightNode(n.id, true);
+  }
+
+  function setHint(t) { document.getElementById('srcHint').textContent = t; }
+
+  // ---------- click a source line → flash its node(s) ----------
+  function wireSourceClicks() {
+    document.getElementById('code').addEventListener('mouseover', e => {
+      const row = e.target.closest('.ln'); if (!row) return;
+      const ln = codeLines[+row.dataset.idx];
+      if (!ln || !ln.ids.size || driftActive) return;
+      // pulse the related nodes briefly
+      document.querySelectorAll('.c4node').forEach(nd => {
+        if (ln.ids.has(nd.dataset.id)) nd.classList.add('sel');
+        else nd.classList.remove('sel');
+      });
+    });
+    document.getElementById('code').addEventListener('mouseleave', () => {
+      if (driftActive) return;
+      document.querySelectorAll('.c4node').forEach(nd => nd.classList.remove('sel'));
+    });
+  }
+
+  // =====================================================================
+  //  DRIFT badge — highlight the undeclared-edge comment block
+  // =====================================================================
+  function syncDriftBadge() {
+    const b = document.getElementById('driftBadge');
+    if (driftActive) {
+      b.classList.remove('synced');
+      document.getElementById('driftText').textContent = 'showing 2 undeclared edges';
+    } else {
+      b.classList.remove('synced');
+      document.getElementById('driftText').textContent = '2 undeclared edges in code';
+    }
+  }
+  document.getElementById('driftBadge').addEventListener('click', () => {
+    driftActive = !driftActive;
+    document.querySelectorAll('.c4node').forEach(x => x.classList.remove('sel'));
+    clearHighlights();
+    if (driftActive) {
+      document.querySelectorAll('.ln').forEach(l => l.classList.add('dim-out'));
+      driftLineIdx.forEach(i => {
+        const el = codeLines[i]._el; el.classList.remove('dim-out'); el.classList.add('hot-amber');
+      });
+      if (driftLineIdx.length) codeLines[driftLineIdx[0]]._el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      // fade nodes that aren't part of either drift edge
+      const driftNodes = new Set(['RunClaudeSessions', 'PersistAndBroadcast', 'RenderFlightDeck', 'IngestObservability']);
+      document.querySelectorAll('.c4node').forEach(n => {
+        if (n.dataset.id && !driftNodes.has(n.dataset.id)) n.classList.add('faded');
+      });
+      setHint('drift: 2 edges in code, not in model');
+    } else {
+      setHint('hover a node →');
+    }
+    syncDriftBadge();
+  });
+
+  // =====================================================================
+  //  LEVEL SWITCHER + BREADCRUMB
+  // =====================================================================
+  const LEVELS = {
+    context:   { render: renderContext,   crumbs: ['System landscape', 'Owner ⇄ Command Center ⇄ Claude CLI'] },
+    container: { render: renderContainer, crumbs: ['System: SDLC Command Center', 'Containers'] },
+    component: { render: renderComponent, crumbs: ['System: SDLC Command Center', 'Container: ServeApiAndWs', 'Components'] },
+  };
+  let level = 'container';
+
+  function renderBreadcrumb() {
+    const bc = document.getElementById('breadcrumb');
+    const order = ['context', 'container', 'component'];
+    const labels = { context: 'Context', container: 'Container', component: 'Component' };
+    bc.innerHTML = '';
+    const sys = document.createElement('span');
+    sys.className = 'crumb';
+    sys.textContent = 'C4';
+    bc.appendChild(sys);
+    order.forEach(lv => {
+      const sep = document.createElement('span'); sep.className = 'sep'; sep.textContent = '›';
+      bc.appendChild(sep);
+      const c = document.createElement('span');
+      const past = order.indexOf(lv) <= order.indexOf(level);
+      c.className = 'crumb' + (lv === level ? ' cur' : past ? ' link' : '');
+      c.textContent = labels[lv];
+      if (lv !== level && past) c.addEventListener('click', () => switchLevel(lv));
+      bc.appendChild(c);
+    });
+  }
+
+  function switchLevel(lv) {
+    level = lv;
+    document.querySelectorAll('#levelTabs .tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.level === lv));
+    driftActive = false; syncDriftBadge(); clearHighlights();
+    LEVELS[lv].render();
+    renderBreadcrumb();
+    setHint('hover a node →');
+  }
+
+  document.getElementById('levelTabs').addEventListener('click', e => {
+    const t = e.target.closest('.tab'); if (!t) return;
+    switchLevel(t.dataset.level);
+  });
+
+  // =====================================================================
+  //  BOOT
+  // =====================================================================
+  buildSource();
+  indexLines();
+  renderSource();
+  wireSourceClicks();
+  switchLevel('container');   // default level
+})();
+</script>
+</body>
+</html>

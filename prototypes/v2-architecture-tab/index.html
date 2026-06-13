@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>v2.0 · Architecture & Progress — UI directions</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .page { max-width: 1100px; margin: 0 auto; padding: 40px 28px 64px; }
+    .hero { border-bottom: 1px solid var(--hairline); padding-bottom: 22px; margin-bottom: 28px; }
+    .lede { color: var(--muted); font-size: 14px; max-width: 760px; line-height: 1.55; margin-top: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .card {
+      display: block; background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px;
+      overflow: hidden; transition: border-color 140ms, transform 140ms;
+    }
+    .card:hover { border-color: var(--hairline-bright); transform: translateY(-2px); }
+    .thumb { height: 132px; border-bottom: 1px solid var(--hairline); position: relative; overflow: hidden; }
+    .thumb svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .card .body { padding: 16px 18px 18px; }
+    .card .tagrow { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 5px;
+      border: 1px solid var(--hairline-bright); color: var(--muted); text-transform: uppercase; }
+    .rec { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+    .num { font-family: var(--mono); color: var(--faint); font-size: 11px; }
+    .desc { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin-top: 8px; }
+    .foot { margin-top: 30px; color: var(--faint); font-size: 11.5px; font-family: var(--mono); }
+    h2.cardtitle { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div class="micro" style="color: var(--green)">SDLC COMMAND CENTER · v2.0 EXPLORATION</div>
+      <h1 class="h1" style="margin-top: 8px">Architecture &amp; Progress — UI directions</h1>
+      <p class="lede">
+        Four mockups for the living-architecture tab + orchestrator, all on the same Flight&nbsp;Deck design system and
+        the same real data (the 7 components &amp; 10 edges from <span class="mono" style="color:var(--blue)">.ai/architecture/02-components.md</span>,
+        the SDLC stage graph, and real beads). Open each, then pick the direction(s) to take forward.
+      </p>
+    </div>
+
+    <div class="grid">
+      <!-- A -->
+      <a class="card" href="command-deck.html">
+        <div class="thumb">
+          <svg viewBox="0 0 400 132" preserveAspectRatio="none">
+            <rect width="400" height="132" fill="#0F141C"/>
+            <rect x="0" y="0" width="46" height="132" fill="#0A0E14"/>
+            <line x1="120" y1="30" x2="190" y2="30" stroke="#2A3647"/>
+            <line x1="190" y1="30" x2="260" y2="66" stroke="#2A3647"/>
+            <rect x="70" y="18" width="50" height="26" rx="5" fill="#141B26" stroke="#2EE6A8"/>
+            <rect x="170" y="18" width="50" height="26" rx="5" fill="#141B26" stroke="#FFB454"/>
+            <rect x="240" y="54" width="50" height="26" rx="5" fill="#141B26" stroke="#59A7FF"/>
+            <rect x="318" y="10" width="74" height="112" fill="#0A0E14" stroke="#1E2733"/>
+            <rect x="0" y="112" width="400" height="20" fill="#141B26" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2 class="cardtitle"><span class="num">A</span> Command Deck <span class="pill rec">recommended</span></h2>
+          <div class="desc">The integrated tab that ships. 6 sub-views (System · Feature · Agents · Data Flow · Dependencies · SDLC), a component inspector (inputs/outputs/deps/files/owner/issues), and a docked orchestrator conductor.</div>
+          <div class="tagrow"><span class="pill">inspector-centric</span><span class="pill">6 views</span><span class="pill">orchestrator docked</span></div>
+        </div>
+      </a>
+
+      <!-- B -->
+      <a class="card" href="living-blueprint.html">
+        <div class="thumb">
+          <svg viewBox="0 0 400 132" preserveAspectRatio="none">
+            <rect width="400" height="132" fill="#0F141C"/>
+            <path d="M60 100 C140 40 240 100 340 40" stroke="#59A7FF" fill="none" stroke-dasharray="3 5"/>
+            <path d="M60 60 C160 90 250 30 350 80" stroke="#2EE6A8" fill="none" stroke-dasharray="3 5"/>
+            <circle r="3" fill="#59A7FF"><animateMotion dur="2.4s" repeatCount="indefinite" path="M60 100 C140 40 240 100 340 40"/></circle>
+            <circle r="3" fill="#2EE6A8"><animateMotion dur="2.0s" repeatCount="indefinite" path="M60 60 C160 90 250 30 350 80"/></circle>
+            <circle cx="60" cy="80" r="10" fill="#141B26" stroke="#FFB454"/>
+            <circle cx="200" cy="66" r="12" fill="#141B26" stroke="#2EE6A8"/>
+            <circle cx="345" cy="60" r="10" fill="#141B26" stroke="#B58CFF" stroke-dasharray="2 3"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2 class="cardtitle"><span class="num">B</span> Living Blueprint</h2>
+          <div class="desc">Motion-first. Particles flow along active edges, building components breathe, a live telemetry ticker streams. The "synchronized &amp; alive, not stale docs" argument made visual.</div>
+          <div class="tagrow"><span class="pill">animated data-flow</span><span class="pill">real-time feel</span></div>
+        </div>
+      </a>
+
+      <!-- C -->
+      <a class="card" href="portfolio-conductor.html">
+        <div class="thumb">
+          <svg viewBox="0 0 400 132" preserveAspectRatio="none">
+            <rect width="400" height="132" fill="#0F141C"/>
+            <rect x="20" y="14" width="360" height="34" rx="6" fill="#141B26" stroke="#B58CFF" opacity="0.8"/>
+            <circle cx="40" cy="31" r="9" fill="#0A0E14" stroke="#B58CFF"/>
+            <rect x="20" y="60" width="84" height="58" rx="6" fill="#141B26" stroke="#2EE6A8"/>
+            <rect x="116" y="60" width="84" height="58" rx="6" fill="#141B26" stroke="#1E2733"/>
+            <rect x="212" y="60" width="84" height="58" rx="6" fill="#141B26" stroke="#1E2733"/>
+            <rect x="308" y="60" width="72" height="58" rx="6" fill="#141B26" stroke="#FF5C5C"/>
+            <circle cx="62" cy="89" r="13" fill="none" stroke="#2EE6A8" stroke-width="3"/>
+            <circle cx="158" cy="89" r="13" fill="none" stroke="#59A7FF" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2 class="cardtitle"><span class="num">C</span> Portfolio Conductor</h2>
+          <div class="desc">Answers "manage ALL my projects." The orchestrator is the star: one hero panel surfaces the highest-priority next move across every project; cards drill into each system's architecture.</div>
+          <div class="tagrow"><span class="pill">multi-project</span><span class="pill">orchestrator-first</span></div>
+        </div>
+      </a>
+
+      <!-- D -->
+      <a class="card" href="blueprint-as-code.html">
+        <div class="thumb">
+          <svg viewBox="0 0 400 132" preserveAspectRatio="none">
+            <rect width="400" height="132" fill="#0F141C"/>
+            <rect x="18" y="16" width="220" height="100" rx="4" fill="none" stroke="#1E2733" stroke-dasharray="4 4"/>
+            <rect x="34" y="34" width="86" height="30" rx="4" fill="#141B26" stroke="#59A7FF"/>
+            <rect x="140" y="34" width="80" height="30" rx="4" fill="#141B26" stroke="#2EE6A8"/>
+            <rect x="34" y="76" width="86" height="30" rx="4" fill="#141B26" stroke="#FFB454"/>
+            <rect x="252" y="16" width="130" height="100" rx="4" fill="#0A0E14" stroke="#1E2733"/>
+            <line x1="264" y1="30" x2="370" y2="30" stroke="#2A3647"/>
+            <line x1="264" y1="44" x2="350" y2="44" stroke="#2A3647"/>
+            <line x1="264" y1="58" x2="360" y2="58" stroke="#FFB454"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h2 class="cardtitle"><span class="num">D</span> Blueprint-as-Code</h2>
+          <div class="desc">C4 drill-down (Context → Container → Component) with a live diagram⟷source split: the diagram is generated from <span class="mono" style="font-size:11px">.ai/architecture/</span> and a drift badge flags edges found in code but not the model. The Structurizr / LikeC4 positioning.</div>
+          <div class="tagrow"><span class="pill">C4 model</span><span class="pill">diagram⟷code</span><span class="pill">drift detection</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="foot">
+      mock data · prototypes/v2-architecture-tab/ · branch v2-prototype-architecture-tab · hand-rolled SVG, no runtime deps
+    </div>
+  </div>
+</body>
+</html>

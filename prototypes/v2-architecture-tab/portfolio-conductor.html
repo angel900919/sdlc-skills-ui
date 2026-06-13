@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flight Deck — Portfolio Conductor</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    /* ---------- prototype-local layout (portfolio + orchestrator + drawer) ---------- */
+    .content { position: relative; }
+    .deck { padding: 16px; display: flex; flex-direction: column; gap: 16px; max-width: 1240px; }
+
+    /* topbar chrome bits */
+    .kbar { margin-left: auto; }
+    .kk { display: inline-flex; gap: 4px; align-items: center; font-family: var(--mono); font-size: 11px;
+          color: var(--muted); border: 1px solid var(--hairline); border-radius: 6px; padding: 4px 8px; }
+    .kk kbd { background: var(--raised); border: 1px solid var(--hairline-bright); border-radius: 3px;
+              padding: 0 4px; font-family: var(--mono); font-size: 10px; color: var(--text); }
+
+    /* ---------- orchestrator hero ---------- */
+    .hero { position: relative; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(180deg, var(--violet), var(--blue)); }
+    .hero-grid { display: grid; grid-template-columns: 280px 1fr 300px; gap: 0; align-items: stretch; }
+    .hero-cell { padding: 16px 18px; }
+    .hero-cell + .hero-cell { border-left: 1px solid var(--hairline); }
+
+    .orb { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--violet), var(--blue));
+      display: flex; align-items: center; justify-content: center; color: var(--bg);
+      font-size: 22px; font-weight: 700;
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--violet) 60%, transparent),
+                  0 0 22px color-mix(in srgb, var(--violet) 35%, transparent); }
+    .orb-ring { position: relative; }
+    .orb-ring::after { content: ""; position: absolute; inset: -5px; border-radius: 15px;
+      border: 1px solid color-mix(in srgb, var(--violet) 35%, transparent);
+      animation: orbpulse 2.4s ease-out infinite; }
+    @keyframes orbpulse { 0% { opacity: .8; transform: scale(.96);} 70%{opacity:0; transform: scale(1.18);} 100%{opacity:0;} }
+
+    .next-action { background: var(--bg); border: 1px solid var(--hairline-bright);
+      border-radius: 8px; padding: 12px 14px; }
+    .next-cmd { font-family: var(--mono); font-size: 16px; color: var(--text); letter-spacing: -0.01em; }
+    .next-cmd .skill { color: var(--violet); }
+    .next-cmd .arg { color: var(--green); }
+    .urgent-pill { font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--red); border: 1px solid color-mix(in srgb, var(--red) 45%, transparent);
+      border-radius: 4px; padding: 1px 6px; }
+
+    /* autopilot toggle */
+    .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--hairline); border-radius: 7px; padding: 3px; }
+    .seg button { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--muted);
+      background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 4px 12px; cursor: pointer; }
+    .seg button.on { color: var(--bg); background: var(--green); border-color: var(--green); font-weight: 600; }
+    .seg button.on.auto { background: var(--amber); border-color: var(--amber); }
+
+    .gauge-wrap { display: flex; align-items: center; gap: 12px; }
+    .gauge-num { font-family: var(--mono); font-size: 24px; font-weight: 600; color: var(--green); line-height: 1; }
+
+    .digest { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px;
+      border-top: 1px solid var(--hairline); padding: 12px 18px; }
+    .digest-item { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+    .digest-item .mk { font-family: var(--mono); font-size: 11px; }
+
+    /* ---------- portfolio grid ---------- */
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } }
+    .pcard { position: relative; padding: 14px 16px; cursor: pointer; transition: border-color 120ms, transform 120ms; }
+    .pcard:hover { border-color: var(--hairline-bright); transform: translateY(-1px); }
+    .pcard.current { border-color: color-mix(in srgb, var(--green) 35%, var(--hairline)); }
+    .pcard.atrisk::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--red); border-radius: 6px 0 0 6px; }
+    .pcard.current::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--green); border-radius: 6px 0 0 6px; }
+
+    .counts { display: flex; gap: 14px; }
+    .count { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 12px; color: var(--text); }
+    .count .glyph { font-size: 11px; }
+
+    .meta-badge { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+      border-radius: 4px; padding: 2px 7px; display: inline-flex; align-items: center; gap: 5px; }
+    .meta-badge.live { color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); }
+    .meta-badge.att { color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); }
+    .meta-badge.calm { color: var(--muted); border: 1px solid var(--hairline); }
+
+    .nextmove-chip { font-family: var(--mono); font-size: 11px; color: var(--text);
+      background: var(--raised); border: 1px solid var(--hairline); border-radius: 5px; padding: 4px 9px;
+      display: inline-flex; align-items: center; gap: 6px; max-width: 100%; overflow: hidden; }
+    .nextmove-chip .skill { color: var(--violet); white-space: nowrap; }
+    .nextmove-chip .arg { color: var(--green); }
+
+    .runbtn { font-family: var(--sans); font-weight: 600; font-size: 11.5px; color: var(--text);
+      background: var(--raised); border: 1px solid var(--hairline-bright); border-radius: 5px;
+      padding: 4px 11px; cursor: pointer; white-space: nowrap; }
+    .runbtn:hover { border-color: var(--green); color: var(--green); }
+
+    /* ---------- drill-down drawer ---------- */
+    .scrim { position: absolute; inset: 0; background: rgba(5,8,12,0.55); opacity: 0; pointer-events: none;
+      transition: opacity 180ms; z-index: 20; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 432px; background: var(--surface);
+      border-left: 1px solid var(--hairline-bright); transform: translateX(100%); transition: transform 220ms cubic-bezier(.2,.7,.2,1);
+      z-index: 21; display: flex; flex-direction: column; box-shadow: -24px 0 48px rgba(0,0,0,0.4); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head { padding: 14px 16px; border-bottom: 1px solid var(--hairline); }
+    .drawer-body { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .xbtn { margin-left: auto; cursor: pointer; color: var(--muted); width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center; border-radius: 5px; }
+    .xbtn:hover { background: var(--raised); color: var(--text); }
+
+    .arc-node text { font-family: var(--mono); }
+    .comp-row { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 6px;
+      border: 1px solid var(--hairline); background: var(--bg); }
+    .comp-row .nm { font-family: var(--mono); font-size: 11.5px; color: var(--text); }
+    .comp-row .rl { font-size: 11px; color: var(--muted); }
+
+    .blocker { border-left: 2px solid var(--red); background: color-mix(in srgb, var(--red) 7%, var(--bg));
+      border-radius: 0 5px 5px 0; padding: 8px 11px; }
+    .reco-box { border: 1px solid color-mix(in srgb, var(--violet) 35%, var(--hairline));
+      background: color-mix(in srgb, var(--violet) 7%, var(--bg)); border-radius: 7px; padding: 12px; }
+
+    .sectlabel { display: flex; align-items: center; gap: 8px; }
+    .sectlabel::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ===================== LEFT RAIL ===================== -->
+    <aside class="rail">
+      <div class="rail-brand">
+        <div class="micro kicker">SDLC</div>
+        <div class="name">Command Center</div>
+      </div>
+      <div class="rail-section">
+        <div class="micro" style="margin-bottom:6px">Project</div>
+        <select class="select" id="projSelect">
+          <option>SDLC Command Center</option>
+          <option>acme-billing</option>
+          <option>marketing-site</option>
+          <option>telemetry-pipeline</option>
+        </select>
+      </div>
+      <nav class="rail-nav" id="nav"></nav>
+      <div class="rail-section row spread">
+        <div class="row gap8">
+          <span class="dot bg-done live-pulse"></span>
+          <span class="micro" style="letter-spacing:.1em">Link up</span>
+        </div>
+        <span class="micro mono">2 active</span>
+      </div>
+    </aside>
+
+    <!-- ===================== MAIN ===================== -->
+    <div class="main">
+      <header class="topbar">
+        <span class="h3">SDLC Command Center</span>
+        <span class="chip" style="border-color:var(--hairline)">brownfield</span>
+        <span class="chip" style="color:var(--violet)">tier · mvp</span>
+        <span class="kbar"></span>
+        <span class="kk"><kbd>⌘</kbd><kbd>K</kbd> command</span>
+      </header>
+
+      <div class="content">
+        <div class="deck">
+
+          <!-- ============ ORCHESTRATOR HERO ============ -->
+          <section class="panel hero" id="hero">
+            <div class="hero-grid">
+              <!-- LEFT: identity + status -->
+              <div class="hero-cell">
+                <div class="row gap12">
+                  <div class="orb-ring"><div class="orb">◆</div></div>
+                  <div class="col" style="gap:3px">
+                    <div class="micro" style="color:var(--violet)">Orchestrator</div>
+                    <div style="font-weight:600;font-size:15px">Conductor</div>
+                  </div>
+                </div>
+                <div class="col gap8" style="margin-top:14px">
+                  <div class="row gap8">
+                    <span class="dot bg-building live-pulse"></span>
+                    <span class="dim" id="watchLine">Watching 4 projects · 3 need you</span>
+                  </div>
+                  <div class="micro">last sweep · 14s ago</div>
+                </div>
+              </div>
+
+              <!-- CENTER: single highest-priority action -->
+              <div class="hero-cell col" style="justify-content:center;gap:10px">
+                <div class="row gap8">
+                  <span class="micro" style="color:var(--text)">Next move · portfolio</span>
+                  <span class="urgent-pill" id="urgentPill">at-risk · 2 attention</span>
+                </div>
+                <div class="next-action">
+                  <div class="next-cmd" id="nextCmd"></div>
+                  <div class="micro" id="nextWhere" style="margin-top:6px"></div>
+                  <div class="row gap8 wrap" style="margin-top:12px">
+                    <button class="btn primary" id="runMain">Run with confirm</button>
+                    <button class="btn ghost">Open project</button>
+                    <button class="btn ghost">Snooze</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT: autopilot + health gauge -->
+              <div class="hero-cell col" style="gap:14px">
+                <div>
+                  <div class="micro" style="margin-bottom:7px">Global autopilot</div>
+                  <div class="seg" id="seg">
+                    <button class="on" data-mode="suggest">Suggest</button>
+                    <button data-mode="auto">Autopilot</button>
+                  </div>
+                </div>
+                <div class="row gap4 wrap">
+                  <span class="tag afk">AFK-only</span>
+                  <span class="tag hitl">stop-at-HITL</span>
+                  <span class="tag hitl">stop-at-PR</span>
+                </div>
+                <div class="gauge-wrap" style="margin-top:auto">
+                  <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+                    <circle cx="23" cy="23" r="18" fill="none" stroke="var(--hairline)" stroke-width="4"/>
+                    <circle cx="23" cy="23" r="18" fill="none" stroke="var(--green)" stroke-width="4"
+                            stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="16"
+                            transform="rotate(-90 23 23)"/>
+                  </svg>
+                  <div class="col" style="gap:2px">
+                    <div class="row gap8" style="align-items:baseline">
+                      <span class="gauge-num" id="confNum">86</span><span class="micro">% conf</span>
+                    </div>
+                    <span class="micro">portfolio health · steady</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- portfolio digest strip -->
+            <div class="digest" id="digest"></div>
+          </section>
+
+          <!-- ============ PORTFOLIO GRID ============ -->
+          <div class="row spread">
+            <div class="sectlabel grow"><span class="micro" style="color:var(--text)">Portfolio</span>
+              <span class="micro">4 projects</span></div>
+          </div>
+          <div class="grid" id="grid"></div>
+
+        </div><!-- /deck -->
+
+        <!-- ============ DRILL-DOWN DRAWER ============ -->
+        <div class="scrim" id="scrim"></div>
+        <aside class="drawer" id="drawer">
+          <div class="drawer-head row">
+            <div class="col" style="gap:3px">
+              <div class="micro" id="dwKind">system drill-down</div>
+              <div class="h3" id="dwName">—</div>
+            </div>
+            <div class="xbtn" id="dwClose">✕</div>
+          </div>
+          <div class="drawer-body" id="dwBody"></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script>
+    const M = window.MOCK;
+    const $ = (s, r = document) => r.querySelector(s);
+    const el = (t, c, h) => { const n = document.createElement(t); if (c) n.className = c; if (h != null) n.innerHTML = h; return n; };
+
+    /* ---------- left rail nav ---------- */
+    const ICON = {
+      Dashboard: '<path d="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 13h7v8H3z"/>',
+      Pipeline: '<path d="M3 6h10M3 12h18M3 18h7"/><circle cx="17" cy="6" r="2.4"/><circle cx="13" cy="18" r="2.4"/>',
+      Board: '<rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/>',
+      Workspace: '<rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M8 21h8"/>',
+      Sessions: '<path d="M4 5h16v11H4z"/><path d="M7 9l3 2-3 2M12 13h5"/>',
+      Docs: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/>',
+      Skills: '<path d="M12 2l2.5 6 6 .4-4.6 4 1.5 6-5.4-3.3L6.6 18l1.5-6-4.6-4 6-.4z"/>',
+      Architecture: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 12l9-5M12 12v10M12 12L3 7"/>'
+    };
+    const NAV = ['Dashboard','Pipeline','Board','Workspace','Sessions','Docs','Skills','Architecture'];
+    const nav = $('#nav');
+    NAV.forEach(name => {
+      const item = el('div', 'nav-item' + (name === 'Architecture' ? ' active' : ''));
+      item.innerHTML = `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</svg><span>${name}</span>` +
+        (name === 'Workspace' ? '<span class="badge">1</span>' : '');
+      nav.appendChild(item);
+    });
+
+    /* ---------- derived portfolio intelligence ---------- */
+    // progress = (foundation complete + shipped) / (foundation total + all delivery work)
+    const completion = p => {
+      const delivery = p.shipped + p.building + p.blocked + p.planned;
+      const numer = p.foundationDone + p.shipped;
+      const denom = p.foundationTotal + delivery;
+      return denom ? Math.round((numer / denom) * 100) : 0;
+    };
+    // urgency score: at-risk weighs heaviest, then attention, then blocked, then live work
+    const urgency = p => (p.health === 'at-risk' ? 100 : 0) + p.attention * 10 + p.blocked * 6 + p.liveSessions;
+    const topProject = [...M.projects].sort((a, b) => urgency(b) - urgency(a))[0];
+
+    /* ---------- hero wiring ---------- */
+    const needYou = M.projects.filter(p => p.attention > 0 || p.blocked > 0 || p.liveSessions > 0).length;
+    $('#watchLine').textContent = `Watching ${M.projects.length} projects · ${needYou} need you`;
+    $('#confNum').textContent = Math.round(M.orchestrator.confidence * 100);
+    $('#urgentPill').textContent = `${topProject.health} · ${topProject.attention} attention`;
+
+    const [tSkill, ...tArgs] = topProject.nextMove.replace(/^\//, '').split(' ');
+    $('#nextCmd').innerHTML = `/<span class="skill">${tSkill}</span> <span class="arg">${tArgs.join(' ')}</span>`;
+    $('#nextWhere').textContent = `in ${topProject.name} · ${topProject.type} · tier ${topProject.tier} — most urgent across portfolio`;
+
+    // digest (across projects) — colored markers per status word
+    const digest = $('#digest');
+    M.orchestrator.digest.forEach(line => {
+      let cls = 'dim';
+      if (/shipped|✓/.test(line)) cls = 's-shipped';
+      else if (/building|in flight/.test(line)) cls = 's-building';
+      else if (/planned/.test(line)) cls = 's-planned';
+      else if (/blocked/.test(line)) cls = 's-blocked';
+      const row = el('div', 'digest-item');
+      row.innerHTML = `<span class="dot bg-${cls.replace('s-','')}" style="background:currentColor" data-c></span>` +
+        `<span class="${cls}" style="font-size:12.5px">${line}</span>`;
+      // recolor the dot independently of text class
+      row.firstChild.className = 'dot';
+      row.firstChild.style.background = `var(--${cls === 'dim' ? 'muted' : ({'s-shipped':'green','s-building':'amber','s-planned':'blue','s-blocked':'red'})[cls]})`;
+      row.lastChild.className = 'dim';
+      row.lastChild.style.color = `var(--${cls === 'dim' ? 'muted' : ({'s-shipped':'green','s-building':'amber','s-planned':'blue','s-blocked':'red'})[cls]})`;
+      digest.appendChild(row);
+    });
+
+    // autopilot segmented toggle
+    $('#seg').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      [...$('#seg').children].forEach(x => { x.classList.remove('on', 'auto'); });
+      b.classList.add('on'); if (b.dataset.mode === 'auto') b.classList.add('auto');
+      $('#watchLine').textContent = b.dataset.mode === 'auto'
+        ? 'Autopilot · running AFK-safe moves, stopping at every gate'
+        : `Watching ${M.projects.length} projects · ${needYou} need you`;
+    });
+
+    /* ---------- portfolio grid ---------- */
+    const COUNT_DEFS = [
+      { key: 'building', glyph: '▲', color: 'amber', label: 'building' },
+      { key: 'shipped', glyph: '✓', color: 'green', label: 'shipped' },
+      { key: 'blocked', glyph: '✗', color: 'red', label: 'blocked' },
+      { key: 'planned', glyph: '○', color: 'blue', label: 'planned' }
+    ];
+
+    function ring(pct, current) {
+      const r = 26, C = 2 * Math.PI * r, off = C * (1 - pct / 100);
+      const col = current ? 'var(--green)' : 'var(--blue)';
+      return `<svg width="68" height="68" viewBox="0 0 68 68">
+        <circle cx="34" cy="34" r="${r}" fill="none" stroke="var(--hairline)" stroke-width="6"/>
+        <circle cx="34" cy="34" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 34 34)"
+          style="transition:stroke-dashoffset .6s ease"/>
+        <text x="34" y="33" text-anchor="middle" fill="var(--text)" font-family="var(--mono)"
+          font-size="15" font-weight="600">${pct}</text>
+        <text x="34" y="45" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)"
+          font-size="7" letter-spacing="1">PCT</text>
+      </svg>`;
+    }
+
+    const grid = $('#grid');
+    M.projects.forEach(p => {
+      const pct = completion(p);
+      const atrisk = p.health === 'at-risk';
+      const card = el('div', 'panel pcard' + (p.current ? ' current' : '') + (atrisk ? ' atrisk' : ''));
+      card.dataset.id = p.id;
+
+      const counts = COUNT_DEFS.map(d =>
+        `<span class="count"><span class="glyph s-${d.color === 'amber' ? 'building' : d.color === 'green' ? 'shipped' : d.color === 'red' ? 'blocked' : 'planned'}"
+          style="color:var(--${d.color})">${d.glyph}</span>${p[d.key]}</span>`).join('');
+
+      const badges = [];
+      if (p.liveSessions > 0) badges.push(`<span class="meta-badge live"><span class="dot bg-building live-pulse"></span>${p.liveSessions} live</span>`);
+      if (p.attention > 0) badges.push(`<span class="meta-badge att live-pulse" style="--accent:var(--amber)">! ${p.attention} attention</span>`);
+      if (badges.length === 0) badges.push(`<span class="meta-badge calm">idle</span>`);
+
+      const [nmSkill, ...nmArgs] = p.nextMove.replace(/^\//, '').split(' ');
+
+      card.innerHTML = `
+        <div class="row gap16" style="align-items:flex-start">
+          <div style="flex-shrink:0">${ring(pct, p.current)}</div>
+          <div class="col grow" style="gap:9px;min-width:0">
+            <div class="spread">
+              <div class="col" style="gap:3px;min-width:0">
+                <div class="row gap8">
+                  <span style="font-weight:600;font-size:14px" class="nowrap">${p.name}</span>
+                  ${p.current ? '<span class="tag afk">current</span>' : ''}
+                  ${atrisk ? '<span class="tag" style="color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,transparent)">at-risk</span>' : ''}
+                </div>
+                <div class="row gap8">
+                  <span class="chip" style="height:18px">${p.type}</span>
+                  <span class="chip" style="height:18px;color:var(--violet)">tier ${p.tier}</span>
+                </div>
+              </div>
+              <div class="row gap4" style="flex-wrap:wrap;justify-content:flex-end">${badges.join('')}</div>
+            </div>
+            <div class="counts">${counts}</div>
+          </div>
+        </div>
+        <div class="row spread" style="margin-top:13px;padding-top:11px;border-top:1px solid var(--hairline)">
+          <div class="col gap4" style="min-width:0">
+            <span class="micro">recommended next</span>
+            <span class="nextmove-chip nowrap">→ /<span class="skill">${nmSkill}</span> <span class="arg">${nmArgs.join(' ')}</span></span>
+          </div>
+          <div class="row gap8" style="flex-shrink:0">
+            <span class="micro mono">${p.lastActivity}</span>
+            <button class="runbtn" data-run="${p.id}">Run</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    /* ---------- drill-down drawer ---------- */
+    const drawer = $('#drawer'), scrim = $('#scrim');
+    const STATUS_OF = {}; M.components.forEach(c => STATUS_OF[c.id] = c.status);
+
+    // condensed architecture node layout for the SCC project (hand-placed positions)
+    const SCC_LAYOUT = [
+      { id: 'RenderFlightDeck', x: 152, y: 26 },
+      { id: 'ServeApiAndWs',    x: 152, y: 96 },
+      { id: 'DeriveProjectState',x: 56, y: 166 },
+      { id: 'RunClaudeSessions',x: 248, y: 166 },
+      { id: 'OrchestrateChain', x: 56, y: 236 },
+      { id: 'PersistAndBroadcast',x: 248, y: 236 }
+    ];
+    const SCC_LINKS = [
+      ['RenderFlightDeck','ServeApiAndWs'], ['ServeApiAndWs','DeriveProjectState'],
+      ['ServeApiAndWs','RunClaudeSessions'], ['DeriveProjectState','OrchestrateChain'],
+      ['RunClaudeSessions','PersistAndBroadcast']
+    ];
+    const COL = { done: 'var(--green)', building: 'var(--amber)', planned: 'var(--blue)', blocked: 'var(--red)' };
+
+    function sccGraph() {
+      const pos = Object.fromEntries(SCC_LAYOUT.map(n => [n.id, n]));
+      const links = SCC_LINKS.map(([a, b]) => {
+        const A = pos[a], B = pos[b], planned = STATUS_OF[a] === 'planned' || STATUS_OF[b] === 'planned';
+        return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="var(--hairline-bright)"
+          stroke-width="1.4" ${planned ? 'stroke-dasharray="3 3"' : 'class="edge-flow"'} opacity="${planned ? .5 : .9}"/>`;
+      }).join('');
+      const nodes = SCC_LAYOUT.map(n => {
+        const c = M.components.find(x => x.id === n.id), col = COL[c.status] || 'var(--muted)';
+        const planned = c.status === 'planned', glow = c.status === 'building';
+        const w = 92, h = 30;
+        return `<g class="arc-node" transform="translate(${n.x - w/2},${n.y - h/2})">
+          <rect width="${w}" height="${h}" rx="5" fill="${planned ? 'transparent' : 'var(--raised)'}"
+            stroke="${col}" stroke-width="1.3" ${planned ? 'stroke-dasharray="4 3"' : ''}
+            opacity="${planned ? .7 : 1}" ${glow ? 'style="filter:drop-shadow(0 0 6px '+col+')"' : ''}/>
+          <circle cx="11" cy="15" r="3.2" fill="${col}"/>
+          <text x="20" y="18.5" fill="var(--text)" font-size="8.5">${c.name.replace(/([a-z])([A-Z])/g,'$1 $2').slice(0,18)}</text>
+        </g>`;
+      }).join('');
+      return `<svg width="100%" viewBox="0 0 304 268" style="display:block">${links}${nodes}</svg>`;
+    }
+
+    function compList(project) {
+      // simple status list for non-SCC projects — synthesize a plausible component spread from counts
+      const rows = [
+        ['ingest-gateway', 'building'], ['stream-processor', 'blocked'],
+        ['aggregation-store', 'done'], ['query-api', 'blocked'], ['alerting', 'planned']
+      ];
+      return rows.map(([nm, st]) =>
+        `<div class="comp-row"><span class="dot" style="background:${COL[st] || 'var(--muted)'}${st === 'building' ? ';box-shadow:0 0 6px '+COL[st] : ''}"></span>
+          <span class="nm">${nm}</span><span class="rl" style="margin-left:auto;color:${COL[st]}">${st}</span></div>`).join('');
+    }
+
+    function openDrawer(id) {
+      const p = M.projects.find(x => x.id === id);
+      $('#dwName').textContent = p.name;
+      $('#dwKind').textContent = `${p.type} · tier ${p.tier} · ${p.health}`;
+      const body = $('#dwBody');
+
+      // blockers — pull SCC's real blockers from orchestrator, else synthesize for at-risk
+      let blockers;
+      if (p.current) blockers = M.orchestrator.blockers;
+      else if (p.id === 'telem') blockers = [
+        { feature: 'ingest-lag', reason: 'BLOCKED-ON: p99 latency 4.2s exceeds SLO (1.5s) since deploy', gate: 'HITL' },
+        { feature: 'query-api', reason: 'BLOCKED-ON: schema migration needs human review', gate: 'HITL' }
+      ];
+      else blockers = [];
+
+      const [nmSkill, ...nmArgs] = p.nextMove.replace(/^\//, '').split(' ');
+
+      body.innerHTML = `
+        <div>
+          <div class="sectlabel" style="margin-bottom:10px"><span class="micro">architecture</span>
+            <span class="micro mono">${p.current ? '6 components · 1 planned' : '5 components'}</span></div>
+          ${p.current
+            ? `<div class="panel pad12" style="background:var(--bg)">${sccGraph()}</div>`
+            : `<div class="col gap8">${compList(p)}</div>`}
+        </div>
+
+        <div>
+          <div class="sectlabel" style="margin-bottom:10px"><span class="micro">progress</span></div>
+          <div class="row gap16">
+            <div>${ring(completion(p), p.current)}</div>
+            <div class="kv grow">
+              <span class="k">Foundation</span><span class="v mono">${p.foundationDone}/${p.foundationTotal} stages</span>
+              <span class="k">Shipped</span><span class="v mono" style="color:var(--green)">${p.shipped} features</span>
+              <span class="k">Building</span><span class="v mono" style="color:var(--amber)">${p.building} in flight</span>
+              <span class="k">Blocked</span><span class="v mono" style="color:${p.blocked ? 'var(--red)' : 'var(--muted)'}">${p.blocked}</span>
+              <span class="k">Live</span><span class="v mono">${p.liveSessions} session${p.liveSessions === 1 ? '' : 's'}</span>
+            </div>
+          </div>
+        </div>
+
+        ${blockers.length ? `<div>
+          <div class="sectlabel" style="margin-bottom:10px"><span class="micro" style="color:var(--red)">blockers</span>
+            <span class="micro mono">${blockers.length}</span></div>
+          <div class="col gap8">${blockers.map(b => `
+            <div class="blocker">
+              <div class="row gap8" style="margin-bottom:3px">
+                <span class="mono" style="font-size:11.5px;color:var(--text)">${b.feature}</span>
+                <span class="tag ${b.gate === 'HITL' ? 'hitl' : ''}">${b.gate}</span>
+              </div>
+              <div class="dim" style="font-size:12px">${b.reason}</div>
+            </div>`).join('')}</div>
+        </div>` : ''}
+
+        <div class="reco-box">
+          <div class="micro" style="color:var(--violet);margin-bottom:8px">Conductor recommends</div>
+          <div class="next-cmd" style="font-size:14px">→ /<span class="skill">${nmSkill}</span> <span class="arg">${nmArgs.join(' ')}</span></div>
+          <div class="dim" style="font-size:12px;margin-top:8px">
+            ${p.current ? M.orchestrator.recommendation.rationale
+              : p.health === 'at-risk' ? 'Highest-severity blocker is at the data boundary — diagnose before any new feature work advances.'
+              : 'Foundation complete and no blockers — safe to advance the next queued slice.'}
+          </div>
+          <div class="row gap8" style="margin-top:12px">
+            <button class="btn primary">Run with confirm</button>
+            <button class="btn ghost">Open in Workspace</button>
+          </div>
+        </div>`;
+
+      scrim.classList.add('open'); drawer.classList.add('open');
+    }
+
+    function closeDrawer() { scrim.classList.remove('open'); drawer.classList.remove('open'); }
+    $('#dwClose').addEventListener('click', closeDrawer);
+    scrim.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+    grid.addEventListener('click', e => {
+      const runBtn = e.target.closest('[data-run]');
+      const card = e.target.closest('.pcard');
+      if (runBtn) { e.stopPropagation(); flashRun(runBtn); return; }
+      if (card) openDrawer(card.dataset.id);
+    });
+    $('#runMain').addEventListener('click', () => flashRun($('#runMain'), topProject.nextMove));
+
+    function flashRun(btn, label) {
+      const orig = btn.textContent;
+      btn.textContent = '⟳ spawning…'; btn.disabled = true;
+      setTimeout(() => { btn.textContent = '✓ confirm in terminal'; }, 600);
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2100);
+    }
+  </script>
+</body>
+</html>

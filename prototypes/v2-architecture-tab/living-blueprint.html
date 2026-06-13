@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Living Blueprint · Architecture · SDLC Command Center</title>
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* ---------- layout specific to the Living Blueprint ---------- */
+  .arch-wrap { display: flex; height: 100%; min-height: 0; }
+  .canvas-col { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+
+  /* flow selector strip */
+  .flowbar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    border-bottom: 1px solid var(--hairline); background: var(--surface); flex-shrink: 0;
+  }
+  .flowbar .flows { display: flex; gap: 6px; flex-wrap: wrap; }
+  .flowchip {
+    display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 11px;
+    border-radius: 5px; background: var(--raised); border: 1px solid var(--hairline);
+    color: var(--muted); font-family: var(--mono); font-size: 11px; cursor: pointer;
+    transition: border-color 120ms, color 120ms, background 120ms; user-select: none; white-space: nowrap;
+  }
+  .flowchip:hover { color: var(--text); border-color: var(--hairline-bright); }
+  .flowchip .swatch { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .flowchip.active { color: var(--text); border-color: var(--flowc, var(--green)); background: color-mix(in srgb, var(--flowc, var(--green)) 12%, var(--raised)); }
+
+  /* live pill */
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px;
+    border-radius: 12px; border: 1px solid color-mix(in srgb, var(--red) 45%, transparent);
+    background: color-mix(in srgb, var(--red) 9%, transparent); color: var(--red);
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; font-weight: 600;
+  }
+  .live-pill .ld { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: livedot 1.4s ease-in-out infinite; }
+  @keyframes livedot { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 60%, transparent); } 50% { opacity: 0.5; box-shadow: 0 0 0 5px transparent; } }
+
+  /* svg schematic stage */
+  .stage { flex: 1; min-height: 0; position: relative; overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 55% at 38% 42%, rgba(89,167,255,0.05), transparent 70%),
+      linear-gradient(0deg, rgba(10,14,20,0.6), transparent 40%);
+  }
+  .stage svg { width: 100%; height: 100%; display: block; }
+  /* faint grid */
+  .grid line { stroke: var(--hairline); stroke-width: 0.5; opacity: 0.45; }
+
+  /* edges */
+  .edge { fill: none; stroke: var(--hairline-bright); stroke-width: 1.3; transition: stroke 200ms, opacity 200ms; }
+  .edge.planned { stroke-dasharray: 5 5; stroke: var(--blue); opacity: 0.4; }
+  .edge.dim { opacity: 0.07; }
+  .edge.lit { stroke: var(--flowc); stroke-width: 1.8; opacity: 0.9; }
+
+  /* flowing particles */
+  .particle { transition: opacity 200ms; }
+  .particle.dim { opacity: 0; }
+
+  /* nodes */
+  .node { cursor: pointer; }
+  .node .body {
+    fill: var(--raised); stroke: var(--hairline-bright); stroke-width: 1.2;
+    transition: stroke 160ms, filter 160ms, opacity 200ms;
+  }
+  .node:hover .body { stroke: var(--text); }
+  .node.sel .body { stroke: var(--green); stroke-width: 1.8; }
+  .node.dim { opacity: 0.22; }
+  .node .label { fill: var(--text); font-family: var(--sans); font-weight: 600; font-size: 12px; }
+  .node .kind { fill: var(--muted); font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .node .layerbadge { fill: var(--faint); font-family: var(--mono); font-size: 8px; letter-spacing: 0.08em; }
+  .node .sdot { transition: opacity 160ms; }
+
+  /* status-tinted node bodies */
+  .node.st-done .body { stroke: color-mix(in srgb, var(--green) 50%, var(--hairline-bright)); }
+  .node.st-building .body { stroke: var(--amber); }
+  .node.st-planned .body { fill: transparent; stroke: var(--blue); stroke-dasharray: 5 4; opacity: 0.55; }
+  .node.st-external .body { fill: color-mix(in srgb, var(--surface) 80%, transparent); stroke: var(--faint); stroke-dasharray: 3 3; }
+
+  /* breathing halo for building components */
+  .halo { fill: none; stroke: var(--amber); stroke-width: 1.4; opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .node.st-building .halo { animation: breathe 2.8s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(1.07); }
+  }
+  /* soft glow under done/building bodies */
+  .node.st-done .body { filter: drop-shadow(0 0 5px color-mix(in srgb, var(--green) 22%, transparent)); }
+  .node.st-building .body { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--amber) 30%, transparent)); }
+
+  /* telemetry ticker */
+  .telemetry {
+    height: 30px; flex-shrink: 0; border-top: 1px solid var(--hairline);
+    background: var(--bg); display: flex; align-items: center; overflow: hidden; position: relative;
+  }
+  .telemetry::before {
+    content: 'AUDIT'; font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; color: var(--faint);
+    padding: 0 12px; border-right: 1px solid var(--hairline); height: 100%; display: flex; align-items: center;
+    background: var(--surface); flex-shrink: 0; z-index: 2;
+  }
+  .ticker-track { display: flex; align-items: center; gap: 28px; white-space: nowrap; animation: ticker 38s linear infinite; padding-left: 24px; }
+  .telemetry:hover .ticker-track { animation-play-state: paused; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .tk { font-family: var(--mono); font-size: 10.5px; color: var(--muted); display: inline-flex; gap: 7px; align-items: center; }
+  .tk .ts { color: var(--faint); }
+  .tk .et { font-weight: 600; }
+
+  /* inspector body */
+  .insp-head { padding: 14px 16px; border-bottom: 1px solid var(--hairline); }
+  .insp-body { padding: 14px 16px; overflow: auto; display: flex; flex-direction: column; gap: 16px; }
+  .insp-sec .lbl { margin-bottom: 7px; }
+  .io-list { display: flex; flex-direction: column; gap: 5px; }
+  .io-row { display: flex; gap: 7px; align-items: flex-start; font-size: 12px; color: var(--text); line-height: 1.35; }
+  .io-row .arrow { color: var(--faint); font-family: var(--mono); flex-shrink: 0; }
+  .spark { display: block; }
+  .spark-wrap { border: 1px solid var(--hairline); border-radius: 5px; padding: 8px 10px; background: var(--bg); }
+  .pulse-ring { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .pulse-ring.live { background: var(--amber); animation: pulse 1.9s ease-out infinite; }
+  .badge-stat { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+  .legend .li { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+  .nav-item .badge.dim-badge { background: var(--blue); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== LEFT RAIL ===================== -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="micro kicker">SDLC</div>
+      <div class="name">Command Center</div>
+    </div>
+    <div class="rail-section">
+      <div class="micro" style="margin-bottom:6px;">Project</div>
+      <select class="select">
+        <option>SDLC Command Center</option>
+        <option>acme-billing</option>
+        <option>marketing-site</option>
+        <option>telemetry-pipeline</option>
+      </select>
+    </div>
+    <nav class="rail-nav" id="nav"></nav>
+    <div class="rail-section">
+      <div class="row">
+        <span class="dot bg-done live-pulse" style="--accent:var(--green)"></span>
+        <span class="mono" style="font-size:11px;">Link up</span>
+        <span class="grow"></span>
+        <span class="micro">2 active</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+    <!-- top bar -->
+    <div class="topbar">
+      <span class="h3" style="font-size:14px;">SDLC Command Center</span>
+      <span class="chip" style="color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,transparent);">brownfield</span>
+      <span class="chip" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent);">mvp</span>
+      <span class="grow"></span>
+      <span class="live-pill"><span class="ld"></span>LIVE</span>
+      <span class="chip mono">⌘K</span>
+    </div>
+
+    <div class="content">
+      <div class="arch-wrap">
+
+        <!-- ===== CANVAS COLUMN ===== -->
+        <div class="canvas-col">
+          <!-- data-flow selector -->
+          <div class="flowbar">
+            <span class="micro">Data Flow</span>
+            <div class="flows" id="flows"></div>
+            <span class="grow"></span>
+            <span class="micro mono" id="payload" style="color:var(--faint);"></span>
+          </div>
+
+          <!-- SVG schematic -->
+          <div class="stage">
+            <svg id="diagram" viewBox="0 0 980 600" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M40 0H0V40" fill="none" stroke="var(--hairline)" stroke-width="0.5" opacity="0.4"/>
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="980" height="600" fill="url(#grid)"/>
+              <g id="edges"></g>
+              <g id="particles"></g>
+              <g id="nodes"></g>
+            </svg>
+          </div>
+
+          <!-- telemetry ticker -->
+          <div class="telemetry">
+            <div class="ticker-track" id="ticker"></div>
+          </div>
+        </div>
+
+        <!-- ===== INSPECTOR ===== -->
+        <aside class="inspector" id="inspector"></aside>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(() => {
+  const M = window.MOCK;
+  const $ = (id) => document.getElementById(id);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}, kids = []) => {
+    const n = document.createElementNS(svgNS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    for (const c of [].concat(kids)) if (c) n.appendChild(c);
+    return n;
+  };
+
+  // ---------- left rail nav ----------
+  const ICON = {
+    Dashboard: 'M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 14h7v7H3z',
+    Pipeline: 'M3 6h13M3 12h18M3 18h9',
+    Board: 'M4 4h4v16H4zM10 4h4v10h-4zM16 4h4v7h-4z',
+    Workspace: 'M3 4h18v12H3zM8 20h8M12 16v4',
+    Sessions: 'M4 5h16v12H4zM8 21h8M7 9l3 3-3 3',
+    Docs: 'M6 3h9l4 4v14H6zM14 3v5h5',
+    Skills: 'M12 2l2.5 6.5L21 9l-5 4 1.8 7L12 16l-5.8 4L8 13 3 9l6.5-.5z',
+    Architecture: 'M5 6h5v5H5zM14 6h5v5h-5zM9.5 17h5v4h-5zM7.5 11v3h9v-3M12 14v3',
+  };
+  const NAV = ['Dashboard', 'Pipeline', 'Board', 'Workspace', 'Sessions', 'Docs', 'Skills', 'Architecture'];
+  $('nav').innerHTML = NAV.map((n) => `
+    <div class="nav-item ${n === 'Architecture' ? 'active' : ''}">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="${ICON[n]}"/></svg>
+      <span>${n}</span>
+      ${n === 'Workspace' ? '<span class="badge">1</span>' : ''}
+    </div>`).join('');
+
+  // ---------- spatial coordinates (circuit / subway map) ----------
+  // hand-placed using `layer` as a loose left→right guide.
+  const POS = {
+    claudeCli:         { x: 95,  y: 110 },
+    RunClaudeSessions: { x: 250, y: 95  },
+    IngestObservability:{ x: 250, y: 260 },
+    projectStatePy:    { x: 95,  y: 430 },
+    DeriveProjectState:{ x: 470, y: 360 },
+    PersistAndBroadcast:{ x: 470, y: 200 },
+    ShareDomainModel:  { x: 470, y: 510 },
+    ServeApiAndWs:     { x: 680, y: 220 },
+    OrchestrateChain:  { x: 690, y: 440 },
+    RenderFlightDeck:  { x: 880, y: 130 },
+  };
+  const W = 150, H = 58;
+  const byId = Object.fromEntries(M.components.map((c) => [c.id, c]));
+  const center = (id) => ({ x: POS[id].x + W / 2, y: POS[id].y + H / 2 });
+  const port = (id, side) => {
+    const p = POS[id];
+    if (side === 'r') return { x: p.x + W, y: p.y + H / 2 };
+    if (side === 'l') return { x: p.x, y: p.y + H / 2 };
+    if (side === 't') return { x: p.x + W / 2, y: p.y };
+    return { x: p.x + W / 2, y: p.y + H }; // bottom
+  };
+
+  // pick reasonable ports per edge so conduits flow like a board
+  function edgePath(e) {
+    const a = center(e.from), b = center(e.to);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    let p1, p2;
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      p1 = port(e.from, dx >= 0 ? 'r' : 'l');
+      p2 = port(e.to, dx >= 0 ? 'l' : 'r');
+    } else {
+      p1 = port(e.from, dy >= 0 ? 'b' : 't');
+      p2 = port(e.to, dy >= 0 ? 't' : 'b');
+    }
+    const mx = (p1.x + p2.x) / 2;
+    // orthogonal-ish smooth elbow
+    return `M ${p1.x} ${p1.y} C ${mx} ${p1.y}, ${mx} ${p2.y}, ${p2.x} ${p2.y}`;
+  }
+
+  // ---------- render edges ----------
+  const edgesG = $('edges'), partG = $('particles'), nodesG = $('nodes');
+  const edgeEls = [];
+  M.edges.forEach((e, i) => {
+    const path = el('path', {
+      d: edgePath(e), class: `edge ${e.status === 'planned' ? 'planned' : ''}`,
+      id: `edge-${i}`,
+    });
+    edgesG.appendChild(path);
+    edgeEls.push({ e, path, id: `edge-${i}` });
+  });
+
+  // ---------- ambient particles on active (done) edges ----------
+  function spawnParticles() {
+    M.edges.forEach((e, i) => {
+      if (e.status === 'planned') return;
+      const pathId = `edge-${i}`;
+      const n = 2;
+      for (let k = 0; k < n; k++) {
+        const c = el('circle', { r: 2.1, fill: 'var(--green)', class: 'particle', 'data-edge': i, opacity: 0.0 });
+        const mp = el('animateMotion', {
+          dur: `${2.6 + (i % 3) * 0.5}s`, begin: `${(k * 1.3 + i * 0.2).toFixed(2)}s`,
+          repeatCount: 'indefinite', rotate: 'auto',
+        });
+        mp.appendChild(el('mpath', { href: `#${pathId} ` }));
+        // both href and xlink for offline safety
+        mp.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#${pathId}`);
+        c.appendChild(mp);
+        // fade in once it starts
+        const fade = el('animate', { attributeName: 'opacity', values: '0;0.85;0.85;0', dur: `${2.6 + (i % 3) * 0.5}s`, begin: `${(k * 1.3 + i * 0.2).toFixed(2)}s`, repeatCount: 'indefinite' });
+        c.appendChild(fade);
+        partG.appendChild(c);
+      }
+    });
+  }
+  spawnParticles();
+
+  // ---------- render nodes ----------
+  const KIND_LABEL = { ui: 'UI', service: 'SERVICE', engine: 'ENGINE', store: 'STORE', shared: 'SHARED', external: 'EXTERNAL' };
+  const statusClass = (c) => c.kind === 'external' ? 'external'
+    : c.status === 'building' || c.status === 'in-progress' ? 'building'
+    : c.status === 'planned' ? 'planned' : 'done';
+  const STATUS_COLORVAR = { done: 'var(--green)', building: 'var(--amber)', planned: 'var(--blue)', external: 'var(--faint)' };
+
+  const nodeEls = {};
+  M.components.forEach((c) => {
+    const p = POS[c.id]; const sc = statusClass(c);
+    const g = el('g', { class: `node st-${sc}`, 'data-id': c.id, transform: `translate(${p.x},${p.y})` });
+
+    // breathing halo (only animates for building via CSS)
+    g.appendChild(el('rect', { class: 'halo', x: -4, y: -4, width: W + 8, height: H + 8, rx: 9 }));
+    // body
+    g.appendChild(el('rect', { class: 'body', x: 0, y: 0, width: W, height: H, rx: 7 }));
+    // left status rail
+    g.appendChild(el('rect', { x: 0, y: 0, width: 3.5, height: H, rx: 1.5, fill: STATUS_COLORVAR[sc], opacity: sc === 'planned' ? 0.6 : 0.9 }));
+    // status dot
+    g.appendChild(el('circle', { class: 'sdot', cx: W - 13, cy: 14, r: 3.4, fill: STATUS_COLORVAR[sc] }));
+    // kind label
+    g.appendChild(el('text', { class: 'kind', x: 13, y: 18 }, document.createTextNode(KIND_LABEL[c.kind] || c.kind)));
+    // name
+    const name = el('text', { class: 'label', x: 13, y: 36 });
+    name.appendChild(document.createTextNode(c.name));
+    g.appendChild(name);
+    // sublabel: layer + planned tag
+    const sub = c.status === 'planned' ? 'PLANNED · v2 conductor'
+      : c.kind === 'external' ? 'EXTERNAL · ' + c.livesAt.split('/').pop()
+      : 'layer ' + c.layer + ' · ' + (c.apiBearing ? 'api-bearing' : c.kind);
+    g.appendChild(el('text', { class: 'layerbadge', x: 13, y: 49 }, document.createTextNode(sub)));
+
+    g.addEventListener('click', () => select(c.id));
+    nodesG.appendChild(g);
+    nodeEls[c.id] = g;
+  });
+
+  // ---------- data flow selector ----------
+  const flows = [{ id: 'all', label: 'All flows', color: 'var(--green)', path: null, payload: 'all conduits live' }, ...M.dataflows];
+  let activeFlow = 'all';
+  $('flows').innerHTML = flows.map((f) => `
+    <span class="flowchip ${f.id === 'all' ? 'active' : ''}" data-flow="${f.id}" style="--flowc:${f.color}">
+      <span class="swatch" style="background:${f.color}"></span>${f.label}
+    </span>`).join('');
+
+  // map flow -> edge indices (consecutive pairs in path)
+  function flowEdgeIndices(flow) {
+    if (!flow.path) return null;
+    const set = new Set();
+    for (let i = 0; i < flow.path.length - 1; i++) {
+      const a = flow.path[i], b = flow.path[i + 1];
+      M.edges.forEach((e, idx) => { if (e.from === a && e.to === b) set.add(idx); });
+    }
+    return set;
+  }
+  const flowNodes = (flow) => flow.path ? new Set(flow.path) : null;
+
+  function applyFlow(id) {
+    activeFlow = id;
+    const flow = flows.find((f) => f.id === id);
+    document.querySelectorAll('.flowchip').forEach((c) => c.classList.toggle('active', c.dataset.flow === id));
+    const lit = flowEdgeIndices(flow);
+    const litNodes = flowNodes(flow);
+    $('payload').textContent = flow.payload ? '↳ ' + flow.payload : '';
+
+    // edges
+    edgeEls.forEach(({ e, path }, idx) => {
+      path.classList.remove('lit', 'dim');
+      if (e.status === 'planned') return; // planned stays ghosted regardless
+      if (!lit) return; // all flows = neutral
+      if (lit.has(idx)) { path.classList.add('lit'); path.style.setProperty('--flowc', flow.color); }
+      else path.classList.add('dim');
+    });
+    // particles: recolor + dim the off-flow ones
+    document.querySelectorAll('.particle').forEach((pt) => {
+      const idx = +pt.dataset.edge;
+      if (!lit) { pt.classList.remove('dim'); pt.setAttribute('fill', 'var(--green)'); return; }
+      if (lit.has(idx)) { pt.classList.remove('dim'); pt.setAttribute('fill', flow.color); }
+      else pt.classList.add('dim');
+    });
+    // accelerate active flow: shorten motion dur
+    document.querySelectorAll('#particles animateMotion').forEach((am) => {
+      const idx = +am.parentNode.dataset.edge;
+      const base = 2.6 + (idx % 3) * 0.5;
+      am.setAttribute('dur', (lit && lit.has(idx)) ? (base * 0.55).toFixed(2) + 's' : base + 's');
+    });
+    // nodes
+    M.components.forEach((c) => {
+      const g = nodeEls[c.id];
+      g.classList.toggle('dim', !!litNodes && !litNodes.has(c.id) && c.id !== selected);
+    });
+  }
+  document.querySelectorAll('.flowchip').forEach((c) => c.addEventListener('click', () => applyFlow(c.dataset.flow)));
+
+  // ---------- inspector ----------
+  let selected = 'RenderFlightDeck';
+  const featBySlug = Object.fromEntries(M.features.map((f) => [f.slug, f]));
+  const agentByComp = {};
+  M.agents.forEach((a) => { if (a.status === 'running' || a.status === 'attention') agentByComp[a.component] = agentByComp[a.component] || a; });
+
+  // deterministic sparkline per component (fake throughput)
+  function sparkline(seed, color) {
+    const pts = [];
+    let v = 40;
+    for (let i = 0; i < 24; i++) {
+      v += Math.sin((i + seed) * 0.9) * 9 + ((seed * 7 + i * 13) % 11) - 5;
+      v = Math.max(8, Math.min(56, v));
+      pts.push(`${(i * (180 / 23)).toFixed(1)},${(60 - v).toFixed(1)}`);
+    }
+    return `<div class="spark-wrap">
+      <div class="spread" style="margin-bottom:6px;">
+        <span class="micro">Throughput · evt/min</span>
+        <span class="mono" style="font-size:11px;color:${color}">${(v * 1.7).toFixed(0)}</span>
+      </div>
+      <svg class="spark" viewBox="0 0 180 60" width="100%" height="42" preserveAspectRatio="none">
+        <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/>
+        <polyline points="0,60 ${pts.join(' ')} 180,60" fill="${color}" opacity="0.08" stroke="none"/>
+      </svg>
+    </div>`;
+  }
+
+  const STATUS_META = {
+    building: { txt: 'BUILDING', cls: 's-building', cvar: 'var(--amber)', live: true },
+    done: { txt: 'OPERATIONAL', cls: 's-done', cvar: 'var(--green)', live: false },
+    planned: { txt: 'PLANNED', cls: 's-planned', cvar: 'var(--blue)', live: false },
+  };
+
+  function select(id) {
+    selected = id;
+    Object.entries(nodeEls).forEach(([k, g]) => g.classList.toggle('sel', k === id));
+    const c = byId[id];
+    const sc = c.kind === 'external' ? 'done' : c.status === 'in-progress' ? 'building' : c.status;
+    const meta = STATUS_META[sc] || STATUS_META.done;
+    const color = meta.cvar;
+    const ag = agentByComp[id];
+    const feat = c.feature ? featBySlug[c.feature] : null;
+
+    const ioRows = (arr, arrow) => (arr && arr.length)
+      ? `<div class="io-list">${arr.map((s) => `<div class="io-row"><span class="arrow">${arrow}</span><span>${s}</span></div>`).join('')}</div>`
+      : `<div class="dim mono" style="font-size:11px;">—</div>`;
+
+    $('inspector').innerHTML = `
+      <div class="insp-head">
+        <div class="spread" style="margin-bottom:8px;">
+          <span class="micro">Component</span>
+          <span class="badge-stat ${meta.cls}" style="background:color-mix(in srgb,${color} 14%,transparent);color:${color};">
+            ${meta.live ? '<span class="pulse-ring live" style="margin-right:5px;vertical-align:middle;"></span>' : ''}${meta.txt}
+          </span>
+        </div>
+        <div class="h3" style="font-size:16px;">${c.name}</div>
+        <div class="codeline" style="margin-top:5px;color:var(--muted);">${c.livesAt}</div>
+      </div>
+      <div class="insp-body">
+
+        <div class="insp-sec">
+          <div class="micro lbl">Role</div>
+          <div style="font-size:12.5px;line-height:1.5;color:var(--text);">${c.role}</div>
+        </div>
+
+        ${sparkline(id.length + c.layer, color)}
+
+        <div class="insp-sec">
+          <div class="micro lbl">Inputs</div>
+          ${ioRows(c.inputs, '→')}
+        </div>
+        <div class="insp-sec">
+          <div class="micro lbl">Outputs</div>
+          ${ioRows(c.outputs, '←')}
+        </div>
+
+        <div class="insp-sec">
+          <div class="micro lbl">Responsible agent</div>
+          ${ag ? `
+            <div class="panel pad12" style="border-color:color-mix(in srgb,${color} 35%,var(--hairline));">
+              <div class="row spread" style="margin-bottom:6px;">
+                <span class="mono" style="font-size:12px;color:${color};">${ag.skill} ${ag.args}</span>
+                <span class="tag ${ag.status === 'attention' ? 'hitl' : 'afk'}">${ag.status}</span>
+              </div>
+              <div class="row gap12 micro" style="text-transform:none;letter-spacing:0;">
+                <span>${ag.model}</span><span>·</span>
+                <span>${(ag.tokensIn / 1000).toFixed(0)}k in</span><span>·</span>
+                <span style="color:var(--green);">$${ag.costUsd.toFixed(2)}</span><span>·</span>
+                <span>${ag.startedAt}</span>
+              </div>
+              ${ag.attentionMsg ? `<div class="row gap8" style="margin-top:8px;color:var(--amber);font-size:11.5px;"><span class="dot bg-in-progress live-pulse" style="--accent:var(--amber)"></span>${ag.attentionMsg}</div>` : ''}
+            </div>` : `<div class="mono dim" style="font-size:12px;">${c.agent}</div>`}
+        </div>
+
+        <div class="insp-sec">
+          <div class="micro lbl">Linked feature</div>
+          ${feat ? `
+            <div class="row spread" style="border:1px solid var(--hairline);border-radius:5px;padding:8px 10px;background:var(--bg);">
+              <span class="mono" style="font-size:12px;color:var(--violet);">${feat.slug}</span>
+              <span class="badge-stat" style="background:color-mix(in srgb,var(--violet) 14%,transparent);color:var(--violet);">${feat.status}</span>
+            </div>
+            <div class="row gap4 wrap" style="margin-top:6px;">
+              ${feat.slices.map((s) => `<span class="tag ${s.mark === 'HITL' ? 'hitl' : 'afk'}" title="${s.title}">${s.id}</span>`).join('')}
+            </div>` : `<div class="mono dim" style="font-size:12px;">—</div>`}
+        </div>
+
+        ${c.invariants && c.invariants.length ? `
+        <div class="insp-sec">
+          <div class="micro lbl">Invariant</div>
+          <div style="font-size:12px;line-height:1.45;color:var(--muted);border-left:2px solid ${color};padding-left:10px;">${c.invariants[0]}</div>
+        </div>` : ''}
+
+        <div class="insp-sec">
+          <div class="micro lbl">Dependencies</div>
+          <div class="row gap4 wrap">
+            ${c.dependsOn.length ? c.dependsOn.map((d) => `<span class="chip mono" style="height:20px;font-size:10px;">${byId[d] ? byId[d].name : d}</span>`).join('') : '<span class="dim mono" style="font-size:11px;">none (substrate)</span>'}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ---------- telemetry ticker ----------
+  const EVENTS = [
+    { ts: '14:02:11', et: 'PreToolUse', c: 'var(--blue)', d: 'Edit apps/web/src/pages/ArchitecturePage.tsx' },
+    { ts: '14:02:11', et: 'hook', c: 'var(--muted)', d: 'PostToolUse → audit_event #48211 persisted' },
+    { ts: '14:02:13', et: 'state-changed', c: 'var(--green)', d: 'feature=architecture-tab slice=scc-arc1 → green' },
+    { ts: '14:02:14', et: 'verdict', c: 'var(--violet)', d: 'READY-FOR-QA observability-data-pruning' },
+    { ts: '14:02:16', et: 'terminal-data', c: 'var(--amber)', d: 'sess-a1 PTY +1.2kb stdout' },
+    { ts: '14:02:18', et: 'attention', c: 'var(--red)', d: 'sess-a4 HITL — confirm destructive VACUUM' },
+    { ts: '14:02:19', et: 'SubagentStop', c: 'var(--muted)', d: 'verifier graded qa-report (2 criteria pass)' },
+    { ts: '14:02:21', et: 'ws-broadcast', c: 'var(--blue)', d: 'ServerEvent → 2 subscribers' },
+    { ts: '14:02:23', et: 'PreToolUse', c: 'var(--blue)', d: 'Bash pnpm -F web typecheck' },
+    { ts: '14:02:25', et: 'verdict', c: 'var(--green)', d: 'SHIPPED oldest-record-age ✓' },
+    { ts: '14:02:27', et: 'state-changed', c: 'var(--green)', d: 'project-state.py → dashboard/state.json regen' },
+    { ts: '14:02:29', et: 'session-spawn', c: 'var(--amber)', d: '/mtdd-review scc-arc1 queued (suggest)' },
+  ];
+  const tkHtml = EVENTS.map((e) => `<span class="tk"><span class="ts">${e.ts}</span><span class="et" style="color:${e.c}">${e.et}</span><span class="dim">${e.d}</span></span>`).join('');
+  $('ticker').innerHTML = tkHtml + tkHtml; // duplicate for seamless loop
+
+  // ---------- init ----------
+  applyFlow('all');
+  select('RenderFlightDeck');
+})();
+</script>
+</body>
+</html>

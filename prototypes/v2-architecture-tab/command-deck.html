@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SDLC Command Center — Architecture &amp; Progress</title>
+  <link rel="stylesheet" href="_shared.css">
+  <style>
+    /* ---- layout specific to the Command Deck tab ---- */
+    .deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    .deck-body { flex: 1; display: flex; min-height: 0; }
+    .canvas-wrap { flex: 1; min-width: 0; position: relative; overflow: auto; }
+    .canvas-pad { padding: 18px 20px 24px; }
+
+    .viewbar {
+      display: flex; align-items: center; gap: 14px; padding: 9px 20px;
+      border-bottom: 1px solid var(--hairline); background: var(--surface);
+    }
+    .legend { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .legend .li { display: flex; align-items: center; gap: 5px; }
+
+    /* ---- inline-SVG system graph ---- */
+    svg.graph { display: block; }
+    .gnode-box {
+      fill: var(--raised); stroke: var(--hairline-bright); stroke-width: 1;
+      transition: stroke 140ms, fill 140ms;
+    }
+    .gnode { cursor: pointer; }
+    .gnode:hover .gnode-box { fill: #18212E; }
+    .gnode.sel .gnode-box { stroke-width: 1.6; fill: #18212E; }
+    .gnode.planned .gnode-box { stroke-dasharray: 5 4; opacity: 0.82; }
+    .gnode.external .gnode-box { stroke-dasharray: 3 3; fill: color-mix(in srgb, var(--raised) 60%, transparent); }
+    .gnode .nname { font: 600 12.5px var(--sans); fill: var(--text); }
+    .gnode .nid { font: 500 9.5px var(--mono); fill: var(--muted); letter-spacing: .04em; }
+    .gnode .nrole { font: 400 9px var(--mono); fill: var(--faint); }
+    .accent-bar { rx: 2; }
+    .edge { fill: none; stroke: var(--hairline-bright); stroke-width: 1.1; }
+    .edge.compile { stroke: var(--hairline); stroke-width: 0.9; opacity: 0.55; }
+    .edge.planned { stroke: var(--blue); stroke-width: 1.1; stroke-dasharray: 5 4; opacity: 0.75; }
+    .edge.feed { stroke: var(--amber); stroke-width: 1.6; }
+    .api-pill { fill: color-mix(in srgb, var(--blue) 22%, transparent); }
+    .api-pill-txt { font: 600 8px var(--mono); fill: var(--blue); letter-spacing: .08em; }
+    @keyframes nodeglow {
+      0%,100% { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--amber) 40%, transparent)); }
+      50% { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--amber) 75%, transparent)); }
+    }
+    .gnode.building .gnode-box { animation: nodeglow 2.1s ease-in-out infinite; }
+
+    /* ---- feature view ---- */
+    .frow { border: 1px solid var(--hairline); border-radius: 7px; background: var(--surface); padding: 12px 14px; cursor: pointer; transition: border-color 140ms, background 140ms; }
+    .frow:hover { border-color: var(--hairline-bright); background: var(--raised); }
+    .frow.sel { border-color: var(--violet); }
+    .slice-chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: 5px; background: var(--raised); border: 1px solid var(--hairline); font: 500 10.5px var(--mono); }
+
+    /* ---- agents view ---- */
+    .agcard { border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); padding: 14px; }
+    .agcard.attn { border-color: color-mix(in srgb, var(--amber) 55%, transparent); background: color-mix(in srgb, var(--amber) 6%, var(--surface)); }
+    .agcard.running { border-left: 2px solid var(--green); }
+    .metric { display: flex; flex-direction: column; gap: 2px; }
+    .metric .mv { font: 600 14px var(--mono); color: var(--text); }
+
+    /* ---- data flow view ---- */
+    .flowrow { border: 1px solid var(--hairline); border-radius: 7px; background: var(--surface); padding: 11px 13px; cursor: pointer; }
+    .flowrow:hover { border-color: var(--hairline-bright); }
+    .flowrow.sel { border-color: var(--blue); background: var(--raised); }
+    .flowchain { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+    .fchip { display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 6px; background: var(--raised); border: 1px solid var(--hairline-bright); font: 500 11px var(--mono); color: var(--text); }
+    .farrow { color: var(--muted); font-size: 14px; }
+
+    /* ---- dependency matrix ---- */
+    table.matrix { border-collapse: collapse; font-family: var(--mono); }
+    table.matrix th, table.matrix td { border: 1px solid var(--hairline); text-align: center; }
+    table.matrix td.cell { width: 26px; height: 26px; cursor: default; }
+    table.matrix td.cell.diag { background: repeating-linear-gradient(45deg, transparent, transparent 3px, var(--hairline) 3px, var(--hairline) 4px); }
+    table.matrix th.rowh { text-align: right; padding: 0 8px; font: 500 10px var(--mono); color: var(--muted); white-space: nowrap; }
+    table.matrix th.colh { height: 92px; }
+    table.matrix th.colh span { display: inline-block; transform: rotate(-90deg) translateX(8px); transform-origin: left; font: 500 10px var(--mono); color: var(--muted); white-space: nowrap; }
+    .coupling-bar { height: 7px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+    .coupling-bar > i { display: block; height: 100%; }
+
+    /* ---- SDLC lanes ---- */
+    .lane { display: flex; align-items: center; gap: 8px; }
+    .lane-rail { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .stage-pill {
+      display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--hairline); font: 500 11.5px var(--sans); white-space: nowrap;
+    }
+    .stage-pill.next { border-color: var(--amber); box-shadow: 0 0 0 1px color-mix(in srgb, var(--amber) 40%, transparent) inset; }
+    .lane-label { width: 110px; flex-shrink: 0; text-align: right; }
+    .lane-accent { width: 3px; align-self: stretch; border-radius: 2px; background: var(--accent); }
+
+    /* ---- inspector ---- */
+    .insp-head { padding: 16px 16px 14px; border-bottom: 1px solid var(--hairline); }
+    .insp-body { padding: 16px; overflow: auto; flex: 1; min-height: 0; }
+    .insp-sec { margin-bottom: 16px; }
+    .insp-sec .ttl { margin-bottom: 7px; }
+    .bullet { display: flex; gap: 7px; align-items: baseline; font-size: 12px; padding: 2px 0; }
+    .bullet .b { color: var(--faint); }
+    .dep-chip { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 4px; background: var(--raised); border: 1px solid var(--hairline); font: 500 10.5px var(--mono); cursor: pointer; }
+    .dep-chip:hover { border-color: var(--hairline-bright); }
+
+    /* ---- conductor extras ---- */
+    .conf-meter { width: 84px; height: 6px; border-radius: 3px; background: var(--raised); overflow: hidden; }
+    .conf-meter > i { display: block; height: 100%; background: linear-gradient(90deg, var(--green), var(--blue)); }
+    .toggle { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--raised); cursor: pointer; font: 600 11px var(--mono); color: var(--muted); }
+    .toggle.on { color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+    .pip { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+    .toggle.on .pip { background: var(--green); }
+    .rec-chip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 6px; font: 600 12px var(--mono); color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); border: 1px solid color-mix(in srgb, var(--green) 45%, transparent); }
+
+    .seg-title { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+    .badge-count { font: 600 10px var(--mono); padding: 1px 6px; border-radius: 4px; background: var(--raised); color: var(--muted); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= LEFT RAIL ================= -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="micro kicker">SDLC</div>
+      <div class="name">Command Center</div>
+    </div>
+    <div class="rail-section">
+      <div class="micro" style="margin-bottom:6px;">Project</div>
+      <select class="select">
+        <option>SDLC Command Center</option>
+        <option>acme-billing</option>
+        <option>marketing-site</option>
+        <option>telemetry-pipeline</option>
+      </select>
+    </div>
+    <nav class="rail-nav" id="nav"></nav>
+    <div class="rail-section">
+      <div class="row">
+        <span class="dot bg-done live-pulse" style="--accent:var(--green)"></span>
+        <span class="micro" style="letter-spacing:.1em;">Link up</span>
+        <span class="dim mono" style="margin-left:auto;font-size:11px;">2 active</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <!-- top bar -->
+    <div class="topbar">
+      <div class="row gap8">
+        <span style="font-weight:600;">SDLC Command Center</span>
+        <span class="chip" style="color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)">brownfield</span>
+        <span class="chip" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent)">mvp</span>
+      </div>
+      <div class="row gap8" style="margin-left:auto;">
+        <span class="micro">Architecture &amp; Progress</span>
+        <button class="btn ghost mono" style="font-size:11px;">⌘K</button>
+      </div>
+    </div>
+
+    <div class="deck">
+      <!-- view switcher -->
+      <div class="viewbar">
+        <div class="tabs" id="tabs"></div>
+        <div class="legend micro" id="legend">
+          <span class="li"><span class="dot bg-done"></span>done</span>
+          <span class="li"><span class="dot bg-building"></span>building</span>
+          <span class="li"><span class="dot bg-planned"></span>planned</span>
+          <span class="li"><span class="dot bg-blocked"></span>blocked</span>
+        </div>
+      </div>
+
+      <!-- body: center canvas + inspector -->
+      <div class="deck-body">
+        <section class="canvas-wrap"><div class="canvas-pad" id="canvas"></div></section>
+        <aside class="inspector" id="inspector"></aside>
+      </div>
+
+      <!-- conductor strip -->
+      <div class="conductor" id="conductor"></div>
+    </div>
+  </main>
+</div>
+
+<script src="mock-data.js"></script>
+<script>
+(() => {
+  const M = window.MOCK;
+  const byId = id => M.components.find(c => c.id === id);
+  const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const svgEl = (tag, attrs) => { const n = document.createElementNS(SVGNS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+
+  // ---- color resolution by status/phase ----
+  const statusVar = { done: 'var(--green)', building: 'var(--amber)', 'in-progress': 'var(--amber)', planned: 'var(--blue)', blocked: 'var(--red)', skipped: 'var(--faint)', pending: 'var(--faint)', external: 'var(--muted)' };
+  const kindAccent = { ui: 'var(--violet)', service: 'var(--amber)', engine: 'var(--green)', store: 'var(--blue)', shared: 'var(--blue)', external: 'var(--muted)' };
+  const statusColor = c => statusVar[c.status] || 'var(--muted)';
+  const statusLabel = s => s.replace(/-/g, ' ');
+
+  // ============================================================
+  //  RAIL NAV
+  // ============================================================
+  const ICONS = {
+    Dashboard: '<rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/>',
+    Pipeline: '<path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.5"/><circle cx="10" cy="8" r="1.5"/><circle cx="7" cy="12" r="1.5"/>',
+    Board: '<rect x="2" y="2" width="3.5" height="12"/><rect x="6.5" y="2" width="3.5" height="8"/><rect x="11" y="2" width="3.5" height="10"/>',
+    Workspace: '<rect x="2" y="3" width="12" height="9" rx="1"/><path d="M2 6h12"/>',
+    Sessions: '<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M4.5 6.5l2 1.5-2 1.5M8 9.5h3.5"/>',
+    Docs: '<path d="M4 2h6l3 3v9H4z"/><path d="M10 2v3h3"/>',
+    Skills: '<path d="M8 1.5l1.8 3.7 4 .6-2.9 2.8.7 4L8 10.7 4.4 12.6l.7-4L2.2 5.8l4-.6z"/>',
+    Architecture: '<circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><path d="M4 6v2h8V6M8 8v2"/>',
+  };
+  const NAV = ['Dashboard', 'Pipeline', 'Board', 'Workspace', 'Sessions', 'Docs', 'Skills', 'Architecture'];
+  const nav = document.getElementById('nav');
+  NAV.forEach(name => {
+    const item = el('div', 'nav-item' + (name === 'Architecture' ? ' active' : ''));
+    item.innerHTML = `<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg><span>${name}</span>`;
+    if (name === 'Workspace') item.insertAdjacentHTML('beforeend', '<span class="badge">1</span>');
+    nav.appendChild(item);
+  });
+
+  // ============================================================
+  //  VIEW SWITCHER
+  // ============================================================
+  const TABS = ['System', 'Feature', 'Agents', 'Data Flow', 'Dependencies', 'SDLC'];
+  let activeTab = 'System';
+  const tabsEl = document.getElementById('tabs');
+  const renderTabs = () => {
+    tabsEl.innerHTML = '';
+    TABS.forEach(t => {
+      const b = el('div', 'tab' + (t === activeTab ? ' active' : ''), t);
+      b.onclick = () => { activeTab = t; renderTabs(); renderCanvas(); };
+      tabsEl.appendChild(b);
+    });
+  };
+
+  // ============================================================
+  //  INSPECTOR (component selection drives it)
+  // ============================================================
+  let selectedId = 'RenderFlightDeck';
+  const inspEl = document.getElementById('inspector');
+
+  const featureFor = compId => M.features.find(f => f.mapsToComponent === compId);
+
+  const renderInspector = () => {
+    const c = byId(selectedId);
+    if (!c) { inspEl.innerHTML = ''; return; }
+    const sc = statusColor(c);
+    const feat = featureFor(c.id);
+    const list = arr => (arr && arr.length)
+      ? arr.map(x => `<div class="bullet"><span class="b">›</span><span>${x}</span></div>`).join('')
+      : '<div class="dim" style="font-size:12px;">—</div>';
+    const depChips = (c.dependsOn || []).length
+      ? c.dependsOn.map(d => `<span class="dep-chip" data-dep="${d}"><span class="dot" style="background:${byId(d) ? statusColor(byId(d)) : 'var(--faint)'}"></span>${d}</span>`).join(' ')
+      : '<span class="dim" style="font-size:12px;">none (root)</span>';
+
+    // slices: map component slice ids → feature slice objects when possible
+    const sliceObjs = (c.slices || []).map(sid => {
+      for (const f of M.features) { const s = (f.slices || []).find(x => x.id === sid); if (s) return s; }
+      return { id: sid, status: 'planned', mark: null };
+    });
+    const sliceChips = sliceObjs.length
+      ? sliceObjs.map(s => `<span class="slice-chip" style="border-color:color-mix(in srgb,${statusVar[s.status] || 'var(--faint)'} 40%,transparent)"><span class="dot" style="background:${statusVar[s.status] || 'var(--faint)'}"></span>${s.id}${s.mark ? `<span class="tag ${s.mark.toLowerCase()}">${s.mark}</span>` : ''}</span>`).join(' ')
+      : '<span class="dim" style="font-size:12px;">—</span>';
+
+    inspEl.innerHTML = `
+      <div class="insp-head">
+        <div class="micro" style="margin-bottom:6px;">Component · ${c.kind}</div>
+        <div class="spread">
+          <div class="h3" style="font-size:15px;">${c.name}</div>
+          <span class="chip" style="color:${sc};border-color:color-mix(in srgb,${sc} 45%,transparent)"><span class="dot" style="background:${sc}"></span>${statusLabel(c.status)}</span>
+        </div>
+        ${c.apiBearing ? '<span class="tag" style="color:var(--blue);border-color:color-mix(in srgb,var(--blue) 45%,transparent);margin-top:8px;display:inline-block;">API-BEARING</span>' : ''}
+      </div>
+      <div class="insp-body">
+        <div class="insp-sec">
+          <div class="micro ttl">Role</div>
+          <div style="font-size:12.5px;line-height:1.5;">${c.role}</div>
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Inputs</div>${list(c.inputs)}
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Outputs</div>${list(c.outputs)}
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Depends on</div>
+          <div class="row wrap gap4">${depChips}</div>
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Lives at</div>
+          <div class="codeline">${c.livesAt}</div>
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Responsible</div>
+          <div class="mono" style="font-size:11px;color:var(--text);">${c.agent}</div>
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Linked feature</div>
+          ${feat ? `<span class="chip" style="color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)">${feat.slug} · ${feat.status}</span>` : '<span class="dim" style="font-size:12px;">—</span>'}
+        </div>
+        <div class="insp-sec">
+          <div class="micro ttl">Slices</div>
+          <div class="row wrap gap8">${sliceChips}</div>
+        </div>
+        ${(c.invariants && c.invariants.length) ? `
+        <div class="insp-sec">
+          <div class="micro ttl" style="color:var(--green);">Invariants</div>
+          ${c.invariants.map(i => `<div class="bullet" style="font-size:11.5px;"><span class="b" style="color:var(--green)">◇</span><span>${i}</span></div>`).join('')}
+        </div>` : ''}
+      </div>`;
+
+    inspEl.querySelectorAll('[data-dep]').forEach(ch => {
+      ch.onclick = () => { selectComponent(ch.getAttribute('data-dep')); };
+    });
+  };
+
+  const selectComponent = id => {
+    if (!byId(id)) return;
+    selectedId = id;
+    renderInspector();
+    // reflect selection in the system graph if visible
+    document.querySelectorAll('.gnode').forEach(n => n.classList.toggle('sel', n.dataset.id === id));
+  };
+
+  // ============================================================
+  //  TAB: SYSTEM  (hand-rolled SVG layered graph)
+  // ============================================================
+  const NODE_W = 152, NODE_H = 72;
+  const layoutX = layer => 90 + layer * 178;
+  const layoutY = order => 60 + order * 150;
+
+  const nodePos = c => ({ x: layoutX(c.layer), y: layoutY(c.order), w: NODE_W, h: NODE_H });
+
+  // anchor on right/left/center of a node for edge routing
+  const anchor = (c, side) => {
+    const p = nodePos(c);
+    if (side === 'r') return { x: p.x + p.w, y: p.y + p.h / 2 };
+    if (side === 'l') return { x: p.x, y: p.y + p.h / 2 };
+    return { x: p.x + p.w / 2, y: p.y + p.h / 2 };
+  };
+
+  const renderSystem = (root) => {
+    const maxLayer = Math.max(...M.components.map(c => c.layer));
+    const maxOrder = Math.max(...M.components.map(c => c.order));
+    const W = layoutX(maxLayer) + NODE_W + 90;
+    const H = layoutY(maxOrder) + NODE_H + 50;
+
+    const wrap = el('div');
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">System Architecture</span><span class="badge-count">${M.components.length} components · ${M.edges.length} edges</span><span class="micro" style="margin-left:auto;">left→right by layer · click a node</span></div>`;
+
+    const svg = svgEl('svg', { class: 'graph', width: W, height: H, viewBox: `0 0 ${W} ${H}` });
+
+    // defs: arrowheads
+    const defs = svgEl('defs');
+    [['arrow', 'var(--hairline-bright)'], ['arrow-plan', 'var(--blue)'], ['arrow-feed', 'var(--amber)']].forEach(([id, col]) => {
+      const m = svgEl('marker', { id, viewBox: '0 0 8 8', refX: '6', refY: '4', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
+      m.appendChild(svgEl('path', { d: 'M0 0 L8 4 L0 8 z', fill: col }));
+      defs.appendChild(m);
+    });
+    svg.appendChild(defs);
+
+    // animate the live edge feeding a currently-building node (skip nodes whose
+    // only inbound edges are planned, so the flow lands on real wiring)
+    const buildingIds = M.components.filter(c => c.status === 'building').map(c => c.id);
+    const liveFeedTargets = new Set(
+      M.edges.filter(e => e.status !== 'planned' && buildingIds.includes(e.to)).map(e => e.to)
+    );
+
+    // ---- edges first (under nodes) ----
+    M.edges.forEach(e => {
+      const a = byId(e.from), b = byId(e.to);
+      if (!a || !b) return;
+      const pa = nodePos(a), pb = nodePos(b);
+      // route from the side facing the target
+      const fromRight = pb.x >= pa.x;
+      const s = anchor(a, fromRight ? 'r' : 'l');
+      const t = anchor(b, fromRight ? 'l' : 'r');
+      const dx = Math.max(40, Math.abs(t.x - s.x) * 0.45);
+      const c1x = s.x + (fromRight ? dx : -dx);
+      const c2x = t.x + (fromRight ? -dx : dx);
+      const d = `M ${s.x} ${s.y} C ${c1x} ${s.y}, ${c2x} ${t.y}, ${t.x} ${t.y}`;
+      const isFeed = liveFeedTargets.has(e.to) && e.status !== 'planned';
+      let cls = 'edge';
+      let marker = 'arrow';
+      if (e.status === 'planned') { cls += ' planned'; marker = 'arrow-plan'; }
+      else if (e.mode === 'compile-time') { cls += ' compile'; }
+      if (isFeed) { cls += ' feed edge-flow'; marker = 'arrow-feed'; }
+      const path = svgEl('path', { class: cls, d, 'marker-end': `url(#${marker})` });
+      const title = svgEl('title'); title.textContent = `${e.from} → ${e.to}\n${e.mode}\n${e.evidence}`;
+      path.appendChild(title);
+      svg.appendChild(path);
+    });
+
+    // ---- nodes ----
+    M.components.forEach(c => {
+      const p = nodePos(c);
+      const sc = statusColor(c);
+      const acc = kindAccent[c.kind] || 'var(--muted)';
+      const g = svgEl('g', { class: `gnode ${c.status} ${c.kind === 'external' ? 'external' : ''}` + (c.id === selectedId ? ' sel' : ''), transform: `translate(${p.x},${p.y})` });
+      g.dataset.id = c.id;
+
+      const box = svgEl('rect', { class: 'gnode-box', x: 0, y: 0, width: p.w, height: p.h, rx: 8, style: `stroke:${sc}` });
+      g.appendChild(box);
+      // left accent bar (kind/phase)
+      g.appendChild(svgEl('rect', { class: 'accent-bar', x: 5, y: 8, width: 3.5, height: p.h - 16, rx: 2, fill: acc }));
+      // name
+      const name = svgEl('text', { class: 'nname', x: 16, y: 24 }); name.textContent = c.name;
+      g.appendChild(name);
+      // id / livesAt
+      const idt = svgEl('text', { class: 'nid', x: 16, y: 40 });
+      idt.textContent = (c.livesAt.length > 26 ? c.livesAt.slice(0, 25) + '…' : c.livesAt);
+      g.appendChild(idt);
+      // kind label
+      const role = svgEl('text', { class: 'nrole', x: 16, y: 56 }); role.textContent = c.kind.toUpperCase() + ' · L' + c.layer;
+      g.appendChild(role);
+      // status dot (top-right)
+      g.appendChild(svgEl('circle', { cx: p.w - 14, cy: 16, r: 4.5, fill: sc }));
+      // API tag
+      if (c.apiBearing) {
+        g.appendChild(svgEl('rect', { class: 'api-pill', x: p.w - 42, y: p.h - 22, width: 30, height: 14, rx: 3 }));
+        const apit = svgEl('text', { class: 'api-pill-txt', x: p.w - 38, y: p.h - 11 }); apit.textContent = 'API';
+        g.appendChild(apit);
+      }
+      g.onclick = () => selectComponent(c.id);
+      svg.appendChild(g);
+    });
+
+    wrap.appendChild(svg);
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  TAB: FEATURE
+  // ============================================================
+  const renderFeatures = (root) => {
+    const wrap = el('div');
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">Features</span><span class="badge-count">${M.features.length} mapped</span><span class="micro" style="margin-left:auto;">click → inspect its component</span></div>`;
+    const grid = el('div', 'col gap12');
+    M.features.forEach(f => {
+      const sc = statusVar[f.status.toLowerCase()] || statusVar[f.status.toLowerCase().replace(' ', '-')] || 'var(--muted)';
+      const scKey = f.status.toLowerCase();
+      const sColor = statusVar[scKey] || 'var(--muted)';
+      const sliceChips = f.slices.map(s => `<span class="slice-chip" style="border-color:color-mix(in srgb,${statusVar[s.status] || 'var(--faint)'} 40%,transparent)"><span class="dot" style="background:${statusVar[s.status] || 'var(--faint)'}"></span>${s.id}<span class="tag ${s.mark.toLowerCase()}">${s.mark}</span></span>`).join(' ');
+      const row = el('div', 'frow' + (f.mapsToComponent === selectedId ? ' sel' : ''));
+      row.innerHTML = `
+        <div class="spread" style="margin-bottom:9px;">
+          <div class="row gap8">
+            <span class="dot" style="background:${sColor}"></span>
+            <span style="font-weight:600;font-size:13.5px;">${f.slug}</span>
+            <span class="chip" style="color:${sColor};border-color:color-mix(in srgb,${sColor} 40%,transparent)">${f.status}</span>
+          </div>
+          <div class="row gap8">
+            <span class="chip">${f.tier}</span>
+            <span class="chip" style="color:var(--amber)">${f.priority}</span>
+            <span class="chip mono" style="color:var(--violet)">→ ${f.mapsToComponent}</span>
+          </div>
+        </div>
+        <div class="row wrap gap8">${sliceChips}</div>`;
+      row.onclick = () => { selectComponent(f.mapsToComponent); renderCanvas(); };
+      grid.appendChild(row);
+    });
+    wrap.appendChild(grid);
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  TAB: AGENTS
+  // ============================================================
+  const fmtTok = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : '' + n;
+  const renderAgents = (root) => {
+    const wrap = el('div');
+    const live = M.agents.filter(a => a.status === 'running').length;
+    const attn = M.agents.filter(a => a.status === 'attention').length;
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">Agent Sessions</span><span class="badge-count">${live} running · ${attn} need attention</span></div>`;
+    const grid = el('div', 'col gap12');
+    M.agents.forEach(a => {
+      const sc = statusVar[a.status === 'exited' ? 'done' : a.status === 'attention' ? 'building' : 'in-progress'] || 'var(--muted)';
+      const statusTxt = a.status === 'attention' ? 'NEEDS ATTENTION' : a.status.toUpperCase();
+      const card = el('div', 'agcard ' + (a.status === 'attention' ? 'attn' : a.status === 'running' ? 'running' : ''));
+      card.innerHTML = `
+        <div class="spread" style="margin-bottom:11px;">
+          <div class="row gap8">
+            <span class="dot ${a.status === 'running' ? 'live-pulse' : ''}" style="background:${sc};--accent:${sc}"></span>
+            <span class="mono" style="font-weight:600;font-size:13px;">${a.skill}</span>
+            <span class="mono dim" style="font-size:12px;">${a.args}</span>
+          </div>
+          <span class="chip mono" style="color:${sc};border-color:color-mix(in srgb,${sc} 40%,transparent)">${statusTxt}</span>
+        </div>
+        <div class="row gap24" style="margin-bottom:11px;">
+          <div class="metric"><span class="micro">model</span><span class="mv">${a.model}</span></div>
+          <div class="metric"><span class="micro">tokens io</span><span class="mv">${fmtTok(a.tokensIn)} / ${fmtTok(a.tokensOut)}</span></div>
+          <div class="metric"><span class="micro">cost</span><span class="mv" style="color:var(--green)">$${a.costUsd.toFixed(2)}</span></div>
+          <div class="metric"><span class="micro">started</span><span class="mv">${a.startedAt}</span></div>
+          <div class="metric"><span class="micro">component</span><span class="mv mono" style="font-size:11px;color:var(--violet);cursor:pointer" data-comp="${a.component}">${a.component}</span></div>
+        </div>
+        ${a.verdict ? `<div class="row gap8"><span class="tag" style="color:var(--green);border-color:color-mix(in srgb,var(--green) 45%,transparent)">VERDICT</span><span class="mono" style="font-size:11px;color:var(--green)">${a.verdict}</span></div>` : ''}
+        ${a.subagents.length ? a.subagents.map(s => `<div class="row gap8" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--hairline)"><span class="faint mono" style="font-size:11px;">↳ subagent</span><span class="dim" style="font-size:11.5px;">${s.task}</span><span class="mono dim" style="font-size:11px;margin-left:auto;">${s.model} · $${s.cost.toFixed(2)}</span></div>`).join('') : ''}
+        ${a.status === 'attention' ? `<div class="spread" style="margin-top:11px;padding-top:11px;border-top:1px solid color-mix(in srgb,var(--amber) 30%,transparent)"><div class="row gap8"><span style="color:var(--amber);font-size:16px;line-height:1">⚠</span><span style="font-size:12.5px;color:var(--amber)">${a.attentionMsg}</span></div><button class="btn primary" style="background:var(--amber);border-color:var(--amber)">Resume</button></div>` : ''}`;
+      card.querySelectorAll('[data-comp]').forEach(c => c.onclick = () => selectComponent(c.getAttribute('data-comp')));
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  TAB: DATA FLOW
+  // ============================================================
+  let selectedFlow = M.dataflows[0].id;
+  const renderDataFlow = (root) => {
+    const wrap = el('div');
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">Data Flows</span><span class="badge-count">${M.dataflows.length} named paths</span><span class="micro" style="margin-left:auto;">select a flow to trace it</span></div>`;
+    const list = el('div', 'col gap8');
+    list.style.marginBottom = '20px';
+    M.dataflows.forEach(f => {
+      const r = el('div', 'flowrow' + (f.id === selectedFlow ? ' sel' : ''));
+      r.innerHTML = `<div class="spread"><div class="row gap8"><span class="dot" style="background:${f.color}"></span><span style="font-weight:600;">${f.label}</span><span class="mono dim" style="font-size:11px;">${f.path.length} hops</span></div><span class="mono dim" style="font-size:11px;">${f.payload}</span></div>`;
+      r.onclick = () => { selectedFlow = f.id; renderCanvas(); };
+      list.appendChild(r);
+    });
+    wrap.appendChild(list);
+
+    // selected flow → animated horizontal chain
+    const f = M.dataflows.find(x => x.id === selectedFlow);
+    const trace = el('div', 'panel pad20');
+    trace.style.cssText += `border-color:color-mix(in srgb,${f.color} 35%,transparent)`;
+    const chain = el('div', 'flowchain');
+    f.path.forEach((cid, i) => {
+      const c = byId(cid);
+      const chip = el('span', 'fchip');
+      chip.style.cssText = `cursor:pointer;border-color:color-mix(in srgb,${f.color} 45%,transparent)`;
+      chip.textContent = c ? c.name : cid;
+      chip.onclick = () => selectComponent(cid);
+      chain.appendChild(chip);
+      if (i < f.path.length - 1) {
+        const ar = svgEl('svg', { width: 34, height: 16, viewBox: '0 0 34 16' });
+        ar.innerHTML = `<line x1="2" y1="8" x2="26" y2="8" stroke="${f.color}" stroke-width="1.4" stroke-dasharray="4 4" class="edge-flow"/><path d="M26 4 L32 8 L26 12 z" fill="${f.color}"/>`;
+        chain.appendChild(ar);
+      }
+    });
+    trace.innerHTML = `<div class="micro" style="margin-bottom:12px;color:${f.color}">${f.label} — payload trace</div>`;
+    trace.appendChild(chain);
+    trace.insertAdjacentHTML('beforeend', `<div class="codeline mono" style="margin-top:14px;color:var(--text);font-size:11.5px;"><span class="faint">payload › </span>${f.payload}</div>`);
+    wrap.appendChild(trace);
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  TAB: DEPENDENCIES  (matrix + coupling bars)
+  // ============================================================
+  const renderDependencies = (root) => {
+    const comps = M.components;
+    const edgeOf = (from, to) => M.edges.find(e => e.from === from && e.to === to);
+    const inDeg = {}, outDeg = {};
+    comps.forEach(c => { inDeg[c.id] = 0; outDeg[c.id] = 0; });
+    M.edges.forEach(e => { if (outDeg[e.from] != null) outDeg[e.from]++; if (inDeg[e.to] != null) inDeg[e.to]++; });
+    const maxDeg = Math.max(...comps.map(c => Math.max(inDeg[c.id], outDeg[c.id])), 1);
+
+    const wrap = el('div');
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">Dependency Matrix</span><span class="badge-count">row → col = depends on</span></div>`;
+
+    // matrix
+    const tbl = el('table', 'matrix');
+    let thead = '<tr><th></th>';
+    comps.forEach(c => { thead += `<th class="colh"><span>${c.name}</span></th>`; });
+    thead += '</tr>';
+    let body = '';
+    comps.forEach(rc => {
+      body += `<tr><th class="rowh" data-comp="${rc.id}" style="cursor:pointer">${rc.name}</th>`;
+      comps.forEach(cc => {
+        if (rc.id === cc.id) { body += '<td class="cell diag"></td>'; return; }
+        const e = edgeOf(rc.id, cc.id);
+        if (e) {
+          const col = statusVar[e.status] || 'var(--hairline-bright)';
+          body += `<td class="cell" title="${rc.name} → ${cc.name}\n${e.mode}" style="background:color-mix(in srgb,${col} 32%,transparent)"></td>`;
+        } else {
+          body += '<td class="cell"></td>';
+        }
+      });
+      body += '</tr>';
+    });
+    tbl.innerHTML = thead + body;
+    const tblWrap = el('div'); tblWrap.style.cssText = 'overflow:auto;margin-bottom:24px;';
+    tblWrap.appendChild(tbl);
+    wrap.appendChild(tblWrap);
+
+    // coupling bars
+    wrap.insertAdjacentHTML('beforeend', '<div class="micro" style="margin-bottom:12px;">Coupling — in/out degree (bottleneck surface)</div>');
+    const cg = el('div'); cg.style.cssText = 'display:grid;grid-template-columns:170px 1fr auto;gap:8px 14px;align-items:center;';
+    comps.slice().sort((a, b) => (inDeg[b.id] + outDeg[b.id]) - (inDeg[a.id] + outDeg[a.id])).forEach(c => {
+      const total = inDeg[c.id] + outDeg[c.id];
+      cg.insertAdjacentHTML('beforeend', `
+        <div class="mono nowrap" style="font-size:11.5px;color:var(--text);cursor:pointer" data-comp="${c.id}">${c.name}</div>
+        <div class="coupling-bar"><i style="width:${(outDeg[c.id] / maxDeg) * 50}%;background:var(--amber);float:left"></i><i style="width:${(inDeg[c.id] / maxDeg) * 50}%;background:var(--blue);float:right"></i></div>
+        <div class="mono dim" style="font-size:11px;">in ${inDeg[c.id]} · out ${outDeg[c.id]}</div>`);
+    });
+    wrap.appendChild(cg);
+    wrap.insertAdjacentHTML('beforeend', '<div class="row gap16 micro" style="margin-top:12px;"><span class="li" style="display:flex;align-items:center;gap:5px"><span class="dot bg-in-progress"></span>out-degree</span><span class="li" style="display:flex;align-items:center;gap:5px"><span class="dot bg-planned"></span>in-degree</span></div>');
+
+    wrap.querySelectorAll('[data-comp]').forEach(n => n.onclick = () => selectComponent(n.getAttribute('data-comp')));
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  TAB: SDLC  (phase lanes)
+  // ============================================================
+  const PHASES = [
+    { id: 'foundation', title: 'Foundation' },
+    { id: 'per-feature', title: 'Per-Feature' },
+    { id: 'execution', title: 'Execution' },
+    { id: 'qa-release', title: 'QA · Release' },
+  ];
+  const renderSDLC = (root) => {
+    const firstNext = M.stages.find(s => s.status !== 'done');
+    const wrap = el('div');
+    const doneN = M.stages.filter(s => s.status === 'done').length;
+    wrap.innerHTML = `<div class="seg-title"><span class="h3">SDLC Pipeline</span><span class="badge-count">${doneN}/${M.stages.length} stages done</span><span class="micro" style="margin-left:auto;">NEXT = ${firstNext ? firstNext.title : '—'}</span></div>`;
+    const lanes = el('div', 'col gap16');
+    PHASES.forEach(ph => {
+      const stages = M.stages.filter(s => s.phase === ph.id);
+      if (!stages.length) return;
+      const lane = el('div', `lane ph-${ph.id}`);
+      const railHtml = stages.map(s => {
+        const sc = statusVar[s.status] || 'var(--faint)';
+        const isNext = firstNext && s.id === firstNext.id;
+        return `<div class="stage-pill ${isNext ? 'next' : ''}">
+            <span class="dot ${s.status === 'in-progress' ? 'live-pulse' : ''}" style="background:${sc};--accent:${sc}"></span>
+            <span>${s.title}</span>
+            ${isNext ? '<span class="tag" style="color:var(--amber);border-color:color-mix(in srgb,var(--amber) 50%,transparent)">NEXT</span>' : ''}
+          </div>`;
+      }).join('<span style="color:var(--faint)">›</span>');
+      lane.innerHTML = `
+        <div class="lane-accent"></div>
+        <div class="lane-label"><div class="micro">${ph.title}</div><div class="faint mono" style="font-size:10px;">${stages.filter(s => s.status === 'done').length}/${stages.length}</div></div>
+        <div class="lane-rail">${railHtml}</div>`;
+      lanes.appendChild(lane);
+    });
+    wrap.appendChild(lanes);
+    root.appendChild(wrap);
+  };
+
+  // ============================================================
+  //  CANVAS DISPATCH
+  // ============================================================
+  const canvas = document.getElementById('canvas');
+  const renderCanvas = () => {
+    canvas.innerHTML = '';
+    switch (activeTab) {
+      case 'System': renderSystem(canvas); break;
+      case 'Feature': renderFeatures(canvas); break;
+      case 'Agents': renderAgents(canvas); break;
+      case 'Data Flow': renderDataFlow(canvas); break;
+      case 'Dependencies': renderDependencies(canvas); break;
+      case 'SDLC': renderSDLC(canvas); break;
+    }
+  };
+
+  // ============================================================
+  //  CONDUCTOR STRIP
+  // ============================================================
+  const renderConductor = () => {
+    const o = M.orchestrator;
+    const rec = o.recommendation;
+    const cond = document.getElementById('conductor');
+    cond.innerHTML = `
+      <div class="avatar">◆</div>
+      <div class="col" style="gap:3px;min-width:0;">
+        <div class="micro" style="color:var(--violet);letter-spacing:.12em;">You are here · ${o.youAreHere.phase}</div>
+        <div class="row gap8 nowrap">
+          <span class="mono" style="font-size:12px;color:var(--text);">/${o.youAreHere.stage} ${o.youAreHere.feature}</span>
+          <span class="mono dim" style="font-size:11px;">· ${o.youAreHere.slice}</span>
+        </div>
+      </div>
+      <div class="col" style="gap:4px;flex:1;min-width:0;">
+        <div class="row gap8 nowrap">
+          <span class="micro">Recommends</span>
+          <span class="rec-chip">/${rec.skill} ${rec.args}</span>
+        </div>
+        <div class="dim nowrap" style="font-size:11px;">${rec.rationale}</div>
+      </div>
+      <div class="col" style="gap:4px;align-items:flex-end;flex-shrink:0;">
+        <div class="micro">confidence</div>
+        <div class="row gap8"><div class="conf-meter"><i style="width:${o.confidence * 100}%"></i></div><span class="mono" style="font-size:11px;color:var(--green)">${o.confidence.toFixed(2)}</span></div>
+      </div>
+      <div class="row gap8" style="flex-shrink:0;">
+        <button class="toggle ${o.autopilot.enabled ? 'on' : ''}" id="apToggle"><span class="pip"></span>Autopilot ▸ ${o.autopilot.mode}</button>
+        <button class="btn primary" id="runBtn">Run with confirm</button>
+      </div>`;
+
+    cond.querySelector('#apToggle').onclick = (e) => {
+      const t = e.currentTarget;
+      const on = t.classList.toggle('on');
+      t.lastChild.textContent = ` Autopilot ▸ ${on ? 'gated' : 'suggest'}`;
+    };
+    cond.querySelector('#runBtn').onclick = (e) => {
+      const b = e.currentTarget;
+      b.textContent = 'Confirm: /' + rec.skill + ' ' + rec.args + ' ?';
+      b.style.background = 'var(--amber)'; b.style.borderColor = 'var(--amber)';
+      setTimeout(() => { b.textContent = 'Run with confirm'; b.style.background = ''; b.style.borderColor = ''; }, 1800);
+    };
+  };
+
+  // ---- boot ----
+  renderTabs();
+  renderCanvas();
+  renderInspector();
+  renderConductor();
+})();
+</script>
+</body>
+</html>
