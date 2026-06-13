@@ -35,6 +35,9 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 7 | /architect | READY-FOR-PRD (→ /feature-census) | I-6, I-7 | both fixed (skill edits) |
 | 8 | /feature-census | READY-FOR-PRD | — | — (two-population model worked; P0 sourced from the run's own data-management finding) |
 | 9 | /test-strategy | TEST-STRATEGY-LOCKED | I-8 | fixed (footer order matched to canonical) |
+| 10 | /pipeline | PIPELINE-LOCKED | — | — (recovery honest about zero CI; gaps left open, never auto-waived) |
+
+**Foundation complete** — 10 stages, 8 issues found, 7 fixed, 1 by-design.
 
 ## Issues & fixes (detail)
 

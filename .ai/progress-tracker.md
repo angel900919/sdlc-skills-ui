@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — pipeline landed (sdlc-command-center)
+- Artifact: `.ai/pipeline.md` — verdict: PIPELINE-LOCKED. FOUNDATION COMPLETE.
+- Key decisions: no CI exists; 5 gates recorded (2 agent-time enforced, 3 manual); gaps G1-G3 left open for the owner (route or waive) — autonomous run never waives.
+- Next: /prd observability-data-pruning — the per-feature loop begins.
+
 ## 2026-06-13 — test-strategy landed (sdlc-command-center)
 - Artifact: `.ai/test-strategy.md` — verdict: TEST-STRATEGY-LOCKED.
 - Key decisions: recovered vitest workspace + make<Entity> builder idiom; (new) tmp-dir SQLite rule, builder growth rule, Playwright journey suite named-not-materialized (dep_adds flags @playwright/test for anchor).
