@@ -33,6 +33,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 5 | /data-management | DATA-MANAGEMENT-LOCKED | I-5 | fixed (greenfield-only architecture gate) |
 | 6 | /comprehend | READY-FOR-ARCHITECT | — | — (triage + mystery-zone walk worked as designed; 3/3 diagrams kroki-validated) |
 | 7 | /architect | READY-FOR-PRD (→ /feature-census) | I-6, I-7 | both fixed (skill edits) |
+| 8 | /feature-census | READY-FOR-PRD | — | — (two-population model worked; P0 sourced from the run's own data-management finding) |
 
 ## Issues & fixes (detail)
 

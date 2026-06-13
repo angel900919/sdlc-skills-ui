@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — feature-census landed (sdlc-command-center)
+- Artifact: `.ai/features.md` — verdict: READY-FOR-PRD.
+- Key decisions: 16 shipped features inventoried (component+behavior traced); 1 planned P0 = observability-data-pruning (retention gap surfaced by this run's data-management stage).
+- Next: /test-strategy (brownfield recovery of vitest conventions), then /pipeline, then /prd observability-data-pruning.
+
 ## 2026-06-13 — architect landed (sdlc-command-center)
 - Artifact: `.ai/architecture/` bundle — verdict: READY-FOR-PRD (features.md absent → /feature-census first).
 - Key decisions: as-is modular monolith + event bus; 7 verb-noun components, 10 edges; ADRs 0004-0007 (continuing docs/adr numbering); api-governance detected ({error} envelope, limit+before pagination, no auth/versioning).
