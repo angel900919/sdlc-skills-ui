@@ -58,8 +58,14 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 23 | /build → SLICE-3 | READY-FOR-MTDD | — | bd ready picked scc-0bb |
 | 24 | /mtdd-* SLICE-3 (confirm UI) | merged 6ea9e24, bead closed | — | pure formatters TDD'd in shared; UI smoke-deferred |
 | 25 | /build | READY-FOR-QA | — | all 3 slices done |
+| 26 | /qa | READY-FOR-SHIP | I-11 | fixed (tagged NFR ids in tests so check e traces) |
+| 27 | /ship | SHIPPED | — | local-first: shipped = merged + runs-from-source; no deploy/tag; flip on standing auth |
 
-**Per-feature loop complete** — feature built across 3 slices (16 code/test commits, 168 tests). Verifier delegation degraded all three reviews/verifies (I-9, same session).
+**CHAIN COMPLETE END-TO-END.** Brownfield on-ramp (onboard→…→pipeline) + one full
+per-feature loop (prd→…→ship) on a real P0 feature. 27 stages, 11 issues found
+(I-1…I-11), 9 fixed in-session, 2 environmental/by-design and noted. ~45 commits;
+168 tests (11 new); 8 mermaid diagrams kroki-validated; 3 beads minted+closed.
+`observability-data-pruning` shipped; success metric due ~2026-06-27 (`/measure`).
 
 ## Issues & fixes (detail)
 
@@ -158,12 +164,43 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
   setup so the Dolt DB is the single source of truth and the export never
   dirties the tree. Logged for the maintainer; BEADS-SETUP.md already covers
   the safe config.
+- **I-11 (fixed)** — `/qa` check e greps **test source** for each NFR's id
+  token (`grep tests for NFR-2`). The feature's tests covered N1/N3/N4
+  behaviourally but didn't carry the id tokens, so a mechanical trace found
+  only N2 — a strict reading would FAIL the gate over a tagging gap while real
+  coverage existed. Fixed the substance: tagged the covering assertions in
+  `storagePrune.test.ts` with `NFR N1 / N3 / N4` comments (comment-only, no
+  assertion changed) so the trace is honest. **Process lesson:** nothing
+  upstream forces NFR-id tokens into test code — `/plan` acceptance and
+  `/to-issues` carry `satisfies_nfrs`, but the *test* that proves an NFR isn't
+  required to name it, so `/qa`'s grep can't follow the thread. Candidate
+  hardening (not made — bigger than this run): have `mtdd-implement`'s red
+  phase tag the NFR id in the test it writes for an NFR-bearing slice.
 - **Observation (no fix)** — `/data-management`'s frontmatter enums
   (`migration_tool`, `naming`, `ordering: timestamps | sequential-ids`) assume
   file-based migration tooling; a boot-DDL app (inline `CREATE TABLE` +
   `ensureColumn`) fits none of them. Used `n-a-*` values following the
   schema's own `backup_last_tested: n-a` precedent. The schema could bless
   `none`/`n-a` for these fields explicitly.
+
+## Verdict on the dogfood (what it proved)
+
+**The chain is sound; its brownfield on-ramp had never been walked end-to-end.**
+Of 11 findings, the load-bearing cluster (I-4 → I-8) was a single class:
+**greenfield-first authoring left brownfield gates and verdict-routing that no
+order-following brownfield user could pass** — every one would have hard-blocked
+a real adopter at `/data-management`, `/architect`, or `/test-strategy`. Documented
+order ≠ verified order; the dogfood is what turned the prose contract into a walked
+one. I-3 (Explore agent can't return a cited report) and I-9 (verifier seeded
+mid-session isn't registered) were structural: skills depending on subagent
+behaviour that the harness doesn't actually provide the way the skill assumed.
+Everything downstream of the on-ramp (the per-feature loop, beads, mermaid,
+guard-paths, the TDD gate) worked close to as-designed. **Still unverified after
+this run:** the verifier's *same-context-bias* value — it degraded to in-context
+on all three reviews because it can't fire in its own seeding session (I-9); the
+true test is the next session. And every live UI/app smoke was human-deferred —
+the chain's automated evidence is real (168 tests, integration over a real DB),
+but no browser/curl was driven this run.
 
 ## Live verifications banked
 

@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — ship landed (observability-data-pruning) — SHIPPED
+- Artifact: `.ai/features.md` row flipped qa-approved → shipped. **Full per-feature loop complete end-to-end.**
+- Key decisions: local-first → shipped = merged to develop + runs from source; no remote deploy/tag (hosting local-only); no CHANGELOG; smoke (curl /api/health) human-deferred; flip recorded under standing autonomous authorization.
+- Next: success metric has a 2-week window — `/measure observability-data-pruning` due ~2026-06-27. Or pick the next feature.
+
 ## 2026-06-13 — qa landed (observability-data-pruning)
 - Artifact: `.ai/specs/observability-data-pruning/qa-report.md` — verdict: READY-FOR-SHIP.
 - Key decisions: 7 PASS / 0 FAIL / 2 WARN (security + a11y, mvp-accepted) / 1 SKIP; features.md flipped building → qa-approved; approval on the record (autonomous standing auth). I-11: tagged NFR ids in tests so check e traces.

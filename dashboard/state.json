@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T02:34:17.358678+00:00",
-  "generatedAtSha": "6ea9e24",
+  "generatedAt": "2026-06-13T02:42:21.109799+00:00",
+  "generatedAtSha": "acf6c76",
   "foundation": {
     "discover": {
       "present": false,
@@ -50,6 +50,16 @@
     "hasCodeowners": false
   },
   "progressTail": [
+    {
+      "date": "2026-06-13",
+      "skill": "ship",
+      "scope": "observability-data-pruning"
+    },
+    {
+      "date": "2026-06-13",
+      "skill": "qa",
+      "scope": "observability-data-pruning"
+    },
     {
       "date": "2026-06-13",
       "skill": "publish-issues",
@@ -127,6 +137,21 @@
     }
   ],
   "recentCommits": [
+    {
+      "sha": "acf6c76",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): /qa observability-data-pruning \u2014 READY-FOR-SHIP, building\u2192qa-approved"
+    },
+    {
+      "sha": "6cd3680",
+      "date": "2026-06-13",
+      "subject": "test(storage): tag N1/N3/N4 assertions with NFR ids for /qa traceability"
+    },
+    {
+      "sha": "18a8af4",
+      "date": "2026-06-13",
+      "subject": "chore(dogfood): per-feature loop complete (3 slices merged); log I-10 + READY-FOR-QA"
+    },
     {
       "sha": "6ea9e24",
       "date": "2026-06-13",
@@ -211,27 +236,20 @@
       "sha": "5fdac86",
       "date": "2026-06-13",
       "subject": "feat(storage): stats endpoint + dashboard Storage panel (S1, picker inert)"
-    },
-    {
-      "sha": "e45f8e2",
-      "date": "2026-06-13",
-      "subject": "green: seeded-store coverage \u2014 exact per-kind counts, oldest dates, N2 timing"
-    },
-    {
-      "sha": "ae99c6e",
-      "date": "2026-06-13",
-      "subject": "green: reportStorageStats \u2014 per-kind counts/oldest + page-math file size"
-    },
-    {
-      "sha": "dff812d",
-      "date": "2026-06-13",
-      "subject": "red: storage stats report zero rows, null oldest, real file size on an empty store"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T02:34:16.087178+00:00"
+      "mtime": "2026-06-13T02:42:19.923904+00:00"
+    },
+    {
+      "path": ".ai/features.md",
+      "mtime": "2026-06-13T02:42:02.722565+00:00"
+    },
+    {
+      "path": ".ai/specs/observability-data-pruning/qa-report.md",
+      "mtime": "2026-06-13T02:39:26.650294+00:00"
     },
     {
       "path": ".ai/specs/observability-data-pruning/issues/SLICE-3.md",
@@ -244,10 +262,6 @@
     {
       "path": ".ai/specs/observability-data-pruning/issues/SLICE-1.md",
       "mtime": "2026-06-13T01:41:44.608179+00:00"
-    },
-    {
-      "path": ".ai/features.md",
-      "mtime": "2026-06-13T01:39:10.069934+00:00"
     },
     {
       "path": ".ai/specs/observability-data-pruning/plan.md",
@@ -304,10 +318,6 @@
     {
       "path": ".ai/architecture/01-style.md",
       "mtime": "2026-06-13T01:14:25.867669+00:00"
-    },
-    {
-      "path": ".ai/architecture/index.md",
-      "mtime": "2026-06-13T01:14:02.799169+00:00"
     }
   ],
   "nextActions": []
