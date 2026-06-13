@@ -20,6 +20,21 @@
           }
         ],
         "matcher": "Edit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "sh .claude/skills/_build_share/gates/secrets-scan.sh commit",
+            "if": "Bash(git commit *)",
+            "type": "command"
+          },
+          {
+            "command": "sh .claude/skills/_build_share/gates/secrets-scan.sh push",
+            "if": "Bash(git push *)",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
       }
     ],
     "SessionStart": [
