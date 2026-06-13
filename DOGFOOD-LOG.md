@@ -31,6 +31,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 3 | /explore | READY-FOR-COMPREHEND | I-3, I-4 | both fixed (skill edits) |
 | 4 | /environments | ENVIRONMENTS-LOCKED | — | — (mermaid sub-invocation worked first try, kroki-validated) |
 | 5 | /data-management | DATA-MANAGEMENT-LOCKED | I-5 | fixed (greenfield-only architecture gate) |
+| 6 | /comprehend | READY-FOR-ARCHITECT | — | — (triage + mystery-zone walk worked as designed; 3/3 diagrams kroki-validated) |
 
 ## Issues & fixes (detail)
 

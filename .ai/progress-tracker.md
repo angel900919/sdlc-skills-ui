@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — comprehend landed (sdlc-command-center)
+- Artifact: `.ai/understanding/sdlc-command-center.md` + `.ai/context.md` — verdict: READY-FOR-ARCHITECT.
+- Key decisions: invariants triaged 24→12 (citations kept); 3 journeys; 6 mystery zones resolved or recorded as falsifiable assumptions; no new ADRs.
+- Next: /architect — paste recon §A+§B+§D; as-is HLD over the existing code.
+
 ## 2026-06-13 — data-management landed (sdlc-command-center)
 - Artifact: `.ai/data-management.md` — verdict: DATA-MANAGEMENT-LOCKED.
 - Key decisions: RECOVERY — no migration tool (boot DDL + ensureColumn), additive-only with argued-irreversible rollback (local re-derivable store), data transforms = idempotent boot backfills, seeds none.
