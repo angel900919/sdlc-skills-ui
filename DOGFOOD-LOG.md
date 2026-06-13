@@ -27,6 +27,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | # | Stage | Verdict | Issues hit | Fixes applied |
 |---|---|---|---|---|
 | 1 | /onboard | READY-FOR-ANCHOR | I-1, I-2 | I-2 fixed (schema comment) |
+| 2 | /anchor | READY-FOR-ARCHITECT | — (2 observations) | none needed |
 
 ## Issues & fixes (detail)
 
@@ -51,3 +52,16 @@ _(numbered as I-1, I-2, … — referenced from the table above)_
 ## Lessons learned
 
 _(running list — consolidated at end of run)_
+
+- **L-1 (/anchor)** — A monorepo with two frameworks (react-vite web + fastify
+  server) has no schema guidance for the single `framework:` field; a compound
+  value absorbed it fine, but the schema could say so explicitly. No fix applied
+  — worked naturally.
+- **L-2 (/anchor)** — The brownfield detection table maps *existing* `v*` tags →
+  semver but has no row for "no tags at all", so an autonomous run falls to the
+  mvp default (semver, tentative) when the repo state arguably implies `none`.
+  A human would have caught this in the interview — autonomous defaults are
+  measurably worse than a 5-second human answer here. Left as tentative + TODO,
+  which is exactly what the tentative mechanism is for. ✓ (mechanism validated)
+- **L-3 (/anchor)** — CLAUDE.md collision behavior (rule 10) fired correctly:
+  existing curated CLAUDE.md untouched, seed written to `CLAUDE.md.suggested`.
