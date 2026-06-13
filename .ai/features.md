@@ -41,12 +41,13 @@ created: 2026-06-13
 | pr-handoff | Human-gated PR creation from a session branch | — | shipped | mvp | worktree-isolation | ServeApiAndWs · behavior: ship-as-pr (gh unverified end-to-end — gh CLI absent) |
 | docs-and-skills-browser | Rendered project docs/artifacts + skills catalog | — | shipped | mvp | — | DeriveProjectState, RenderFlightDeck |
 | observability-data-pruning | Prune old observability data (audit events, usage samples, transcript copies) by age, from the UI | P0 | shipped | mvp | session-observability | PersistAndBroadcast, ServeApiAndWs, RenderFlightDeck · data-management retention follow-up |
-| oldest-record-age | Show each prunable kind's oldest record as a relative age ("63 days ago") beside the date in the Storage panel | P1 | building | mvp | observability-data-pruning | RenderFlightDeck · storage-panel legibility |
+| oldest-record-age | Show each prunable kind's oldest record as a relative age ("63 days ago") beside the date in the Storage panel | P1 | qa-approved | mvp | observability-data-pruning | RenderFlightDeck · storage-panel legibility |
 
 <!-- status flip planned → building by /to-issues 2026-06-13 (3 canonical slices written) -->
 <!-- status flip building → qa-approved by /qa 2026-06-13 (7 PASS / 0 FAIL / 2 WARN; approved on the record) -->
 <!-- status flip qa-approved → shipped by /ship 2026-06-13 (local-first: shipped = merged to develop + runs from source; no remote deploy/tag; smoke human-deferred; approved on the record) -->
 <!-- status flip planned → building by /to-issues 2026-06-13 (oldest-record-age: 1 canonical slice written) -->
+<!-- status flip building → qa-approved by /qa 2026-06-13 (oldest-record-age: 6 PASS / 0 FAIL / 2 WARN [security+a11y, mvp-accepted] / 3 SKIP; verifier delegation fired; approved as-is on the record) -->
 
 <!-- priority: P0 | P1 | P2 · applies to planned rows only -->
 <!-- status: planned | building | qa-approved | shipped | deprecated | removed | blocked | cut -->

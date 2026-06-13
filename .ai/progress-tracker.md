@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — qa landed (oldest-record-age) — VERIFIER DELEGATION FIRED
+- Artifact: `.ai/specs/oldest-record-age/qa-report.md` — verdict: READY-FOR-SHIP.
+- Key decisions: 6 PASS / 0 FAIL / 2 WARN (security negligible + a11y date-in-tooltip mouse-only, both mvp-accepted) / 3 SKIP (g/h/k prod-only). **/qa's verifier delegation fired for the first time** — read-only verifier subagent ran bd show + npm test (179/179) + typecheck + greps itself, graded a/b/c/e/f with file:line citations, returned evidence only (no chain verdict / no <promise>). Closes the last unproven delegating-skill path. features.md flipped building → qa-approved; approved as-is on the record.
+- Next: /ship oldest-record-age (local-first), or merge develop → main.
+
 ## 2026-06-13 — publish-issues landed (oldest-record-age, backend=beads)
 - Artifact: bead scc-sa4 (the slice work item; ref written back to SLICE-1.md backend_refs). Canonical SLICE-1 status: published.
 - Key decisions: one slice bead per the observability precedent (no feature-epic bead); chain labels applied (feature-oldest-record-age, ready-for-agent, lang:typescript, us-story-1..3, nfr-N1..3); pre-chain tracking bead scc-dni closed as superseded.
