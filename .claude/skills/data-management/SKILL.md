@@ -30,10 +30,14 @@ gates, tier dial, tracker, Talking to the human) and [`../_shared/ai-schema.md`]
 2. **Anchor required.** No `.ai/anchor.md` → `BLOCKED-ON-ANCHOR → /anchor`. It supplies
    `project_tier` (INHERIT — never recompute), `project_type`, `db`,
    `uplift_signals`, and `approved_dependencies`.
-3. **Architecture required + datastore gate.** No `.ai/architecture[.md|/]` →
-   `BLOCKED-ON-ARCHITECT → /architect`. If the architecture's components and
-   "where data lives" determination name **no datastore** (and anchor has no `db`)
-   → `SKIPPED-NO-DATASTORE`, write nothing — there is no data to manage.
+3. **Architecture required (greenfield) + datastore gate.** Greenfield: no
+   `.ai/architecture[.md|/]` → `BLOCKED-ON-ARCHITECT → /architect` — the
+   architecture decides where data lives. Brownfield RECOVERY: architecture is
+   optional (warn if absent) — the canonical order runs this skill between
+   `/explore` and `/comprehend`, and the datastore gate reads `anchor.db` +
+   recon §A4 instead (the policy is recovered from disk, not designed). Either
+   path: **no datastore** named anywhere (and anchor has no `db`) →
+   `SKIPPED-NO-DATASTORE`, write nothing — there is no data to manage.
 4. **Brownfield = RECOVERY mode: detect, cite, confirm — never invent.** Scan the
    repo per [references/brownfield-recovery.md](references/brownfield-recovery.md)
    for the existing migration tool, directory, naming pattern, seed scripts, and any
@@ -112,7 +116,7 @@ Frontmatter-first:
 | File | For | Missing → |
 | :-- | :-- | :-- |
 | `.ai/anchor.md` | `project_tier` (INHERIT), `project_type`, `db`, `uplift_signals`, `approved_dependencies` | **BLOCKED-ON-ANCHOR** |
-| `.ai/architecture[.md\|/]` | components + "where data lives" determination → the datastore gate (rule 3) | **BLOCKED-ON-ARCHITECT** |
+| `.ai/architecture[.md\|/]` | components + "where data lives" determination → the datastore gate (rule 3) | **BLOCKED-ON-ARCHITECT** (greenfield) · warn (brownfield — gate reads anchor.db + recon §A4) |
 | `.ai/context.md` | entities → the retention-table rows (production) | warn |
 | `.ai/recon.md` | brownfield: repo shape + decisions seed the RECOVERY scan | warn (brownfield) |
 | `.ai/test-strategy.md` | `## Seed data` → the pointer (rule 8) | warn |
