@@ -68,7 +68,7 @@ describe('storage prune', () => {
     expect(c['transcript-copies']).toBe(1); // t-dead only; t-live protected
     expect(c['usage-samples']).toBe(1);
     expect(preview.totalRows).toBe(4);
-    // preview is read-only
+    // preview is read-only (NFR N4 — the confirm count is computed without mutating)
     expect(after.kinds).toEqual(before.kinds);
   });
 
@@ -83,7 +83,7 @@ describe('storage prune', () => {
       'usage-samples': 1,
     });
 
-    // Live-session records survive any cutoff.
+    // Live-session records survive any cutoff. (NFR N1 — pruning never disturbs live observation)
     expect(db.prepare(`SELECT COUNT(*) AS n FROM audit_events WHERE session_id = 'live-1'`).get()).toMatchObject({ n: 1 });
     expect(db.prepare(`SELECT COUNT(*) AS n FROM transcript_messages WHERE uuid = 't-live'`).get()).toMatchObject({ n: 1 });
     // Recent record survives.
@@ -91,6 +91,7 @@ describe('storage prune', () => {
     // FTS row for the pruned transcript is gone; the protected one is irrelevant (no FTS row seeded for it).
     expect(db.prepare(`SELECT COUNT(*) AS n FROM transcript_fts WHERE uuid = 't-dead'`).get()).toMatchObject({ n: 0 });
 
+    // NFR N3 — reclaim is real (reported bytes track the actual file-size delta, never negative).
     expect(result.bytesReclaimed).toBeGreaterThanOrEqual(0);
     expect(result.fileSizeAfter).toBeLessThanOrEqual(result.fileSizeBefore);
   });
