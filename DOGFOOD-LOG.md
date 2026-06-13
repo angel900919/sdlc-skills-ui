@@ -29,6 +29,7 @@ orientation block with real artifacts, mtdd-init seeding in the source repo.
 | 1 | /onboard | READY-FOR-ANCHOR | I-1, I-2 | I-2 fixed (schema comment) |
 | 2 | /anchor | READY-FOR-ARCHITECT | — (2 observations) | none needed |
 | 3 | /explore | READY-FOR-COMPREHEND | I-3, I-4 | both fixed (skill edits) |
+| 4 | /environments | ENVIRONMENTS-LOCKED | — | — (mermaid sub-invocation worked first try, kroki-validated) |
 
 ## Issues & fixes (detail)
 

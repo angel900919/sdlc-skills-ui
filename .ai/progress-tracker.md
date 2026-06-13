@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-13 — environments landed (sdlc-command-center)
+- Artifact: `.ai/environments.md` — verdict: ENVIRONMENTS-LOCKED.
+- Key decisions: RECOVERY mode — 1 env (local, two run modes), 11 vars all optional-with-defaults, 0 secrets, no flags/IaC/CI; mirror + validated diagram written.
+- Next: /data-management (RECOVERY — sqlite at apps/server/src/db.ts), then /comprehend.
+
 ## 2026-06-13 — explore landed (sdlc-command-center)
 - Artifact: `.ai/recon.md` — verdict: READY-FOR-COMPREHEND.
 - Key decisions: 161 citations, 7 components, 24 glossary candidates; 3 spot-checks verified; sub-agent mechanism repaired mid-run (draft-file contract — see DOGFOOD-LOG I-3).
