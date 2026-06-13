@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-13T08:13:48.760855+00:00",
-  "generatedAtSha": "a44a010",
+  "generatedAt": "2026-06-13T08:30:30.762323+00:00",
+  "generatedAtSha": "b0a8d7d",
   "foundation": {
     "discover": {
       "present": false,
@@ -50,6 +50,11 @@
     "hasCodeowners": false
   },
   "progressTail": [
+    {
+      "date": "2026-06-13",
+      "skill": "qa",
+      "scope": "oldest-record-age"
+    },
     {
       "date": "2026-06-13",
       "skill": "publish-issues",
@@ -144,14 +149,44 @@
       "date": "2026-06-13",
       "skill": "environments",
       "scope": "sdlc-command-center"
-    },
-    {
-      "date": "2026-06-13",
-      "skill": "explore",
-      "scope": "sdlc-command-center"
     }
   ],
   "recentCommits": [
+    {
+      "sha": "b0a8d7d",
+      "date": "2026-06-13",
+      "subject": "test(oldest-record-age): tag N2 in the rounding spec for /qa check-e traceability (I-11)"
+    },
+    {
+      "sha": "46a906a",
+      "date": "2026-06-13",
+      "subject": "merge: oldest-record-age slice-1 (formatRelativeAge + StoragePanel age render)"
+    },
+    {
+      "sha": "f5bd9f5",
+      "date": "2026-06-13",
+      "subject": "chore(beads): export churn \u2014 scc-sa4 claim + implement note"
+    },
+    {
+      "sha": "e824c02",
+      "date": "2026-06-13",
+      "subject": "green: render oldest record as relative age in StoragePanel"
+    },
+    {
+      "sha": "80eaf76",
+      "date": "2026-06-13",
+      "subject": "green: implement formatRelativeAge"
+    },
+    {
+      "sha": "2ef634a",
+      "date": "2026-06-13",
+      "subject": "red: formatRelativeAge \u2014 whole-day relative age, clamped, NaN-safe"
+    },
+    {
+      "sha": "814e92d",
+      "date": "2026-06-13",
+      "subject": "docs(oldest-record-age): prd\u2192design\u2192plan\u2192to-issues\u2192publish (specs)"
+    },
     {
       "sha": "a44a010",
       "date": "2026-06-13",
@@ -216,67 +251,36 @@
       "sha": "e96334f",
       "date": "2026-06-13",
       "subject": "red: prune summary formatters \u2014 bytes scaling, result line, confirm-warning copy"
-    },
-    {
-      "sha": "81d3280",
-      "date": "2026-06-13",
-      "subject": "chore(beads): claim scc-0bb"
-    },
-    {
-      "sha": "9545f48",
-      "date": "2026-06-13",
-      "subject": "chore: beads telemetry + dashboard snapshot churn"
-    },
-    {
-      "sha": "66544dc",
-      "date": "2026-06-13",
-      "subject": "chore(beads): sync issues.jsonl after scc-b51 close + tracker breadcrumb"
-    },
-    {
-      "sha": "e644a28",
-      "date": "2026-06-13",
-      "subject": "chore(beads): sync issues.jsonl after scc-b51 verify notes"
-    },
-    {
-      "sha": "a2cfbb0",
-      "date": "2026-06-13",
-      "subject": "chore(beads): sync issues.jsonl after scc-b51 review notes"
-    },
-    {
-      "sha": "288a292",
-      "date": "2026-06-13",
-      "subject": "green: prune engine \u2014 transactional delete, live-session protection, chunked reclaim, audit event + endpoints"
-    },
-    {
-      "sha": "14e6643",
-      "date": "2026-06-13",
-      "subject": "red: prune engine \u2014 old non-live deletes, live-session protection, FTS cascade, audit event, idempotency, cutoff validation"
     }
   ],
   "recentlyModified": [
     {
       "path": ".ai/progress-tracker.md",
-      "mtime": "2026-06-13T08:13:47.505033+00:00"
+      "mtime": "2026-06-13T08:30:29.490727+00:00"
     },
     {
-      "path": ".ai/specs/oldest-record-age/issues/SLICE-1.md",
-      "mtime": "2026-06-13T08:13:07.589076+00:00"
+      "path": ".ai/specs/oldest-record-age/qa-report.md",
+      "mtime": "2026-06-13T08:30:14.759943+00:00"
     },
     {
       "path": ".ai/features.md",
-      "mtime": "2026-06-13T08:11:08.046010+00:00"
-    },
-    {
-      "path": ".ai/specs/oldest-record-age/plan.md",
-      "mtime": "2026-06-13T08:09:32.746695+00:00"
+      "mtime": "2026-06-13T08:29:50.176621+00:00"
     },
     {
       "path": ".ai/specs/oldest-record-age/prd.md",
-      "mtime": "2026-06-13T08:07:11.521642+00:00"
+      "mtime": "2026-06-13T08:21:23.906722+00:00"
+    },
+    {
+      "path": ".ai/specs/oldest-record-age/plan.md",
+      "mtime": "2026-06-13T08:21:23.906391+00:00"
+    },
+    {
+      "path": ".ai/specs/oldest-record-age/issues/SLICE-1.md",
+      "mtime": "2026-06-13T08:21:23.906097+00:00"
     },
     {
       "path": ".ai/specs/oldest-record-age/design.md",
-      "mtime": "2026-06-13T08:06:53.498272+00:00"
+      "mtime": "2026-06-13T08:21:23.905628+00:00"
     },
     {
       "path": ".ai/understanding/sdlc-command-center.md",
@@ -329,10 +333,6 @@
     {
       "path": ".ai/pipeline.md",
       "mtime": "2026-06-13T07:40:57.635184+00:00"
-    },
-    {
-      "path": ".ai/environments.md",
-      "mtime": "2026-06-13T07:40:57.634300+00:00"
     }
   ],
   "nextActions": []
