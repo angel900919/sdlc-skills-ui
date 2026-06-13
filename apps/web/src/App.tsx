@@ -8,6 +8,7 @@ import { dispatchServerEvent, useAppStore } from './store/appStore.js';
 import { Shell } from './components/Shell.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { PipelinePage } from './pages/PipelinePage.js';
+import { ArchitecturePage } from './pages/ArchitecturePage.js';
 import { BoardPage } from './pages/BoardPage.js';
 import { WorkspacePage } from './pages/WorkspacePage.js';
 import { SessionsPage } from './pages/SessionsPage.js';
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/pipeline" element={<PipelinePage />} />
+              <Route path="/architecture" element={<ArchitecturePage />} />
               <Route path="/board" element={<BoardPage />} />
               <Route path="/workspace" element={<WorkspacePage />} />
               <Route path="/workspace/:sessionId" element={<WorkspacePage />} />

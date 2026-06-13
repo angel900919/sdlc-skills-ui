@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  ArchitectureModel,
   AuditEvent,
   ClaudeSession,
   DocNode,
@@ -56,6 +57,15 @@ export function useProjectState(projectId: string | null) {
     queryFn: () => api<{ project: Project; state: ProjectState | null }>(`/api/projects/${projectId}/state`),
     enabled: !!projectId,
     staleTime: 5_000,
+  });
+}
+
+export function useArchitecture(projectId: string | null) {
+  return useQuery({
+    queryKey: ['architecture', projectId],
+    queryFn: () => api<ArchitectureModel>(`/api/projects/${projectId}/architecture`),
+    enabled: !!projectId,
+    staleTime: 10_000,
   });
 }
 

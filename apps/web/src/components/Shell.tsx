@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import GridViewRoundedIcon from '@mui/icons-material/GridViewRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
+import SchemaRoundedIcon from '@mui/icons-material/SchemaRounded';
 import ViewKanbanRoundedIcon from '@mui/icons-material/ViewKanbanRounded';
 import TerminalRoundedIcon from '@mui/icons-material/TerminalRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
@@ -20,6 +21,7 @@ import { CommandPalette } from './CommandPalette.js';
 const NAV = [
   { path: '/dashboard', label: 'Dashboard', icon: <GridViewRoundedIcon fontSize="small" /> },
   { path: '/pipeline', label: 'Pipeline', icon: <AccountTreeRoundedIcon fontSize="small" /> },
+  { path: '/architecture', label: 'Architecture', icon: <SchemaRoundedIcon fontSize="small" /> },
   { path: '/board', label: 'Board', icon: <ViewKanbanRoundedIcon fontSize="small" /> },
   { path: '/workspace', label: 'Workspace', icon: <TerminalRoundedIcon fontSize="small" /> },
   { path: '/sessions', label: 'Sessions', icon: <HistoryRoundedIcon fontSize="small" /> },
