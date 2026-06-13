@@ -42,5 +42,9 @@ export interface ArchitectureModel {
  * members are unrecognized, rolls up to `unknown`.
  */
 export function rollupStatus(statuses: readonly ArchNodeStatus[]): ArchNodeStatus {
-  throw new Error('not implemented');
+  const bySeverity: readonly ArchNodeStatus[] = ['blocked', 'in-progress', 'planned', 'done'];
+  for (const candidate of bySeverity) {
+    if (statuses.includes(candidate)) return candidate;
+  }
+  return 'unknown';
 }
