@@ -8,6 +8,7 @@ import type {
 } from '@sdlc/shared';
 
 import { joinComponentWork } from './deriveComponentStatus.js';
+import { parseComponentFeatureMap } from './parseComponentsModel.js';
 
 // Local builders (factory fixture style, test-strategy.md § Fixture & factory).
 // makeState/makeFeature/makeSlice mirror the recovered idiom in
@@ -154,5 +155,50 @@ describe('joinComponentWork — work join + status derivation', () => {
     const map = new Map([['ShareDomainModel', ['system-map']]]);
 
     expect(joinComponentWork(makeComponent('ShareDomainModel'), map, state).status).toBe('done');
+  });
+});
+
+describe('parseComponentFeatureMap — inverts features.md satisfies column', () => {
+  const featuresMd = [
+    '| id | title | priority | status | tier | depends_on | satisfies |',
+    '| :-- | :-- | :-- | :-- | :-- | :-- | :-- |',
+    '| system-map | Architecture tab | P0 | building | mvp | — | DeriveProjectState, RenderFlightDeck, ShareDomainModel · behavior: orient-on-system-shape (new — fold in) |',
+    '| transcript-search | FTS search | — | shipped | mvp | — | PersistAndBroadcast (FTS5) |',
+  ].join('\n');
+
+  it('inverts feature→components into component→features', () => {
+    const map = parseComponentFeatureMap(featuresMd);
+
+    expect(map.get('DeriveProjectState')).toEqual(['system-map']);
+    expect(map.get('RenderFlightDeck')).toEqual(['system-map']);
+    expect(map.get('PersistAndBroadcast')).toEqual(['transcript-search']);
+  });
+
+  it('strips the · behavior annotation and parenthetical notes from component names', () => {
+    const map = parseComponentFeatureMap(featuresMd);
+
+    // "ShareDomainModel · behavior: …" must yield the bare component name.
+    expect(map.has('ShareDomainModel')).toBe(true);
+    expect([...map.keys()]).not.toContain('ShareDomainModel · behavior: orient-on-system-shape');
+    // "PersistAndBroadcast (FTS5)" must drop the parenthetical.
+    expect(map.has('PersistAndBroadcast')).toBe(true);
+    expect([...map.keys()]).not.toContain('PersistAndBroadcast (FTS5)');
+  });
+
+  it('collects multiple features under one component', () => {
+    const md = [
+      '| id | title | priority | status | tier | depends_on | satisfies |',
+      '| :-- | :-- | :-- | :-- | :-- | :-- | :-- |',
+      '| feat-a | A | — | shipped | mvp | — | DeriveProjectState |',
+      '| feat-b | B | — | shipped | mvp | — | DeriveProjectState, ShareDomainModel |',
+    ].join('\n');
+
+    expect(parseComponentFeatureMap(md).get('DeriveProjectState')).toEqual(['feat-a', 'feat-b']);
+  });
+
+  it('returns an empty map when there is no satisfies column', () => {
+    const md = ['| id | title |', '| :-- | :-- |', '| feat-a | A |'].join('\n');
+
+    expect(parseComponentFeatureMap(md).size).toBe(0);
   });
 });
