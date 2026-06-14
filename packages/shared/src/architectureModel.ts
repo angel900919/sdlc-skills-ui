@@ -17,9 +17,31 @@ export interface ComponentDecl {
   readonly apiBearing: boolean;
 }
 
-/** A declared component enriched with its derived as-built status. */
+/**
+ * One slice of work behind a component, projected from `ProjectState`. The
+ * `issueRefs` are the slice's backend refs (e.g. `{ beads: 'scc-byg' }`) — the
+ * jump from "this box" to the tracker.
+ */
+export interface ComponentSliceRef {
+  readonly id: string;
+  readonly title: string;
+  readonly status: string;
+  readonly issueRefs: Record<string, string>;
+}
+
+/**
+ * A declared component enriched with its derived as-built status and the work
+ * join — the feature it maps to (via `features.md`'s `satisfies` column) and
+ * that feature's slices. A component with no resolvable feature is honestly
+ * `unlinked` (no `feature`, empty `slices`) and its `status` falls back to the
+ * coarse as-built `done` rather than synthesizing progress.
+ */
 export interface ComponentNode extends ComponentDecl {
   readonly status: ArchNodeStatus;
+  /** The feature slug this component maps to, or absent when unlinked. */
+  readonly feature?: string;
+  /** Slices of the mapped feature; empty when unlinked. */
+  readonly slices: readonly ComponentSliceRef[];
 }
 
 /** A directed dependency edge between two architecture nodes. */
