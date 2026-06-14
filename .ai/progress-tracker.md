@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-14 — qa landed (system-map) — APPROVED, building → qa-approved (READY-FOR-SHIP)
+- Artifact: `.ai/specs/system-map/qa-report.md` (evidence) + `.human/specs/system-map/qa-report.md` (gate summary + acceptance/exploratory script). Mechanical checks (closure, coverage, regression, NFR existence, invariants) ran in a read-only `verifier` subagent.
+- Key decision(s): 6 PASS / 0 FAIL / 3 WARN / 2 SKIP. Full suite 217/217 + typecheck clean this run (the scc-yxt watcher flake did not recur); 5/5 stories + 4/4 NFRs traced to closed slices with backing tests; 3 architecture invariants hold. WARNs are mvp-non-gating: no `/security-review` + no threat-model, no WCAG pass on the tab, no runbook — all accepted on the record by Andres Rambal. SKIPs are production-only (fitness, unwanted-EARS). `features.md` flipped building → qa-approved.
+- Next: `/ship system-map` — deploy/release flip qa-approved → shipped (this is `/ship`'s job, not `/qa`'s). Recommended before/at ship: `/security-review`, `/threat-model`, `/runbook system-map`; the per-slice manual UI smoke. scc-yxt (watcher flake) remains open.
+
 ## 2026-06-14 — build landed (system-map) — queue empty: all 4 slices done → READY-FOR-QA
 - Artifact: none (read-and-route skill — no `.ai` artifact, no `.human` mirror). Done-detection over the canonical issue files: all 4 `SLICE-*.md` are `status: published` with terminal beads — `scc-57s` / `scc-byg` / `scc-lv3` / `scc-4ra` all CLOSED. Dependency gate: SLICE-2/3/4 each `depends_on: [1]`; SLICE-1 done, so none blocked.
 - Key decision(s): every slice DONE → no slice to route to `/mtdd-implement` → feature-boundary verdict **READY-FOR-QA**. `/build` mutated no canonical file; this single tracker append is its only side effect (per the skill contract). Feature status stays `building` in `features.md` until `/qa` flips it.
