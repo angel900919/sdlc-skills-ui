@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ProjectState } from '@sdlc/shared';
 
-import { loadArchitecture } from '../state/parseComponentsModel.js';
+import { loadArchitecture, readArchitecture } from '../state/parseComponentsModel.js';
 
 // apps/server/src/routes → repo root, to copy the real declared model.
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -188,5 +188,29 @@ describe('loadArchitecture — the work join off the request path', () => {
     readSpy.mockRestore();
 
     expect(featuresReads).toBe(1);
+  });
+});
+
+describe('readArchitecture — reports cache_hit for the serve-latency log (NFR-1)', () => {
+  it('reports cacheHit=false on the cold build and true on the warm hit', () => {
+    const root = makeProjectWithModel();
+    tmpRoots.push(root);
+
+    const cold = readArchitecture(root, null); // cold: parse + derive, then cache
+    expect(cold.model).not.toBeNull();
+    expect(cold.cacheHit).toBe(false);
+
+    const warm = readArchitecture(root, null); // warm: served from the per-TTL cache
+    expect(warm.model).not.toBeNull();
+    expect(warm.cacheHit).toBe(true);
+  });
+
+  it('reports cacheHit=false with a null model when the project declares no model', () => {
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'sdlc-arch-empty-'));
+    tmpRoots.push(empty);
+
+    const res = readArchitecture(empty, null);
+    expect(res.model).toBeNull();
+    expect(res.cacheHit).toBe(false);
   });
 });
