@@ -28,6 +28,13 @@ interface CacheEntry {
 }
 const cache = new Map<string, CacheEntry>();
 
+/** A cached architecture read tagged with whether it was served warm. */
+export interface ArchitectureRead {
+  readonly model: ArchitectureModel | null;
+  /** True when the model was returned from the per-TTL cache (no parse/derive). */
+  readonly cacheHit: boolean;
+}
+
 /**
  * Load the architecture model for a project, lazily and cached (mirrors the
  * projectState TTL idiom). Both the markdown parse and the component→feature
@@ -42,11 +49,25 @@ export function loadArchitecture(
   projectState: ProjectState | null = null,
   maxAgeMs = CACHE_TTL_MS,
 ): ArchitectureModel | null {
+  return readArchitecture(projectRoot, projectState, maxAgeMs).model;
+}
+
+/**
+ * Like {@link loadArchitecture}, but also reports whether the model was a warm
+ * cache hit — the input the serve-latency log needs (NFR-1) without re-deriving
+ * or timing the cache from the outside. A missing model declares `cacheHit:
+ * false` (there was nothing to cache).
+ */
+export function readArchitecture(
+  projectRoot: string,
+  projectState: ProjectState | null = null,
+  maxAgeMs = CACHE_TTL_MS,
+): ArchitectureRead {
   const cached = cache.get(projectRoot);
-  if (cached && Date.now() - cached.at < maxAgeMs) return cached.model;
+  if (cached && Date.now() - cached.at < maxAgeMs) return { model: cached.model, cacheHit: true };
 
   const modelPath = path.join(projectRoot, MODEL_RELATIVE_PATH);
-  if (!fs.existsSync(modelPath)) return null;
+  if (!fs.existsSync(modelPath)) return { model: null, cacheHit: false };
 
   const parsed = parseComponentsModel(fs.readFileSync(modelPath, 'utf8'));
   const componentFeatureMap = loadComponentFeatureMap(projectRoot);
@@ -56,7 +77,7 @@ export function loadArchitecture(
   });
   const model: ArchitectureModel = { components, edges: parsed.edges };
   cache.set(projectRoot, { at: Date.now(), model });
-  return model;
+  return { model, cacheHit: false };
 }
 
 /** Read `.ai/features.md`'s satisfies column, inverted to component→features. */
