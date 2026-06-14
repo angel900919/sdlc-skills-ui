@@ -262,6 +262,7 @@ export type ServerEvent =
   | { type: 'audit-event'; event: AuditEvent }
   | { type: 'state-changed'; projectId: string }
   | { type: 'fs-changed'; projectId: string; paths: string[] }
+  | { type: 'architecture-changed'; projectId: string }
   | { type: 'session-usage'; sessionId: string; usage: import('./usage.js').SessionUsage }
   | { type: 'session-attention'; sessionId: string; attention: SessionAttention | null }
   | { type: 'verdict'; projectId: string | null; sessionId: string; token: string; nextSkill: string | null; blockedReason: string | null };

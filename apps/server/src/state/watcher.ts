@@ -13,6 +13,13 @@ const watchers = new Map<string, FSWatcher>();
 const debounces = new Map<string, NodeJS.Timeout>();
 const pendingPaths = new Map<string, Set<string>>();
 
+const ARCHITECTURE_DIR = path.join('.ai', 'architecture');
+
+/** True when a project-relative path lives under `.ai/architecture/`. */
+function isArchitecturePath(relPath: string): boolean {
+  return relPath === ARCHITECTURE_DIR || relPath.startsWith(`${ARCHITECTURE_DIR}${path.sep}`);
+}
+
 export function watchProject(projectId: string, projectRoot: string) {
   if (watchers.has(projectId)) return;
   const targets = ['.ai', '.human', 'docs', 'fitness', 'tickets'].map((d) => path.join(projectRoot, d));
@@ -39,6 +46,11 @@ export function watchProject(projectId: string, projectRoot: string) {
         const paths = [...(pendingPaths.get(projectId) ?? [])];
         pendingPaths.delete(projectId);
         bus.broadcast({ type: 'fs-changed', projectId, paths });
+        // The declared architecture model changed (e.g. /architect or a slice
+        // merge rewrote it) — signal the Architecture tab to refetch (NFR-2).
+        if (paths.some(isArchitecturePath)) {
+          bus.broadcast({ type: 'architecture-changed', projectId });
+        }
         bus.audit({
           source: 'fs',
           kind: 'artifact_changed',

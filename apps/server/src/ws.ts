@@ -28,6 +28,7 @@ function topicsFor(event: ServerEvent): string[] {
       ];
     case 'state-changed':
     case 'fs-changed':
+    case 'architecture-changed':
       return ['all', `project:${event.projectId}`];
     default:
       return ['all'];
