@@ -133,6 +133,7 @@ Otherwise print, in chat, under `## Manual smoke — slice <N> (run before merge
 
 - **Setup** — one line on how to bring the slice up on this branch (the run / launch command, the endpoint, the screen). Pull it from the task's `## What to build` / `files:` context; if you genuinely can't tell, say so and ask.
 - A numbered list, one line per kept criterion: `<action the user takes> → <expected observable result>`. Phrase the action as something they *do* (click, curl, run, type) and the expectation as something they *see*.
+- **Request payloads come from the call contract, not the criterion's prose.** When an action sends a request body, take its *shape* from the real client/route code (the request the running system actually accepts), not from an AC phrase that names an *observed* value. ACs describe what to verify after the fact — e.g. `detail.path:'/architecture'` names a *stored* audit row, while the endpoint accepts a top-level `{ kind, path }`. Copy the stored-row shape into the body and the step 2xx's while silently recording nothing — a green smoke step that proved nothing. Read the handler / client call to confirm the body before writing the curl.
 
 Keep it to the criteria — this is a smoke pass ("does the thing this slice promised visibly work"), not an exhaustive QA script. **You do not run it** — you have no running system; it's for the human.
 
