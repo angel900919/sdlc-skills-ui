@@ -14,10 +14,11 @@ language: typescript
 depends_on: [1]
 satisfies_f_ids: []
 satisfies_user_stories: [US-4]
-satisfies_nfrs: [NFR-2, NFR-4]
+satisfies_nfrs: [NFR-1, NFR-2, NFR-4]
 satisfies_unwanted: []
 files:
   - { path: apps/server/src/state/watcher.ts, op: modify }
+  - { path: apps/server/src/state/parseComponentsModel.ts, op: modify }
   - { path: packages/shared/src/types.ts, op: modify }
   - { path: apps/server/src/ws.ts, op: modify }
   - { path: apps/server/src/routes/api.ts, op: modify }
@@ -49,6 +50,7 @@ is debounced and the nav POST never blocks, honoring observation non-interferenc
 ## Acceptance criteria
 - [ ] `architecture.test.ts`: `POST /api/projects/:id/events` writes a `nav` `audit_events` row (`source:'user'`, `detail.path:'/architecture'`), and returns 400 on a bad event kind
 - [ ] The watcher emits `architecture-changed` on an `.ai/architecture/` change (integration test)
+- [ ] NFR-1 (latency): `GET /api/projects/:id/architecture` emits an `architecture.serve {project_id, cache_hit, duration_ms, trace_id}` structured log and reuses the existing OTel tracer for an `architecture.serve` span (no new infra) — `loadArchitecture` reports `cache_hit`; p95 ≤ 300 ms for a model ≤ 50 components
 - [ ] NFR-2: touching the components model → re-rendered graph within ≤ 2 s, timestamped (800 ms watch debounce + refetch)
 - [ ] NFR-4: the `nav` POST is fire-and-forget and the watch is debounced — neither blocks an observed session
 - [ ] Smoke: merge a slice (or edit the components model) → the tab updates with no manual refresh
@@ -57,10 +59,11 @@ is debounced and the nav POST never blocks, honoring observation non-interferenc
 
 ## Traceability
 - PRD: US-4 — the graph refreshes when the architecture model regenerates (after `/architect` or a slice merge)
+- PRD: NFR-1 (latency: `GET …/architecture` p95 ≤ 300 ms, server OTel) — this slice instruments and owns the measurement (`architecture.serve` log + span)
 - PRD: NFR-2 (freshness: tab reflects a model-file change within ≤ 2 s; file-change → `architecture-changed` → render)
 - PRD: NFR-4 (non-interference: `nav` POST fire-and-forget, watch debounced — never blocks)
 - Plan: Slice 4 — Live auto-refresh + adoption metric
-- Architecture: `DeriveProjectState` (watch + recompute) · `ServeApiAndWs` (`architecture-changed`, nav ingest) · `ShareDomainModel` (`ServerEvent` += `architecture-changed`) — `.ai/architecture/02-components.md`
+- Architecture: `DeriveProjectState` (watch + recompute) · `ServeApiAndWs` (`architecture-changed`, nav ingest, `architecture.serve` latency log/span) · `ShareDomainModel` (`ServerEvent` += `architecture-changed`) — `.ai/architecture/02-components.md`
 
 ## Blocked by
 - Slice 1
