@@ -36,27 +36,15 @@ export interface ArchitectureRead {
 }
 
 /**
- * Load the architecture model for a project, lazily and cached (mirrors the
- * projectState TTL idiom). Both the markdown parse and the component→feature
- * work join run at most once per TTL window, keeping them off the request path
- * (NFR-4). The passed `projectState` supplies real per-feature status; when it
- * is null (or maps nothing to a component) the node is honestly unlinked and
- * falls back to the coarse as-built `done`. Returns null when the project
- * declares no model file.
- */
-export function loadArchitecture(
-  projectRoot: string,
-  projectState: ProjectState | null = null,
-  maxAgeMs = CACHE_TTL_MS,
-): ArchitectureModel | null {
-  return readArchitecture(projectRoot, projectState, maxAgeMs).model;
-}
-
-/**
- * Like {@link loadArchitecture}, but also reports whether the model was a warm
- * cache hit — the input the serve-latency log needs (NFR-1) without re-deriving
- * or timing the cache from the outside. A missing model declares `cacheHit:
- * false` (there was nothing to cache).
+ * Read the architecture model for a project, lazily and cached (mirrors the
+ * projectState TTL idiom), reporting whether the model was served warm. Both the
+ * markdown parse and the component→feature work join run at most once per TTL
+ * window, keeping them off the request path (NFR-4); `cacheHit` is the input the
+ * serve-latency log needs (NFR-1) without re-deriving or timing the cache from
+ * the outside. The passed `projectState` supplies real per-feature status; when
+ * it is null (or maps nothing to a component) the node is honestly unlinked and
+ * falls back to the coarse as-built `done`. A missing model file returns
+ * `{ model: null, cacheHit: false }` — there was nothing to cache.
  */
 export function readArchitecture(
   projectRoot: string,

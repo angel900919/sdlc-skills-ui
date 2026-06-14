@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ProjectState } from '@sdlc/shared';
 
-import { loadArchitecture, readArchitecture } from '../state/parseComponentsModel.js';
+import { readArchitecture } from '../state/parseComponentsModel.js';
 
 // apps/server/src/routes → repo root, to copy the real declared model.
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -183,14 +183,14 @@ describe('GET /api/projects/:id/architecture', () => {
   });
 });
 
-describe('loadArchitecture — the work join off the request path', () => {
+describe('readArchitecture — the work join off the request path', () => {
   it('enriches the mapped component with real status, feature, slices and issue refs', () => {
     const root = makeProjectWithModel(true);
     tmpRoots.push(root);
     const state = makeStateWithSystemMap(root);
 
     // Cold cache for this root → join runs once and is cached.
-    const model = loadArchitecture(root, state, 0);
+    const model = readArchitecture(root, state, 0).model;
     expect(model).not.toBeNull();
     const derive = model!.components.find((c) => c.id === 'DeriveProjectState');
     expect(derive?.status).toBe('in-progress');
@@ -204,7 +204,7 @@ describe('loadArchitecture — the work join off the request path', () => {
     tmpRoots.push(root);
     const state = makeStateWithSystemMap(root);
 
-    const model = loadArchitecture(root, state, 0);
+    const model = readArchitecture(root, state, 0).model;
     // RunClaudeSessions is satisfied by no feature in the (real) features.md →
     // it must not be synthesized into the system-map join.
     const run = model!.components.find((c) => c.id === 'RunClaudeSessions');
@@ -219,8 +219,8 @@ describe('loadArchitecture — the work join off the request path', () => {
     const state = makeStateWithSystemMap(root);
 
     const readSpy = vi.spyOn(fs, 'readFileSync');
-    loadArchitecture(root, state); // cold build, default TTL
-    loadArchitecture(root, state); // warm hit — must not re-read features.md
+    readArchitecture(root, state); // cold build, default TTL
+    readArchitecture(root, state); // warm hit — must not re-read features.md
     const featuresReads = readSpy.mock.calls.filter((call) =>
       String(call[0]).startsWith(root) && String(call[0]).endsWith('features.md'),
     ).length;
