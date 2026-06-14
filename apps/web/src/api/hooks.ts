@@ -69,6 +69,18 @@ export function useArchitecture(projectId: string | null) {
   });
 }
 
+/**
+ * Record a `nav` adoption beacon for a project — fire-and-forget. The POST never
+ * blocks the view and swallows its own failure (the self-adoption metric may
+ * undercount, but observation must never interfere — NFR-4). Returns nothing on
+ * purpose: callers invoke it from an effect and ignore the result.
+ */
+export function recordNavEvent(projectId: string, path: string): void {
+  void post(`/api/projects/${projectId}/events`, { kind: 'nav', path }).catch(() => {
+    /* fire-and-forget: a dropped adoption beacon must never surface to the user */
+  });
+}
+
 export function useSkills(projectId: string | null) {
   return useQuery({
     queryKey: ['skills', projectId],

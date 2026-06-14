@@ -38,6 +38,9 @@ function WsBridge() {
         case 'fs-changed':
           void qc.invalidateQueries({ queryKey: ['docs', event.projectId] });
           break;
+        case 'architecture-changed':
+          void qc.invalidateQueries({ queryKey: ['architecture', event.projectId] });
+          break;
         case 'hook-event':
           if (event.event.sessionId) {
             void qc.invalidateQueries({ queryKey: ['trace', event.event.sessionId] });

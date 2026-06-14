@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import {
   ReactFlow, Background, Controls, MiniMap,
@@ -9,7 +9,7 @@ import '@xyflow/react/dist/style.css';
 import type { ArchNodeStatus, ComponentNode } from '@sdlc/shared';
 import { palette, microLabel } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
-import { useArchitecture, useProjectState } from '../api/hooks.js';
+import { recordNavEvent, useArchitecture, useProjectState } from '../api/hooks.js';
 import { ComponentInspector } from '../components/ComponentInspector.js';
 import { SdlcProgress } from '../components/SdlcProgress.js';
 
@@ -98,6 +98,12 @@ export function ArchitecturePage() {
   const { data: projectStateData } = useProjectState(projectId);
   const [view, setView] = useState<ArchView>('graph');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Record an adoption beacon when the tab opens for a project (the metric
+  // numerator). Fire-and-forget — never blocks the render (NFR-4).
+  useEffect(() => {
+    if (projectId) recordNavEvent(projectId, '/architecture');
+  }, [projectId]);
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedId((current) => (current === node.id ? null : node.id));
