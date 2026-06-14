@@ -60,14 +60,28 @@ describe('watchProject — architecture-changed on a model edit (NFR-2)', () => 
     watchProject(projectId, root);
     watchedProjects.push(projectId);
 
-    // The watcher debounces 800ms + awaitWriteFinish ~300ms; give it headroom.
     const pending = waitForBroadcast(
       (e) => e.type === 'architecture-changed' && 'projectId' in e && e.projectId === projectId,
-      5_000,
+      18_000,
     );
-    fs.appendFileSync(path.join(root, '.ai', 'architecture', '02-components.md'), '| Component |\n');
 
-    const event = await pending;
-    expect(event).toMatchObject({ type: 'architecture-changed', projectId });
-  });
+    // Re-touch the model on an interval until the debounced broadcast lands.
+    // A single append is flaky under full-suite parallel load for two reasons:
+    // (1) chokidar's initial scan may not be `ready` yet, and with ignoreInitial
+    // a pre-ready edit is dropped; (2) macOS fsevents sporadically drops a lone
+    // notification when many watchers/processes contend (observed: the edit
+    // lands but no event ever arrives, even at 25s). Repeating the edit defeats
+    // both — once watching is live and one notification gets through, the watcher
+    // broadcasts and we stop. The 1.5s spacing clears the 300ms awaitWriteFinish
+    // + 800ms debounce, so each kick is an independent attempt.
+    const modelFile = path.join(root, '.ai', 'architecture', '02-components.md');
+    fs.appendFileSync(modelFile, '| Component |\n');
+    const retouch = setInterval(() => fs.appendFileSync(modelFile, '| Component |\n'), 1_500);
+    try {
+      const event = await pending;
+      expect(event).toMatchObject({ type: 'architecture-changed', projectId });
+    } finally {
+      clearInterval(retouch);
+    }
+  }, 20_000);
 });
