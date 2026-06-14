@@ -73,6 +73,7 @@ function makeStateWithSystemMap(root: string): ProjectState {
     recentCommits: [],
     recentlyModified: [],
     nextActions: [],
+    drift: [],
   };
 }
 

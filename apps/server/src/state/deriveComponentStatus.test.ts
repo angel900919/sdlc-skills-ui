@@ -68,6 +68,7 @@ function makeState(features: FeatureState[] = []): ProjectState {
     recentCommits: [],
     recentlyModified: [],
     nextActions: [],
+    drift: [],
   };
 }
 

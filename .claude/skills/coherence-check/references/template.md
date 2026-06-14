@@ -1,6 +1,6 @@
 # Coherence-check report format
 
-Format for the stdout report `/coherence-check` produces. Referenced from `SKILL.md` Phase 3 (compile the report). **No file is written** — this is a stdout-only skill.
+Format for the report `/coherence-check` produces. Referenced from `SKILL.md` Phase 3 (compile the report). The human-readable report goes to **stdout**; an identical machine-readable snapshot is written to `dashboard/coherence.json` (SKILL.md Phase 5) for the Command Center's drift panel. It writes no other file — and never an audited artifact.
 
 ## With findings
 

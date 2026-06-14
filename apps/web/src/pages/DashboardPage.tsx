@@ -212,6 +212,28 @@ export function DashboardPage() {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
+              <Card title={`Documentation drift (${state?.drift?.length ?? 0})`}>
+                {state?.drift?.length ? (
+                  <Stack sx={{ gap: 0.75, overflow: 'auto', maxHeight: 220 }}>
+                    {(state?.drift ?? []).map((d, i) => (
+                      <Stack key={`${d.source}:${d.target ?? ''}:${i}`} direction="row" sx={{ alignItems: 'baseline', gap: 1 }}>
+                        <Box sx={{ width: 8, height: 8, mt: 0.5, borderRadius: '50%', flexShrink: 0, background: d.severity === 'error' ? palette.red : palette.amber }} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography sx={{ fontSize: 12.5, color: palette.text }}>{d.detail}</Typography>
+                          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: palette.muted }} noWrap>
+                            {d.fix}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography sx={{ fontSize: 12.5, color: palette.green }}>All linked docs in sync.</Typography>
+                )}
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card title={`Features (${counts.features})`}>
                 <Box sx={{ overflow: 'auto', maxHeight: 260 }}>
                   {(state?.features ?? []).map((f) => (

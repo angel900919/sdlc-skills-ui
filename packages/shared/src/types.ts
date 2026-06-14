@@ -213,6 +213,23 @@ export interface ProgressEntry {
   scope: string;
 }
 
+/**
+ * A documentation-consistency finding between linked docs, computed read-only by
+ * project-state.py. `stale-mirror`/`missing-mirror` cover the derived `.human`
+ * projection of a `.ai` source; `spec-drift` is folded in from /coherence-check.
+ */
+export interface DocDrift {
+  kind: 'stale-mirror' | 'missing-mirror' | 'spec-drift' | string;
+  severity: 'warn' | 'error' | string;
+  /** Repo-relative path of the upstream/source doc. */
+  source: string;
+  /** Repo-relative path of the stale mirror / downstream doc, when applicable. */
+  target: string | null;
+  detail: string;
+  /** Suggested command/skill that resolves the drift. */
+  fix: string;
+}
+
 export interface ProjectState {
   root: string;
   projectName: string;
@@ -236,6 +253,7 @@ export interface ProjectState {
   recentCommits: { sha: string; date: string; subject: string }[];
   recentlyModified: { path: string; mtime: string }[];
   nextActions: string[];
+  drift: DocDrift[];
 }
 
 // ---------------------------------------------------------------------------

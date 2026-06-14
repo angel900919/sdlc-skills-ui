@@ -28,6 +28,7 @@ function makeState(foundation: Partial<Foundation> = {}): ProjectState {
     recentCommits: [],
     recentlyModified: [],
     nextActions: [],
+    drift: [],
   };
 }
 

@@ -22,7 +22,7 @@ contradicts something written in `/discovery`, never reconciled).
 
 ## Critical rules (read before starting)
 
-1. **READ-ONLY. Always.** Never uses `Write`/`Edit` or any mutating tool. Output is stdout only. Asked to fix a contradiction → refuse and name the source skill (e.g. "to update the target user, re-open `/discovery`").
+1. **READ-ONLY toward audited artifacts. Always.** Never `Write`/`Edit`/delete any audited doc (`.ai/**`, `.human/**`, specs, source) and never run another skill to "fix" a finding. Asked to fix a contradiction → refuse and name the source skill (e.g. "to update the target user, re-open `/discovery`"). The *only* file it may write is its own generated report snapshot `dashboard/coherence.json` (a derived, gitignored artifact — Phase 5); it never mutates a document it audits.
 2. **Binary verdict.** Every finding is a CONTRADICTION — no DRIFT/WARNING/INFO tiers. Not confident it's real → leave it out.
 3. **Every finding needs two citations** with `path:line` (or `path:section`). A contradiction is a disagreement between two artifacts; one-sided "this seems weird" is not one — drop it.
 4. **No file:line guesses.** Can't pin it to a line/section → drop it. Hallucinated citations are worse than missed contradictions.
@@ -42,6 +42,7 @@ coherence-check progress:
 - [ ] Phase 2: Check stale name references (components, features, personas, ADRs)
 - [ ] Phase 3: Compile the report
 - [ ] Phase 4: Issue the verdict
+- [ ] Phase 5: Write the machine-readable snapshot (dashboard/coherence.json)
 ```
 
 ### Phase 0 — Inventory
@@ -90,11 +91,36 @@ Identifiers used in one artifact that don't exist in their source-of-truth artif
 
 ### Phase 3 — Compile
 
-Use the format in [`references/template.md`](references/template.md) (stdout only — no file written). Order by downstream confusion: (1) tier mismatches, (2) target-user/scope/problem mismatches, (3) stale name references, (4) other. Merge a disagreement that appears across multiple pairs into a single finding citing all artifacts.
+Use the format in [`references/template.md`](references/template.md) (human-readable report to stdout; Phase 5 also writes the machine-readable snapshot). Order by downstream confusion: (1) tier mismatches, (2) target-user/scope/problem mismatches, (3) stale name references, (4) other. Merge a disagreement that appears across multiple pairs into a single finding citing all artifacts.
 
 ### Phase 4 — Verdict
 
 End with **exactly one line**: `**COHERENT**` (zero contradictions) or `**N CONTRADICTIONS FOUND**` (no partial credit). No "consider running …". Contradiction-class → resolve-in-skill mapping: [`references/recovery-paths.md`](references/recovery-paths.md).
+
+### Phase 5 — Emit machine-readable snapshot
+
+After the stdout verdict, write the **same** findings to `dashboard/coherence.json` (create `dashboard/` if absent) so the Command Center's drift panel can surface them (`project-state.py` folds them in as `spec-drift`). This is the one derived file this skill writes — never an audited artifact. Schema (the producer half of a contract the dashboard's `_read_coherence_report` test pins):
+
+```json
+{
+  "generatedAt": "<ISO-8601 UTC>",
+  "verdict": "COHERENT",
+  "findings": [
+    {
+      "severity": "error",
+      "source": ".ai/specs/invoice-send/design.md:42",
+      "target": ".ai/architecture/02-components.md",
+      "detail": "design names component \"InvoiceOrchestrator\"; architecture has no such component (closest: \"InvoiceComposer\")",
+      "fix": "/architect"
+    }
+  ]
+}
+```
+
+- One object per stdout contradiction, **same order**. `source` = the upstream citation, `target` = the downstream one (resolve-upstream-first); fold any "Also affects" into `detail`.
+- `severity`: `error` for structural contradictions (tier/PII, persona/scope, orphan component/F-ID); `warn` for stale-name/citation drift.
+- `fix`: the owning skill from [`references/recovery-paths.md`](references/recovery-paths.md) (e.g. `/understand`, `/architect`, `/prd`).
+- On a **COHERENT** verdict, write `"verdict": "COHERENT"` with `"findings": []` — this clears any prior drift from the panel. Malformed/absent JSON is ignored downstream (fail-open), so valid JSON matters more than completeness.
 
 </what-to-do>
 
@@ -108,7 +134,7 @@ For stale references: extract proper-noun-ish identifiers, map each to its sourc
 
 ## What this skill refuses to do
 
-- Edit, write, or delete any file; run another skill to "fix" a finding; archive or rename artifacts.
+- Edit, write, or delete any *audited* artifact (`.ai/**`, `.human/**`, specs, source); run another skill to "fix" a finding; archive or rename artifacts. (It writes exactly one derived file — `dashboard/coherence.json`, its own report snapshot.)
 - Grade the quality of any single artifact (only cross-artifact disagreement is in scope).
 - Hallucinate `file:line` citations (can't cite → drop), read code to verify designs, or fetch external URLs.
 
