@@ -52,6 +52,14 @@ import { transcriptToMarkdown } from '@sdlc/shared';
  */
 const serveTracer = trace.getTracer('sdlc-command-center');
 
+/**
+ * Adoption events a client may POST to `/events`. The allowlist keeps the audit
+ * stream honest — a client cannot name an arbitrary kind. `nav` is the
+ * tab-mount beacon feeding the self-adoption metric (denominator: sessions with
+ * a code-touching PostToolUse Edit/Write).
+ */
+const ADOPTION_EVENT_KINDS = new Set(['nav']);
+
 export function registerApiRoutes(app: FastifyInstance) {
   // ---- health -------------------------------------------------------------
   app.get('/api/health', async () => ({
@@ -135,6 +143,29 @@ export function registerApiRoutes(app: FastifyInstance) {
       if (!model) return reply.code(404).send({ error: 'architecture not found' });
       return model;
     });
+  });
+
+  // The self-adoption metric numerator: a fire-and-forget client beacon on tab
+  // mount. Only allow-listed adoption kinds are accepted (defends the audit
+  // stream from arbitrary client-named kinds); `nav` carries the viewed path.
+  app.post('/api/projects/:id/events', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const project = getProject(id);
+    if (!project) return reply.code(404).send({ error: 'not found' });
+    const body = (req.body ?? {}) as { kind?: string; path?: string; sessionId?: string };
+    if (!ADOPTION_EVENT_KINDS.has(body.kind ?? '')) {
+      return reply.code(400).send({ error: `kind must be one of: ${[...ADOPTION_EVENT_KINDS].join(', ')}` });
+    }
+    const path = typeof body.path === 'string' ? body.path : null;
+    bus.audit({
+      source: 'user',
+      kind: body.kind!,
+      projectId: id,
+      sessionId: body.sessionId ?? null,
+      summary: path ? `Viewed ${path}` : `Adoption event: ${body.kind}`,
+      detail: path ? { path } : null,
+    });
+    return reply.code(201).send({ ok: true });
   });
 
   app.get('/api/projects/:id/skills', async (req, reply) => {
