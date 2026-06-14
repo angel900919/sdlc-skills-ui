@@ -107,7 +107,10 @@ export function registerApiRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const project = getProject(id);
     if (!project) return reply.code(404).send({ error: 'not found' });
-    const architecture = loadArchitecture(project.rootPath);
+    // ProjectState comes from its own per-TTL cache; the work join is folded
+    // into loadArchitecture's cache, so neither recomputes per call (NFR-4).
+    const state = await getProjectState(project.rootPath);
+    const architecture = loadArchitecture(project.rootPath, state);
     if (!architecture) return reply.code(404).send({ error: 'architecture not found' });
     return architecture;
   });
