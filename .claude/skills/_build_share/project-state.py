@@ -200,6 +200,13 @@ def extract_link(s):
     return stripped or None
 
 
+# The identifier column name varies by features.md vintage: /feature-map now
+# emits `id`; older tables used `slug` or `feature`. The roster table is the one
+# that pairs any of these with a `status` column (this excludes sibling tables
+# like Deferred, which carry an `id` but no `status`).
+_FEATURE_ID_COLUMNS = ("slug", "id", "feature")
+
+
 def parse_features_table(text):
     out = []
     cols, in_table = [], False
@@ -207,8 +214,9 @@ def parse_features_table(text):
     i = 0
     while i < len(lines):
         line = lines[i]
-        if line.startswith("|") and re.search(r"slug", line, re.I) and re.search(r"status", line, re.I):
-            cols = [c.strip().lower() for c in line.split("|") if c.strip()]
+        header = [c.strip().lower() for c in line.split("|") if c.strip()] if line.startswith("|") else []
+        if not in_table and "status" in header and any(c in header for c in _FEATURE_ID_COLUMNS):
+            cols = header
             in_table = True
             i += 2  # skip header + separator
             continue
@@ -221,7 +229,7 @@ def parse_features_table(text):
             i += 1
             continue
         row = {c: (cells[j] if j < len(cells) else "") for j, c in enumerate(cols)}
-        slug = (row.get("slug") or row.get("feature") or "").strip("`")
+        slug = next((row[c] for c in _FEATURE_ID_COLUMNS if row.get(c)), "").strip("`")
         if slug:
             out.append({
                 "slug": slug,
@@ -481,6 +489,225 @@ def project_name(root):
     return os.path.basename(root.rstrip("/")) or root
 
 
+# ---------------- documentation drift ----------------
+
+def _change_index(root):
+    """Last-change index for drift detection. Returns (dirty, ctimes, last_commit, git_ok).
+
+    dirty:       repo-relative paths with uncommitted working-tree changes — treated
+                 as the newest possible version (catches drift before it is committed).
+    ctimes:      repo-relative path -> unix time of the most recent commit touching it.
+    last_commit: repo-relative path -> hash of the most recent commit touching it
+                 (used to read a downstream doc's upstream baseline via `git show`).
+    git_ok:      False when ROOT is not a git work tree, so callers skip the freshness
+                 comparison (fail-open) instead of emitting false staleness.
+
+    Commit time is used rather than filesystem mtime because a `git checkout`
+    rewrites mtimes and would scramble the source-vs-mirror ordering.
+    """
+    if git(root, ["rev-parse", "--is-inside-work-tree"]).strip() != "true":
+        return set(), {}, {}, False
+    dirty = set()
+    for line in git(root, ["status", "--porcelain"]).split("\n"):
+        if len(line) <= 3:
+            continue
+        path = line[3:].strip().strip('"')
+        if " -> " in path:  # rename: the destination is what now exists
+            path = path.split(" -> ", 1)[1]
+        dirty.add(path)
+    ctimes, last_commit = {}, {}
+    cur_h = cur_t = None
+    for line in git(root, ["log", "--format=%H|%ct", "--name-only", "--", ".ai", ".human"]).split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        m = re.match(r"^([0-9a-f]{7,40})\|(\d+)$", line)
+        if m:
+            cur_h, cur_t = m.group(1), int(m.group(2))
+        elif cur_t is not None and line not in ctimes:
+            ctimes[line] = cur_t  # first occurrence (newest-first walk) = latest commit
+            last_commit[line] = cur_h
+    return dirty, ctimes, last_commit, True
+
+
+def _change_key(rel, dirty, ctimes):
+    """Comparable last-change time; None when unknown (caller skips comparison)."""
+    if rel in dirty:
+        return float("inf")
+    return ctimes.get(rel)
+
+
+def _mirror_fix_hint(source_rel):
+    """The skill whose update mode regenerates the .human mirror for SOURCE_REL."""
+    m = re.match(r"\.ai/specs/[^/]+/(prd|design|qa-report)\.md$", source_rel)
+    if m:
+        feature = source_rel.split("/")[2]
+        skill = {"prd": "prd", "design": "design", "qa-report": "qa"}[m.group(1)]
+        return f"/{skill} {feature} (update mode regenerates the mirror)"
+    root_doc = {
+        ".ai/anchor.md": "/anchor",
+        ".ai/features.md": "/feature-map",
+        ".ai/architecture/index.md": "/architect",
+        ".ai/context.md": "/understand",
+    }.get(source_rel)
+    if not root_doc and source_rel.startswith(".ai/understanding/"):
+        root_doc = "/understand"
+    if root_doc:
+        return f"{root_doc} (update mode regenerates the mirror)"
+    return "re-run the producing skill in update mode to regenerate the mirror"
+
+
+_SOURCE_FIELDS = (
+    "source", "source_prd", "source_design", "source_plan", "source_anchor",
+    "source_recon", "source_discovery", "source_understanding", "source_features",
+    "source_architecture", "source_context", "source_intake", "source_outcome",
+    "source_data_management", "source_test_strategy", "source_asbuilt",
+)
+
+
+def _git_show(root, ref):
+    """(content, ok) for `git show REF`; ok=False on any error."""
+    try:
+        p = subprocess.run(["git", "show", ref], cwd=root, capture_output=True, text=True)
+        return p.stdout, p.returncode == 0
+    except Exception:
+        return "", False
+
+
+def _premise_fix_hint(target_rel):
+    """How to refresh the stale downstream doc TARGET_REL."""
+    m = re.match(r"\.ai/specs/([^/]+)/(prd|design|plan|qa-report)\.md$", target_rel)
+    if m:
+        feature, stage = m.group(1), m.group(2)
+        skill = {"prd": "prd", "design": "design", "plan": "plan", "qa-report": "qa"}[stage]
+        return f"review/regenerate via /{skill} {feature} (update mode)"
+    m = re.match(r"\.ai/specs/([^/]+)/issues/SLICE-\d+", target_rel)
+    if m:
+        return f"re-slice via /to-issues {m.group(1)} (update mode)"
+    return "review the downstream doc against its changed upstream"
+
+
+def _premise_for(root, d_rel, fm, dirty, ctimes, last_commit):
+    """premise-drift findings for one downstream doc D_REL with frontmatter FM.
+
+    An upstream U declared as a source of D is flagged when U is newer than the
+    commit that last generated D (the timestamp prune) AND U's content as of that
+    commit differs from U's content now (the content confirm — beats a
+    change-then-revert false positive). D mid-edit (dirty) or untracked is skipped:
+    its baseline is moot.
+    """
+    if d_rel in dirty:
+        return []
+    d_commit = last_commit.get(d_rel)
+    d_time = ctimes.get(d_rel)
+    if not d_commit or d_time is None:
+        return []
+    out = []
+    seen = set()
+    upstreams = [as_string(fm.get(f)) for f in _SOURCE_FIELDS]
+    upstreams += as_list(fm.get("sources"))
+    for u_rel in upstreams:
+        u_rel = (u_rel or "").strip()
+        if not u_rel or u_rel == d_rel or u_rel in seen:
+            continue
+        seen.add(u_rel)
+        if not os.path.isfile(os.path.join(root, u_rel)):
+            continue
+        u_time = float("inf") if u_rel in dirty else ctimes.get(u_rel)
+        if u_time is None or u_time <= d_time:
+            continue
+        baseline, ok = _git_show(root, f"{d_commit}:{u_rel}")
+        if not ok:
+            continue
+        if read(os.path.join(root, u_rel)) != baseline:
+            out.append({
+                "kind": "premise-drift", "severity": "warn",
+                "source": u_rel, "target": d_rel,
+                "detail": f"{u_rel} changed after {d_rel} was last generated — {d_rel} may rest on stale premises",
+                "fix": _premise_fix_hint(d_rel),
+            })
+    return out
+
+
+def _read_coherence_report(root):
+    """Fold in spec-coherence findings from an optional dashboard/coherence.json.
+
+    Written by /coherence-check (its machine-readable producer is a follow-up
+    slice). Absent or malformed -> no entries (fail-open).
+    """
+    path = os.path.join(root, "dashboard", "coherence.json")
+    if not os.path.exists(path):
+        return []
+    try:
+        data = json.loads(read(path))
+        findings = data.get("findings", []) if isinstance(data, dict) else []
+    except Exception:
+        return []
+    out = []
+    for f in findings:
+        if not isinstance(f, dict):
+            continue
+        out.append({
+            "kind": "spec-drift",
+            "severity": as_string(f.get("severity")) or "warn",
+            "source": as_string(f.get("source")),
+            "target": as_string(f.get("target")) or None,
+            "detail": as_string(f.get("detail")) or "coherence contradiction",
+            "fix": as_string(f.get("fix")) or "/coherence-check",
+        })
+    return out
+
+
+def compute_drift(root):
+    """Documentation-drift signals between linked docs (read-only, billing-free).
+
+    Two mechanical classes, plus a fold-in:
+      - missing-mirror: a `.ai` doc declares a `.human` projection that is absent.
+      - stale-mirror:   the `.ai` source changed after its mirror was last built.
+    Mirror links are read from `human_summary`/`human_runbook` frontmatter on the
+    `.ai` side (the only machine-resolvable edge — `.human` files carry no
+    frontmatter). Spec-vs-spec drift is semantic and arrives via the coherence
+    report, not a timestamp heuristic: downstream being newer than its upstream is
+    the normal, healthy state, so timestamps alone would false-fire.
+    """
+    out = []
+    dirty, ctimes, last_commit, git_ok = _change_index(root)
+    ai_dir = os.path.join(root, ".ai")
+    if os.path.exists(ai_dir):
+        for p in sorted(walk_files(ai_dir)):
+            if not p.endswith(".md"):
+                continue
+            fm = read_frontmatter(p)
+            source_rel = os.path.relpath(p, root)
+            for field in ("human_summary", "human_runbook"):
+                mirror_rel = as_string(fm.get(field))
+                if not mirror_rel:
+                    continue
+                if not os.path.exists(os.path.join(root, mirror_rel)):
+                    out.append({
+                        "kind": "missing-mirror", "severity": "error",
+                        "source": source_rel, "target": mirror_rel,
+                        "detail": f"{source_rel} declares a human mirror that does not exist",
+                        "fix": _mirror_fix_hint(source_rel),
+                    })
+                    continue
+                if not git_ok:
+                    continue
+                st = _change_key(source_rel, dirty, ctimes)
+                mt = _change_key(mirror_rel, dirty, ctimes)
+                if st is not None and mt is not None and st > mt:
+                    out.append({
+                        "kind": "stale-mirror", "severity": "warn",
+                        "source": source_rel, "target": mirror_rel,
+                        "detail": f"{source_rel} changed after its mirror was last generated",
+                        "fix": _mirror_fix_hint(source_rel),
+                    })
+            if git_ok:
+                out.extend(_premise_for(root, source_rel, fm, dirty, ctimes, last_commit))
+    out.extend(_read_coherence_report(root))
+    return out
+
+
 # ---------------- top-level scan ----------------
 
 def scan_project(root):
@@ -500,6 +727,7 @@ def scan_project(root):
         "recentCommits": list_recent_commits(root, 20),
         "recentlyModified": list_recently_modified(root, 20),
         "nextActions": compute_next_actions(foundation, features, fitness),
+        "drift": compute_drift(root),
     }
 
 
