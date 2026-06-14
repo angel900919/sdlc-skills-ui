@@ -58,6 +58,46 @@ export function parseComponentsModel(markdown: string): ParsedComponentsModel {
 }
 
 /**
+ * Parse `.ai/features.md`'s feature table and invert its `satisfies` column —
+ * which lists, per feature, the components it satisfies — into a
+ * component→features map (the decided component↔feature mapping source, SLICE-2).
+ * Each satisfies cell is a comma-separated component list, optionally trailed by
+ * a `· behavior: …` annotation or `(parenthetical)` notes, both of which are
+ * stripped. Returns an empty map when the table has no `satisfies` column.
+ */
+export function parseComponentFeatureMap(markdown: string): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  const table = findTable(markdown, (headers) => headers.some((h) => /^id$/i.test(h)));
+  if (!table) return map;
+  const satisfies = columnIndex(table.headers, /^satisfies$/i);
+  const id = columnIndex(table.headers, /^id$/i);
+  if (satisfies < 0 || id < 0) return map;
+
+  for (const cells of table.rows) {
+    const feature = cells[id];
+    if (!feature) continue;
+    for (const component of parseSatisfiesCell(cells[satisfies] ?? '')) {
+      const features = map.get(component) ?? [];
+      features.push(feature);
+      map.set(component, features);
+    }
+  }
+  return map;
+}
+
+/**
+ * Extract the bare component names from one `satisfies` cell, dropping the
+ * `· behavior: …` provenance tail and any `(parenthetical)` note per name.
+ */
+function parseSatisfiesCell(cell: string): string[] {
+  return cell
+    .split('·')[0]
+    .split(',')
+    .map((name) => name.replace(/\(.*?\)/g, '').trim())
+    .filter((name) => name !== '');
+}
+
+/**
  * Serialize back to the two-table markdown form. Canonical (headers normalized,
  * edge `#` regenerated, API-bearing rendered as yes/no) — it reproduces the
  * model, not the source byte-for-byte, so parse∘serialize∘parse is the identity
