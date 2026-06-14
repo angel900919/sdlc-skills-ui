@@ -346,5 +346,73 @@ class ParseFeaturesTableTest(unittest.TestCase):
         self.assertEqual(ps.parse_features_table("# Doc\n\nno tables here\n"), [])
 
 
+class SliceBackendStatusTest(unittest.TestCase):
+    """scc-934: a slice is 'merged' when its beads ticket is closed, even though
+    the frozen canonical frontmatter only ever says open/published/removed. Done
+    is a runtime backend fact (build/SKILL.md), so the generator consults the
+    backend and writes the derived status into state.json only — never the file.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+        self._orig_closed = ps.closed_backend_ids
+
+    def tearDown(self):
+        ps.closed_backend_ids = self._orig_closed
+        self._tmp.cleanup()
+
+    def _slice(self, num, beads, status="published", depends_on=None):
+        deps = depends_on or []
+        fm = [
+            "---", "slug: demo", "feature: demo", f"slice: {num}",
+            f"status: {status}", f"title: Slice {num}",
+            f"depends_on: [{', '.join(str(d) for d in deps)}]",
+            "backend_refs:", f"  beads: {beads}", "  jira: null", "  md: null",
+            "---", "", "## What to build", "body",
+        ]
+        _write(self.root, f".ai/specs/demo/issues/SLICE-{num}.md", "\n".join(fm) + "\n")
+
+    def test_derive_returns_merged_when_backend_closed(self):
+        # The pure rule: a closed bead makes the slice merged regardless of the
+        # frozen 'published' frontmatter and an empty ticket status log.
+        self.assertEqual(
+            ps.derive_slice_status("published", None, [], set(), is_backend_merged=True),
+            "merged",
+        )
+
+    def test_derive_unchanged_without_backend_signal(self):
+        # The default (no backend merge) preserves the prior file-only behavior.
+        self.assertEqual(ps.derive_slice_status("published", None, [], set()), "published")
+        self.assertEqual(ps.derive_slice_status("published", None, ["SLICE-9"], set()), "blocked")
+
+    def test_scan_marks_slice_with_closed_bead_as_merged(self):
+        self._slice(1, "scc-aaa")
+        ps.closed_backend_ids = lambda root: {"scc-aaa"}
+        [s1] = ps.scan_slices(self.root, "demo")
+        self.assertEqual(s1["status"], "merged")
+
+    def test_backend_merge_unblocks_dependents(self):
+        # SLICE-2 depends on SLICE-1; once SLICE-1's bead is closed (merged),
+        # SLICE-2 is no longer blocked even though its own bead is still open.
+        self._slice(1, "scc-aaa")
+        self._slice(2, "scc-bbb", depends_on=[1])
+        ps.closed_backend_ids = lambda root: {"scc-aaa"}
+        slices = {s["id"]: s for s in ps.scan_slices(self.root, "demo")}
+        self.assertEqual(slices["SLICE-1"]["status"], "merged")
+        self.assertEqual(slices["SLICE-2"]["status"], "published")
+
+    def test_open_bead_leaves_published_slice_published(self):
+        self._slice(1, "scc-aaa")
+        ps.closed_backend_ids = lambda root: set()  # nothing closed
+        [s1] = ps.scan_slices(self.root, "demo")
+        self.assertEqual(s1["status"], "published")
+
+    def test_closed_backend_ids_degrades_without_beads(self):
+        # No .beads store (and/or no bd CLI) -> empty set, never a crash. Keeps
+        # the generator runnable on any project (it falls back to the file view).
+        self.assertEqual(ps.closed_backend_ids(self.root), set())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -23,6 +23,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime, timezone
+from functools import lru_cache
 
 # ---------------- frontmatter (minimal YAML-ish, mirrors scan.ts) ----------------
 
@@ -277,12 +278,42 @@ def read_ticket_status_log(root, feature, slice_num):
     return items[-1] if items else None
 
 
-def derive_slice_status(raw_status, last_activity, depends_on, merged_ids):
+@lru_cache(maxsize=None)
+def closed_backend_ids(root):
+    """Bead IDs the beads backend reports as closed — the runtime done-signal a
+    slice's frozen frontmatter intentionally never carries (canonical status only
+    moves open->published->removed; 'merged' is a backend fact, build/SKILL.md).
+    Best-effort: an empty set when the project has no `.beads` store or the `bd`
+    CLI is unavailable, so the generator still runs on any project and falls back
+    to the file-only view. Cached per root — the run shells out to `bd` once."""
+    if not os.path.isdir(os.path.join(root, ".beads")):
+        return frozenset()
+    try:
+        proc = subprocess.run(
+            ["bd", "list", "--status=closed", "--json"],
+            cwd=root, capture_output=True, text=True, timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return frozenset()
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return frozenset()
+    try:
+        issues = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return frozenset()
+    if not isinstance(issues, list):
+        return frozenset()
+    return frozenset(i["id"] for i in issues if isinstance(i, dict) and i.get("id"))
+
+
+def derive_slice_status(raw_status, last_activity, depends_on, merged_ids, is_backend_merged=False):
     if raw_status == "removed":
         return "removed"
     if raw_status == "open":
         return "planned"
-    if last_activity and re.match(r"^## Completion", last_activity, re.I):
+    # 'merged' is a runtime fact — a closed backend ticket or a ticket Completion
+    # log — never the frozen canonical status, which never says 'merged'.
+    if is_backend_merged or (last_activity and re.match(r"^## Completion", last_activity, re.I)):
         return "merged"
     if last_activity:
         return "in-progress"
@@ -318,10 +349,19 @@ def scan_slices(root, feature):
             "file": os.path.relpath(os.path.join(d, f), root), "lastActivity": last_activity,
         }
         interim.append(info)
+    # A slice whose backend ticket is closed is merged, even when its frozen
+    # frontmatter still reads 'published' (scc-934). Seed merged_ids with those
+    # so dependents unblock too; the canonical files are never touched.
+    closed = closed_backend_ids(root)
+    backend_merged = {x["id"] for x in interim if x["backendRefs"].get("beads") in closed}
     merged_ids = set(x["id"] for x in interim
                      if re.match(r"^## Completion", x["lastActivity"] or "", re.I) or x["rawStatus"] == "merged")
+    merged_ids |= backend_merged
     for x in interim:
-        x["status"] = derive_slice_status(x["rawStatus"], x["lastActivity"], x["dependsOn"], merged_ids)
+        x["status"] = derive_slice_status(
+            x["rawStatus"], x["lastActivity"], x["dependsOn"], merged_ids,
+            is_backend_merged=x["id"] in backend_merged,
+        )
         if x["status"] == "merged":
             merged_ids.add(x["id"])
     return interim
