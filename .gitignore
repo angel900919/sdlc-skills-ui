@@ -23,3 +23,7 @@ data/
 
 # Playwright MCP browser-smoke artifacts (console logs, snapshots, screenshots)
 .playwright-mcp/
+
+# Generated dashboard snapshot — a live process regenerates it (timestamp/SHA
+# churn), so tracking it produces a conflict on every merge.
+dashboard/state.json
