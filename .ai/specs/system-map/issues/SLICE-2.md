@@ -17,8 +17,12 @@ satisfies_user_stories: [US-3]
 satisfies_nfrs: [NFR-4]
 satisfies_unwanted: []
 files:
+  - { path: packages/shared/src/architectureModel.ts, op: modify }
   - { path: apps/server/src/state/deriveComponentStatus.ts, op: modify }
   - { path: apps/server/src/state/deriveComponentStatus.test.ts, op: new }
+  - { path: apps/server/src/state/parseComponentsModel.ts, op: modify }
+  - { path: apps/server/src/routes/api.ts, op: modify }
+  - { path: apps/server/src/routes/architecture.test.ts, op: modify }
   - { path: apps/web/src/components/ComponentInspector.tsx, op: new }
   - { path: apps/web/src/pages/ArchitecturePage.tsx, op: modify }
 hitl_reason: ""
@@ -41,6 +45,15 @@ the jump from "this box" to the actual work. The component's status now reflects
 The work join walks component → feature → slice → issue refs; a component with no resolvable
 feature renders an honest "unlinked" rather than a synthesized link, and its status falls back to
 `done` as-built (never fabricated progress).
+
+## Mapping source (decided)
+The component→feature join reads `.ai/features.md`'s `satisfies` column — the canonical
+component↔feature mapping, comprehensive across all features and already the trace-status
+source of truth. It is parsed server-side, reusing `parseComponentsModel.ts`'s existing
+markdown-table helpers (`findTable`/`splitRow`); the column lists feature→components, so the
+join inverts it to component→features. This avoids touching the Python state generator
+(`project-state.py` / `ProjectState`) and the per-feature `maps_to_component` design frontmatter.
+`features.md` is a read-only input — like `02-components.md`, it is not a `files:` entry.
 
 ## Acceptance criteria
 - [ ] `deriveComponentStatus.test.ts` over a `makeState` fixture: the join resolves a feature/slice/issue for the majority of the 7 components (R-2)
