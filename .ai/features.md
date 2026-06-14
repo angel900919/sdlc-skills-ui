@@ -44,11 +44,12 @@ created: 2026-06-13
 | docs-and-skills-browser | Rendered project docs/artifacts + skills catalog | — | shipped | mvp | — | DeriveProjectState, RenderFlightDeck |
 | observability-data-pruning | Prune old observability data (audit events, usage samples, transcript copies) by age, from the UI | P0 | shipped | mvp | session-observability | PersistAndBroadcast, ServeApiAndWs, RenderFlightDeck · data-management retention follow-up |
 | oldest-record-age | Show each prunable kind's oldest record as a relative age ("63 days ago") beside the date in the Storage panel | P1 | shipped | mvp | observability-data-pruning | RenderFlightDeck · storage-panel legibility |
-| system-map | Architecture tab — live status-colored component graph + inspector + SDLC-progress view over the declared model | P0 | qa-approved | mvp | — | DeriveProjectState, RenderFlightDeck, ShareDomainModel · behavior: orient-on-system-shape (new — fold into understanding) |
+| system-map | Architecture tab — live status-colored component graph + inspector + SDLC-progress view over the declared model | P0 | shipped | mvp | — | DeriveProjectState, RenderFlightDeck, ShareDomainModel · behavior: orient-on-system-shape (new — fold into understanding) |
 
 <!-- row added planned by /feature-map 2026-06-13 (system-map: beyond_roster registration; P0, mvp; prd/design/plan/adr already complete — next hop /to-issues, not /prd) -->
 <!-- status flip planned → building by /to-issues 2026-06-13 (system-map: 4 canonical slices written — SLICE-{1..4}.md; all AFK/typescript; S3 skip-tests) -->
 <!-- status flip building → qa-approved by /qa 2026-06-14 (system-map: 6 PASS / 0 FAIL / 3 WARN [security+a11y+runbook, mvp non-gating] / 2 SKIP [prod-only]; full suite 217 green; approved by Andres Rambal on the record) -->
+<!-- status flip qa-approved → shipped by /ship 2026-06-14 (system-map: local-first — shipped = merged on v2-prototype-architecture-tab + runs from source; no remote deploy/pipeline, no tag, no flag; /api/health smoke green; authorized by Andres Rambal on the record) -->
 
 <!-- status flip planned → building by /to-issues 2026-06-13 (3 canonical slices written) -->
 <!-- status flip building → qa-approved by /qa 2026-06-13 (7 PASS / 0 FAIL / 2 WARN; approved on the record) -->

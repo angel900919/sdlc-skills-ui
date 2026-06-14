@@ -1,5 +1,10 @@
 # Progress tracker — append-only session log
 
+## 2026-06-14 — ship landed (system-map) — SHIPPED (qa-approved → shipped)
+- Artifact: `.ai/features.md` row flipped qa-approved → shipped; release notes printed in chat (no CHANGELOG.md at repo root, so none appended — per /ship rule 5). No new per-feature file.
+- Key decision(s): local-first ship — `environments.md` has a single `local` env, `deploy_mechanism: none`, no CI/pipeline, `flag_system: none`. "Shipped" = merged on `v2-prototype-architecture-tab` + runs from source; no remote deploy, no tag, no flag flip. `/api/health` smoke green (`ok:true`) this run; build was 217/217 + typecheck clean at QA. Authorized by Andres Rambal on the record. Anchor open question (release_policy.versioning semver-vs-none) still unresolved — non-blocking, recommend closing.
+- Next: success metric has a 14-day window → `/measure system-map` due ~2026-06-28 (adoption: Architecture-tab opens ÷ code-touching sessions; kill criterion <20%). Owed follow-ups (accepted at QA): `/security-review`, `/threat-model`, `/runbook system-map`, per-slice UI smoke. Delete the merged `feature/scc-4ra--…` branch. Then start the next feature via `/feature-map` (or `/prd <next>`). Open tickets: scc-yxt (watcher flake), scc-934 (slice board vs beads), scc-q81 (parser hardening).
+
 ## 2026-06-14 — qa landed (system-map) — APPROVED, building → qa-approved (READY-FOR-SHIP)
 - Artifact: `.ai/specs/system-map/qa-report.md` (evidence) + `.human/specs/system-map/qa-report.md` (gate summary + acceptance/exploratory script). Mechanical checks (closure, coverage, regression, NFR existence, invariants) ran in a read-only `verifier` subagent.
 - Key decision(s): 6 PASS / 0 FAIL / 3 WARN / 2 SKIP. Full suite 217/217 + typecheck clean this run (the scc-yxt watcher flake did not recur); 5/5 stories + 4/4 NFRs traced to closed slices with backing tests; 3 architecture invariants hold. WARNs are mvp-non-gating: no `/security-review` + no threat-model, no WCAG pass on the tab, no runbook — all accepted on the record by Andres Rambal. SKIPs are production-only (fitness, unwanted-EARS). `features.md` flipped building → qa-approved.
