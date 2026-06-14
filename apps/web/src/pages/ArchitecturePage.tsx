@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import {
   ReactFlow, Background, Controls, MiniMap,
   type Edge, type Node, type NodeProps,
@@ -9,8 +9,11 @@ import '@xyflow/react/dist/style.css';
 import type { ArchNodeStatus, ComponentNode } from '@sdlc/shared';
 import { palette, microLabel } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
-import { useArchitecture } from '../api/hooks.js';
+import { useArchitecture, useProjectState } from '../api/hooks.js';
 import { ComponentInspector } from '../components/ComponentInspector.js';
+import { SdlcProgress } from '../components/SdlcProgress.js';
+
+type ArchView = 'graph' | 'sdlc';
 
 const NODE_W = 188;
 const NODE_H = 58;
@@ -92,6 +95,8 @@ const nodeTypes = { component: ComponentGraphNode };
 export function ArchitecturePage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
   const { data: model, isLoading, error } = useArchitecture(projectId);
+  const { data: projectStateData } = useProjectState(projectId);
+  const [view, setView] = useState<ArchView>('graph');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
@@ -163,17 +168,32 @@ export function ArchitecturePage() {
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Stack direction="row" sx={{ alignItems: 'center', gap: 2, px: 2.5, py: 1.25, borderBottom: `1px solid ${palette.hairline}`, flexShrink: 0 }}>
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={view}
+          onChange={(_, v: ArchView | null) => v && setView(v)}
+          sx={{ '& .MuiToggleButton-root': { py: 0.3, px: 1, fontSize: 11, textTransform: 'none', fontFamily: '"IBM Plex Mono", monospace' } }}
+        >
+          <ToggleButton value="graph">System graph</ToggleButton>
+          <ToggleButton value="sdlc">SDLC progress</ToggleButton>
+        </ToggleButtonGroup>
         <Typography sx={{ ...microLabel }}>
-          System map · components and their dependencies, from the declared architecture model
+          {view === 'graph'
+            ? 'components and their dependencies, from the declared architecture model'
+            : 'chain stages by phase, colored by status, next stage marked'}
         </Typography>
         <Box sx={{ flex: 1 }} />
-        {model && (
+        {view === 'graph' && model && (
           <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: palette.faint }}>
             {model.components.length} components · {model.edges.length} edges
           </Typography>
         )}
       </Stack>
 
+      {view === 'sdlc' ? (
+        <SdlcProgress projectId={projectId} state={projectStateData?.state ?? null} />
+      ) : (
       <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <ReactFlow
           nodes={nodes}
@@ -226,6 +246,7 @@ export function ArchitecturePage() {
           ))}
         </Stack>
       </Box>
+      )}
     </Box>
   );
 }
