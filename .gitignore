@@ -27,3 +27,7 @@ data/
 # Generated dashboard snapshot — a live process regenerates it (timestamp/SHA
 # churn), so tracking it produces a conflict on every merge.
 dashboard/state.json
+
+# mtdd runtime cycle state — one-cycle scratch written by /mtdd-cycle (the
+# orchestrator). Unlike .mtdd/config (shared, committed), this is per-run state.
+.mtdd/cycle-state
