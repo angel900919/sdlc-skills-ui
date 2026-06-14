@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify';
+import { trace } from '@opentelemetry/api';
 import type { HookEvent, MetricsSummary } from '@sdlc/shared';
 import { buildTrace } from '@sdlc/shared';
 import { db } from '../db.js';
 import { bus } from '../bus.js';
+import { logger } from '../logger.js';
 import {
   addProject,
   getProject,
@@ -10,7 +12,7 @@ import {
   removeProject,
 } from '../state/projects.js';
 import { getProjectState, refreshProjectState } from '../state/projectState.js';
-import { loadArchitecture } from '../state/parseComponentsModel.js';
+import { readArchitecture } from '../state/parseComponentsModel.js';
 import { loadSkills } from '../state/skillsCatalog.js';
 import { buildDocsTree, readDocFile } from '../state/docsTree.js';
 import {
@@ -40,6 +42,15 @@ import { searchTranscripts } from '../state/search.js';
 import { reportStorageStats } from '../state/storageStats.js';
 import { previewPrune, pruneObservabilityRecords } from '../state/storagePrune.js';
 import { transcriptToMarkdown } from '@sdlc/shared';
+
+/**
+ * The architecture serve span reuses the process-wide OTel tracer (no new
+ * infra, NFR-1). When telemetry is disabled — the default — `getTracer` returns
+ * the API's no-op tracer, so the span costs nothing and the `trace_id` falls
+ * back to the all-zero invalid id; the structured `architecture.serve` log is
+ * the always-on latency signal regardless of export.
+ */
+const serveTracer = trace.getTracer('sdlc-command-center');
 
 export function registerApiRoutes(app: FastifyInstance) {
   // ---- health -------------------------------------------------------------
@@ -108,11 +119,22 @@ export function registerApiRoutes(app: FastifyInstance) {
     const project = getProject(id);
     if (!project) return reply.code(404).send({ error: 'not found' });
     // ProjectState comes from its own per-TTL cache; the work join is folded
-    // into loadArchitecture's cache, so neither recomputes per call (NFR-4).
+    // into readArchitecture's cache, so neither recomputes per call (NFR-4).
     const state = await getProjectState(project.rootPath);
-    const architecture = loadArchitecture(project.rootPath, state);
-    if (!architecture) return reply.code(404).send({ error: 'architecture not found' });
-    return architecture;
+    return serveTracer.startActiveSpan('architecture.serve', async (span) => {
+      const start = performance.now();
+      const { model, cacheHit } = readArchitecture(project.rootPath, state);
+      const durationMs = Math.round((performance.now() - start) * 1000) / 1000;
+      const traceId = span.spanContext().traceId;
+      span.setAttributes({ 'sdlc.project.id': id, 'architecture.cache_hit': cacheHit });
+      span.end();
+      logger.info(
+        { 'architecture.serve': { project_id: id, cache_hit: cacheHit, duration_ms: durationMs, trace_id: traceId } },
+        'architecture.serve',
+      );
+      if (!model) return reply.code(404).send({ error: 'architecture not found' });
+      return model;
+    });
   });
 
   app.get('/api/projects/:id/skills', async (req, reply) => {
