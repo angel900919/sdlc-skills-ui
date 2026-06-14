@@ -40,6 +40,11 @@ const STATUS_COLOR: Record<ArchNodeStatus, string> = {
   unknown: palette.faint,
 };
 
+/**
+ * react-flow types a node's `data` as a loose `Record<string, unknown>`, so the
+ * render sites narrow it back to this shape with `data as ArchNodeData` — the
+ * `extends Record<string, unknown>` keeps that assertion sound.
+ */
 interface ArchNodeData extends Record<string, unknown> {
   label: string;
   sub: string;
@@ -50,6 +55,7 @@ interface ArchNodeData extends Record<string, unknown> {
 const handleStyle = { background: palette.hairlineBright, border: 'none', width: 6, height: 6 };
 
 function ComponentGraphNode({ data }: NodeProps) {
+  // see ArchNodeData: react-flow's NodeProps.data is untyped; narrow to our shape.
   const { label, sub, status, external } = data as ArchNodeData;
   const color = STATUS_COLOR[status] ?? palette.faint;
   return (
