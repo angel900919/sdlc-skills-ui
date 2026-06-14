@@ -202,3 +202,75 @@ describe('parseComponentFeatureMap — inverts features.md satisfies column', ()
     expect(parseComponentFeatureMap(md).size).toBe(0);
   });
 });
+
+describe('R-2 — the join resolves the majority of the 7 real components', () => {
+  // The 7 real architecture components, verbatim from .ai/architecture/02-components.md.
+  const REAL_COMPONENTS = [
+    'RunClaudeSessions',
+    'IngestObservability',
+    'ServeApiAndWs',
+    'DeriveProjectState',
+    'PersistAndBroadcast',
+    'RenderFlightDeck',
+    'ShareDomainModel',
+  ] as const;
+
+  // A faithful slice of .ai/features.md: the satisfies column across these rows
+  // covers all 7 real components, so parseComponentFeatureMap yields the real
+  // inversion (· behavior annotations and (parentheticals) stripped).
+  const realFeaturesMd = [
+    '| id | title | priority | status | tier | depends_on | satisfies |',
+    '| :-- | :-- | :-- | :-- | :-- | :-- | :-- |',
+    '| live-terminal-sessions | Drive terminals | — | shipped | mvp | — | RunClaudeSessions, RenderFlightDeck · behavior: launch-a-chain-step |',
+    '| session-observability | Live stream | — | shipped | mvp | — | IngestObservability · behavior: launch-a-chain-step |',
+    '| diff-review-panel | Branch diff review | — | shipped | mvp | — | ServeApiAndWs |',
+    '| transcript-search | FTS search | — | shipped | mvp | — | PersistAndBroadcast (FTS5) |',
+    '| system-map | Architecture tab | P0 | building | mvp | — | DeriveProjectState, RenderFlightDeck, ShareDomainModel · behavior: orient-on-system-shape |',
+  ].join('\n');
+
+  it('resolves a feature, slice, and issue ref for the majority of the 7 components (R-2)', () => {
+    const map = parseComponentFeatureMap(realFeaturesMd);
+
+    // Project state has generated only a subset of the satisfying features —
+    // enough that the majority of components resolve, the rest stay honestly unlinked.
+    const state = makeState([
+      makeFeature({
+        slug: 'live-terminal-sessions',
+        slices: [makeSlice({ id: 'LTS-1', feature: 'live-terminal-sessions', status: 'merged', backendRefs: { beads: 'scc-001' } })],
+      }),
+      makeFeature({
+        slug: 'session-observability',
+        slices: [makeSlice({ id: 'SO-1', feature: 'session-observability', status: 'merged', backendRefs: { beads: 'scc-002' } })],
+      }),
+      makeFeature({
+        slug: 'system-map',
+        slices: [makeSlice({ id: 'SLICE-2', feature: 'system-map', status: 'in-progress', backendRefs: { beads: 'scc-byg' } })],
+      }),
+    ]);
+
+    const joins = REAL_COMPONENTS.map((id) => ({ id, join: joinComponentWork(makeComponent(id), map, state) }));
+
+    // "Resolves a feature/slice/issue" = a feature row, at least one slice, and at least one issue ref.
+    const resolved = joins.filter(
+      ({ join }) =>
+        join.feature !== undefined &&
+        join.slices.length > 0 &&
+        Object.keys(join.slices[0].issueRefs).length > 0,
+    );
+
+    // Majority of 7 → at least 4. Here 5 resolve through the 3 generated features.
+    expect(resolved.length).toBeGreaterThanOrEqual(4);
+    expect(resolved.map((r) => r.id).sort()).toEqual(
+      ['DeriveProjectState', 'IngestObservability', 'RenderFlightDeck', 'RunClaudeSessions', 'ShareDomainModel'].sort(),
+    );
+
+    // The components whose satisfying features are not yet generated stay honestly
+    // unlinked — as-built `done`, never fabricated progress.
+    const unlinked = joins.filter(({ join }) => join.feature === undefined);
+    expect(unlinked.map((u) => u.id).sort()).toEqual(['PersistAndBroadcast', 'ServeApiAndWs'].sort());
+    for (const { join } of unlinked) {
+      expect(join.slices).toHaveLength(0);
+      expect(join.status).toBe('done');
+    }
+  });
+});
