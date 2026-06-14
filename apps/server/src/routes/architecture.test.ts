@@ -191,6 +191,39 @@ describe('loadArchitecture — the work join off the request path', () => {
   });
 });
 
+describe('GET /api/projects/:id/architecture — serve-latency instrumentation (NFR-1)', () => {
+  it('emits an architecture.serve log with project_id, cache_hit, duration_ms and trace_id', async () => {
+    const { logger } = await import('../logger.js');
+    const infoSpy = vi.spyOn(logger, 'info');
+    await app.inject({ method: 'GET', url: `/api/projects/${knownId}/architecture` });
+
+    const serveCall = infoSpy.mock.calls.find((call) => call[1] === 'architecture.serve');
+    infoSpy.mockRestore();
+    expect(serveCall).toBeDefined();
+    const fields = (serveCall![0] as { 'architecture.serve': Record<string, unknown> })['architecture.serve'];
+    expect(fields).toMatchObject({ project_id: knownId, cache_hit: expect.any(Boolean) });
+    expect(typeof fields.duration_ms).toBe('number');
+    expect(typeof fields.trace_id).toBe('string');
+  });
+
+  it('serves a ≤ 50-component model under the p95 ≤ 300 ms latency budget (NFR-1)', async () => {
+    // Warm the cache so the measured window is the served-from-cache path the
+    // budget governs; a cold parse is a one-off, not the p95 the SLO targets.
+    await app.inject({ method: 'GET', url: `/api/projects/${knownId}/architecture` });
+
+    const samples: number[] = [];
+    for (let i = 0; i < 20; i += 1) {
+      const start = performance.now();
+      const res = await app.inject({ method: 'GET', url: `/api/projects/${knownId}/architecture` });
+      samples.push(performance.now() - start);
+      expect(res.statusCode).toBe(200);
+    }
+    samples.sort((a, b) => a - b);
+    const p95 = samples[Math.ceil(0.95 * samples.length) - 1];
+    expect(p95).toBeLessThanOrEqual(300);
+  });
+});
+
 describe('readArchitecture — reports cache_hit for the serve-latency log (NFR-1)', () => {
   it('reports cacheHit=false on the cold build and true on the warm hit', () => {
     const root = makeProjectWithModel();
