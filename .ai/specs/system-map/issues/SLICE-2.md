@@ -14,7 +14,7 @@ language: typescript
 depends_on: [1]
 satisfies_f_ids: []
 satisfies_user_stories: [US-3]
-satisfies_nfrs: [NFR-1, NFR-4]
+satisfies_nfrs: [NFR-4]
 satisfies_unwanted: []
 files:
   - { path: apps/server/src/state/deriveComponentStatus.ts, op: modify }
@@ -45,7 +45,7 @@ feature renders an honest "unlinked" rather than a synthesized link, and its sta
 ## Acceptance criteria
 - [ ] `deriveComponentStatus.test.ts` over a `makeState` fixture: the join resolves a feature/slice/issue for the majority of the 7 components (R-2)
 - [ ] Status maps real `FeatureState`/`SliceState`: any-blocked → blocked, any-in-progress → in-progress, all-merged → done, no-feature → done as-built
-- [ ] NFR-1: the enriched `GET …/architecture` stays p95 ≤ 300 ms (server OTel span, local)
+- [ ] NFR-1 (latency): not owned by this slice — the p95 gate + `architecture.serve` instrumentation land in SLICE-4 (scc-4ra). This slice must not regress it: the component→feature/slice join is derived off the request path (NFR-4), so the enriched route stays non-blocking
 - [ ] NFR-4: the join is derived off the request path (no per-call recompute)
 - [ ] Smoke: clicking each node opens the inspector with non-empty role/files/deps; owner + linked refs render, or show an honest "unlinked"
 - [ ] typecheck passes
@@ -53,7 +53,7 @@ feature renders an honest "unlinked" rather than a synthesized link, and its sta
 
 ## Traceability
 - PRD: US-3 — click a component → inputs, outputs, dependencies, files, owner, linked feature + slices + issue refs
-- PRD: NFR-1 (latency: enriched response still p95 ≤ 300 ms, server OTel)
+- PRD: NFR-1 (latency: enriched response still p95 ≤ 300 ms, server OTel) — measurement owned by SLICE-4 (scc-4ra); this slice must not regress it
 - PRD: NFR-4 (non-interference: join derived off the request path)
 - Plan: Slice 2 — Component inspector with the work join
 - Architecture: `DeriveProjectState` (component→feature→slice→issue join) · `RenderFlightDeck` (inspector) — `.ai/architecture/02-components.md`

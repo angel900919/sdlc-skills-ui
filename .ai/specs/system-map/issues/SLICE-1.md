@@ -14,7 +14,7 @@ language: typescript
 depends_on: []
 satisfies_f_ids: []
 satisfies_user_stories: [US-1, US-2]
-satisfies_nfrs: [NFR-1, NFR-3, NFR-4]
+satisfies_nfrs: [NFR-3, NFR-4]
 satisfies_unwanted: []
 files:
   - { path: packages/shared/src/architectureModel.ts, op: new }
@@ -54,7 +54,7 @@ dirs so the twin never describes its own output.
 - [ ] `parseComponentsModel.test.ts` round-trips the real components model → 7 components / 10 edges; parse→serialize→diff = 0 dropped or invented (NFR-3)
 - [ ] `architecture.test.ts` → 200 with the model for a known project, 404 for an unknown project
 - [ ] `architectureModel.test.ts` covers the `rollupStatus` helper as a unit
-- [ ] NFR-1: `GET /api/projects/:id/architecture` p95 ≤ 300 ms (server OTel span, local) — parse cached after first load
+- [ ] NFR-1 (latency): not owned by this slice — the p95 ≤ 300 ms gate and its `architecture.serve` instrumentation are delivered in SLICE-4 (scc-4ra). This slice must not regress serve latency: the route returns from the per-TTL `loadArchitecture` cache on warm hits, and the parse never blocks the observed session (NFR-4)
 - [ ] NFR-4: parse is off the request path (lazy-cached, projectState TTL idiom) — the route test confirms it does not re-parse per call
 - [ ] Smoke: the tab renders 7 nodes / 10 edges status-colored (no E2E spec — system-map maps to none in test-strategy; manual smoke)
 - [ ] typecheck passes
@@ -63,7 +63,7 @@ dirs so the twin never describes its own output.
 ## Traceability
 - PRD: US-1 — open the Architecture tab and see components + how they connect
 - PRD: US-2 — each component colored by status (done / building / planned / blocked)
-- PRD: NFR-1 (latency: `GET …/architecture` p95 ≤ 300 ms for a model ≤ 50 components, server OTel)
+- PRD: NFR-1 (latency: `GET …/architecture` p95 ≤ 300 ms, server OTel) — measurement owned by SLICE-4 (scc-4ra); this slice must not regress it
 - PRD: NFR-3 (accuracy: rendered model matches `.ai/architecture/` exactly — 0 dropped/invented)
 - PRD: NFR-4 (non-interference: building/serving the model never blocks an observed session)
 - Plan: Slice 1 — Render the declared component graph, status-colored (tracer bullet)

@@ -35,11 +35,11 @@ created: 2026-06-13
   - `apps/web/src/api/hooks.ts` — modify (`useArchitecture`, fetch-only)
   - `apps/web/src/pages/ArchitecturePage.tsx` — new (graph, static node positions like PipelinePage)
   - `apps/web/src/App.tsx` · `apps/web/src/components/Shell.tsx` — modify (route + nav entry)
-- **Satisfies:** `US-1` (see components + connections) · `US-2` (colored by status) · `NFR-1` (latency) · `NFR-3` (accuracy) · `NFR-4` (non-interference).
+- **Satisfies:** `US-1` (see components + connections) · `US-2` (colored by status) · `NFR-3` (accuracy) · `NFR-4` (non-interference).
 - **New dependencies:** none (all in anchor allowlist; `@xyflow/react` already shipped).
 - **Acceptance:**
   - Tests pass: `parseComponentsModel.test.ts` round-trips the real `02-components.md` → 7 components / 10 edges, parse→serialize→diff = 0 dropped/invented (**NFR-3**); `architecture.test.ts` → 200 model + 404 unknown project; `architectureModel.test.ts` rollup unit.
-  - **NFR-1:** `GET …/architecture` p95 ≤ 300 ms (server OTel span, local) — parse cached after first load.
+  - **NFR-1:** not owned here — the p95 gate + `architecture.serve` instrumentation land in Slice 4; this slice must not regress serve latency (route returns from the per-TTL cache on warm hits; parse never blocks the observed session — NFR-4).
   - **NFR-4:** parse is off the request path (lazy-cached, projectState TTL idiom) — confirmed by the route test not re-parsing per call.
   - Smoke: tab renders 7 nodes / 10 edges status-colored (no E2E spec — system-map maps to none in `test-strategy.md`; manual smoke per the named-but-unmaterialized suite).
 
@@ -52,11 +52,11 @@ created: 2026-06-13
   - `apps/server/src/state/deriveComponentStatus.test.ts` — new
   - `apps/web/src/components/ComponentInspector.tsx` — new (StageDetail panel pattern)
   - `apps/web/src/pages/ArchitecturePage.tsx` — modify (node click → inspector)
-- **Satisfies:** `US-3` (click → inputs/outputs/deps/files/owner/linked refs) · `NFR-1` (enriched response still p95 ≤ 300 ms) · `NFR-4` (join derived off the request path).
+- **Satisfies:** `US-3` (click → inputs/outputs/deps/files/owner/linked refs) · `NFR-4` (join derived off the request path).
 - **New dependencies:** none.
 - **Acceptance:**
   - Tests pass: `deriveComponentStatus.test.ts` over a `makeState` fixture — the join resolves a feature/slice/issue for the majority of the 7 components (**R-2**); status maps real `FeatureState`/`SliceState` (any-blocked→blocked, any-in-progress→in-progress, all-merged→done, no-feature→done as-built).
-  - **NFR-1:** enriched `…/architecture` p95 ≤ 300 ms (server OTel span, local).
+  - **NFR-1:** not owned here — measurement lands in Slice 4; this slice must not regress it (the join is derived off the request path — NFR-4).
   - Smoke: clicking each node opens the inspector with non-empty role/files/deps; owner + linked refs render or show an honest "unlinked".
 
 ## Slice 3 — SDLC progress view
@@ -84,10 +84,11 @@ created: 2026-06-13
   - `apps/server/src/routes/architecture.test.ts` — modify (add `POST …/events` case)
   - `apps/web/src/api/hooks.ts` · `apps/web/src/App.tsx` — modify (WsBridge listener → `invalidateQueries`)
   - `apps/web/src/pages/ArchitecturePage.tsx` — modify (emit `nav` on mount)
-- **Satisfies:** `US-4` (refresh on model regen) · `NFR-2` (freshness ≤ 2 s) · `NFR-4` (nav POST fire-and-forget, watch debounced — never blocks).
+- **Satisfies:** `US-4` (refresh on model regen) · `NFR-1` (serve latency — instruments the `architecture.serve` log + span) · `NFR-2` (freshness ≤ 2 s) · `NFR-4` (nav POST fire-and-forget, watch debounced — never blocks).
 - **New dependencies:** none.
 - **Acceptance:**
   - Tests pass: `architecture.test.ts` → `POST …/events` writes a `nav` `audit_events` row (`source:'user'`, `detail.path:'/architecture'`) + 400 on a bad kind; watcher emits `architecture-changed` on an `.ai/architecture/` change (integration).
+  - **NFR-1:** `GET …/architecture` emits an `architecture.serve {project_id, cache_hit, duration_ms, trace_id}` log + reuses the existing OTel tracer for an `architecture.serve` span (no new infra); p95 ≤ 300 ms for a model ≤ 50 components.
   - **NFR-2:** touch `02-components.md` → re-rendered graph ≤ 2 s, timestamped (800 ms debounce + refetch).
   - Smoke: merge a slice (or edit `02-components.md`) → tab updates with no manual refresh; the metric denominator is the existing `hook_events` PostToolUse Edit/Write.
 
@@ -99,4 +100,4 @@ created: 2026-06-13
 - `beyond_roster: true` — register `system-map` via `/feature-map` (P0, mvp) before `/build`.
 
 ## Verdict
-**READY-FOR-ISSUES** — 4 vertical, dependency-ordered, independently-mergeable slices, each one PR. Slice 1 is the tracer bullet: the thinnest real path (shared types → markdown parse → status derive → project-scoped serve → react-query fetch → `@xyflow/react` render → nav route) that ships US-1/US-2 and proves NFR-1/3/4. Slices 2 (inspector + join), 3 (SDLC view), 4 (auto-refresh + adoption metric) each depend only on Slice 1 and are parallelizable. Every slice traces to ≥1 user story + ≥1 NFR with mechanical, measured acceptance; no new dependencies (LikeC4 deferred per design `adr/0001`). All five architecture invariants cross-checked — no slice violates one. Next: `/to-issues system-map` expands the slices into canonical issue files; `/publish-issues` mints a bead per slice and opens the build loop. The builder uses the exact (zero) new packages named here — no substitutions.
+**READY-FOR-ISSUES** — 4 vertical, dependency-ordered, independently-mergeable slices, each one PR. Slice 1 is the tracer bullet: the thinnest real path (shared types → markdown parse → status derive → project-scoped serve → react-query fetch → `@xyflow/react` render → nav route) that ships US-1/US-2 and proves NFR-3/4 (the NFR-1 latency gate + `architecture.serve` instrumentation are deferred to Slice 4). Slices 2 (inspector + join), 3 (SDLC view), 4 (auto-refresh + adoption metric) each depend only on Slice 1 and are parallelizable. Every slice traces to ≥1 user story + ≥1 NFR with mechanical, measured acceptance; no new dependencies (LikeC4 deferred per design `adr/0001`). All five architecture invariants cross-checked — no slice violates one. Next: `/to-issues system-map` expands the slices into canonical issue files; `/publish-issues` mints a bead per slice and opens the build loop. The builder uses the exact (zero) new packages named here — no substitutions.

@@ -1,8 +1,8 @@
 {
   "root": "/Users/andresrambal/Projects/LAB53/agentic-skills/SDLC-skills-UI-approach2",
   "projectName": "SDLC-skills-UI-approach2",
-  "generatedAt": "2026-06-14T00:33:09.673931+00:00",
-  "generatedAtSha": "f32d6cc",
+  "generatedAt": "2026-06-14T00:04:59.315050+00:00",
+  "generatedAtSha": "8f9a001",
   "foundation": {
     "discover": {
       "present": false,
@@ -153,6 +153,46 @@
   ],
   "recentCommits": [
     {
+      "sha": "8f9a001",
+      "date": "2026-06-14",
+      "subject": "docs(system-map): descope NFR-1 p95/OTel-span gate from the tracer"
+    },
+    {
+      "sha": "c069a1d",
+      "date": "2026-06-14",
+      "subject": "feat(web): Architecture tab renders the declared component graph"
+    },
+    {
+      "sha": "013c603",
+      "date": "2026-06-14",
+      "subject": "green: loadArchitecture reads+parses+derives once per TTL, served by the route"
+    },
+    {
+      "sha": "8755e1f",
+      "date": "2026-06-14",
+      "subject": "red: GET /api/projects/:id/architecture serves the model, parse off-path"
+    },
+    {
+      "sha": "28e4e9c",
+      "date": "2026-06-14",
+      "subject": "green: parse + serialize the components model, round-trip on the model"
+    },
+    {
+      "sha": "404698b",
+      "date": "2026-06-14",
+      "subject": "red: parse 02-components.md to 7 components / 10 edges, round-trip clean"
+    },
+    {
+      "sha": "49a7445",
+      "date": "2026-06-14",
+      "subject": "green: rollupStatus returns highest-severity status present"
+    },
+    {
+      "sha": "7034525",
+      "date": "2026-06-14",
+      "subject": "red: rollupStatus picks the highest-severity child status"
+    },
+    {
       "sha": "f32d6cc",
       "date": "2026-06-14",
       "subject": "handoff-watchdog.sh addition"
@@ -211,72 +251,32 @@
       "sha": "482f7fc",
       "date": "2026-06-13",
       "subject": "docs(qa): record live smoke outcomes for oldest-record-age + pruning"
-    },
-    {
-      "sha": "55bc549",
-      "date": "2026-06-13",
-      "subject": "ship(oldest-record-age): qa-approved -> shipped (local-first)"
-    },
-    {
-      "sha": "3fe2e17",
-      "date": "2026-06-13",
-      "subject": "chore(dashboard): regen state.json \u2014 qa/oldest-record-age progress"
-    },
-    {
-      "sha": "f662a0d",
-      "date": "2026-06-13",
-      "subject": "chore(beads): gitignore issues.jsonl + interactions.jsonl (fix I-10)"
-    },
-    {
-      "sha": "5e80282",
-      "date": "2026-06-13",
-      "subject": "feat(qa): oldest-record-age qa-approved \u2014 /qa verifier delegation fired"
-    },
-    {
-      "sha": "b0a8d7d",
-      "date": "2026-06-13",
-      "subject": "test(oldest-record-age): tag N2 in the rounding spec for /qa check-e traceability (I-11)"
-    },
-    {
-      "sha": "46a906a",
-      "date": "2026-06-13",
-      "subject": "merge: oldest-record-age slice-1 (formatRelativeAge + StoragePanel age render)"
-    },
-    {
-      "sha": "f5bd9f5",
-      "date": "2026-06-13",
-      "subject": "chore(beads): export churn \u2014 scc-sa4 claim + implement note"
-    },
-    {
-      "sha": "e824c02",
-      "date": "2026-06-13",
-      "subject": "green: render oldest record as relative age in StoragePanel"
     }
   ],
   "recentlyModified": [
     {
-      "path": ".ai/specs/system-map/prd.md",
-      "mtime": "2026-06-14T00:32:44.987653+00:00"
-    },
-    {
       "path": ".ai/specs/system-map/plan.md",
-      "mtime": "2026-06-14T00:32:44.987002+00:00"
+      "mtime": "2026-06-14T00:04:58.053585+00:00"
     },
     {
       "path": ".ai/specs/system-map/issues/SLICE-4.md",
-      "mtime": "2026-06-14T00:32:44.986535+00:00"
+      "mtime": "2026-06-14T00:02:46.055904+00:00"
     },
     {
       "path": ".ai/specs/system-map/issues/SLICE-2.md",
-      "mtime": "2026-06-14T00:32:44.986140+00:00"
+      "mtime": "2026-06-14T00:01:22.431582+00:00"
     },
     {
       "path": ".ai/specs/system-map/issues/SLICE-1.md",
-      "mtime": "2026-06-14T00:32:44.985667+00:00"
+      "mtime": "2026-06-14T00:01:10.787323+00:00"
     },
     {
       "path": ".ai/specs/system-map/design.md",
-      "mtime": "2026-06-14T00:32:44.984901+00:00"
+      "mtime": "2026-06-13T23:54:55.035650+00:00"
+    },
+    {
+      "path": ".ai/specs/system-map/prd.md",
+      "mtime": "2026-06-13T23:54:50.617465+00:00"
     },
     {
       "path": ".ai/progress-tracker.md",

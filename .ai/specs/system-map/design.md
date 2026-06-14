@@ -137,6 +137,7 @@ _No new external deps — all in `anchor.approved_dependencies`._ The graph rend
 - **logs:** `architecture.parse {component_count, edge_count, parse_ms, ok|warn}`, `architecture.serve {project_id, cache_hit, duration_ms, trace_id}`. No PII (paths only).
 - **metric source (PRD success metric — app-emitted):** the **nav adoption event** — `audit_events {source:'user', kind:'nav', project_id, session_id?, detail:{path:'/architecture'}}`, emitted at **Flow A step 8** (tab mount). Denominator (sessions with ≥1 Edit/Write) derives from existing `hook_events` PostToolUse (`api.ts:519`). `/measure` reads: distinct code-touching sessions emitting a `nav /architecture` ÷ distinct code-touching sessions, 14-day window.
 - **spans:** reuse existing OTel — `architecture.serve` span; no new infra.
+- **ownership (NFR-1 latency):** the `architecture.serve` log + span land in SLICE-4 (the live/metrics slice), not the SLICE-1 tracer; SLICE-1/2 ship without serve-time instrumentation and must not regress serve latency. `loadArchitecture`'s per-TTL cache keeps the parse off the observed session (NFR-4) but does not by itself bound the route's own p95 — that is what the deferred span measures.
 - **freshness (NFR-2):** change→`architecture-changed`→refetch under the 2s target (800ms debounce + refetch ≈ ≤1.2s).
 
 ## Test plan

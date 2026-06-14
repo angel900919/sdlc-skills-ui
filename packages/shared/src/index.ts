@@ -1,5 +1,6 @@
 export * from './types.js';
 export * from './stageModel.js';
+export * from './architectureModel.js';
 export * from './trace.js';
 export * from './artifactPath.js';
 export * from './usage.js';

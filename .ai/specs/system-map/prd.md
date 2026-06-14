@@ -91,7 +91,7 @@ see Open questions); the animated "Living Blueprint" and C4 modes (later toggles
 ## Non-functional requirements
 | id | category | target | measurement |
 | :-- | :-- | :-- | :-- |
-| NFR-1 | Latency | `GET /api/architecture` p95 ≤ 300 ms for a model ≤ 50 components | server OTel spans, local, 7-day rolling (under anchor's 1000 ms ceiling) |
+| NFR-1 | Latency | `GET /api/architecture` p95 ≤ 300 ms for a model ≤ 50 components | server OTel spans, local, 7-day rolling (under anchor's 1000 ms ceiling). Instrumentation (`architecture.serve` log + span) is delivered with the live/metrics slice, not the initial tracer; earlier slices must not regress it |
 | NFR-2 | Freshness | tab reflects a model-file change within ≤ 2 s | timestamp: file-change → `architecture-changed` → render (watcher debounce is 800 ms) |
 | NFR-3 | Accuracy | rendered model matches `.ai/architecture/` exactly — 0 components/edges dropped or invented | round-trip test: parse → serialize → diff against source |
 | NFR-4 | Non-interference | building/serving the model never blocks an observed session | confirm parse is off the request path (cached on watch); honors the observation-non-blocking invariant |
