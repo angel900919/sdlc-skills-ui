@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import {
   ReactFlow, Background, Controls, MiniMap,
@@ -6,10 +6,11 @@ import {
   Position, Handle,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { ArchNodeStatus } from '@sdlc/shared';
+import type { ArchNodeStatus, ComponentNode } from '@sdlc/shared';
 import { palette, microLabel } from '../theme.js';
 import { useAppStore } from '../store/appStore.js';
 import { useArchitecture } from '../api/hooks.js';
+import { ComponentInspector } from '../components/ComponentInspector.js';
 
 const NODE_W = 188;
 const NODE_H = 58;
@@ -91,6 +92,22 @@ const nodeTypes = { component: ComponentGraphNode };
 export function ArchitecturePage() {
   const projectId = useAppStore((s) => s.selectedProjectId);
   const { data: model, isLoading, error } = useArchitecture(projectId);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedId((current) => (current === node.id ? null : node.id));
+  }, []);
+
+  const selected: ComponentNode | null =
+    (selectedId && model?.components.find((c) => c.id === selectedId)) || null;
+  const inEdges = useMemo(
+    () => (selected && model ? model.edges.filter((e) => e.to === selected.id) : []),
+    [selected, model],
+  );
+  const outEdges = useMemo(
+    () => (selected && model ? model.edges.filter((e) => e.from === selected.id) : []),
+    [selected, model],
+  );
 
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = [];
@@ -162,6 +179,7 @@ export function ArchitecturePage() {
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
           fitView
           minZoom={0.3}
           maxZoom={1.6}
@@ -182,6 +200,15 @@ export function ArchitecturePage() {
         </ReactFlow>
 
         <EmptyState projectId={projectId} isLoading={isLoading} error={error} hasModel={!!model} />
+
+        {selected && (
+          <ComponentInspector
+            component={selected}
+            inputs={inEdges}
+            outputs={outEdges}
+            onClose={() => setSelectedId(null)}
+          />
+        )}
 
         <Stack
           direction="row"
