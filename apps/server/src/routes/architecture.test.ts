@@ -126,6 +126,44 @@ describe('GET /api/projects/:id/architecture', () => {
     expect(res.statusCode).toBe(404);
   });
 
+  describe('POST /api/projects/:id/events — nav adoption ingest (the metric numerator)', () => {
+    it('writes a nav audit_events row (source:user, detail.path:/architecture)', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${knownId}/events`,
+        payload: { kind: 'nav', path: '/architecture' },
+      });
+      expect(res.statusCode).toBe(201);
+
+      const { db } = await import('../db.js');
+      const row = db
+        .prepare(`SELECT source, kind, project_id, detail FROM audit_events WHERE project_id = ? AND kind = 'nav' ORDER BY id DESC LIMIT 1`)
+        .get(knownId) as { source: string; kind: string; project_id: string; detail: string | null };
+      expect(row).toBeDefined();
+      expect(row.source).toBe('user');
+      expect(row.kind).toBe('nav');
+      expect(JSON.parse(row.detail ?? '{}')).toMatchObject({ path: '/architecture' });
+    });
+
+    it('returns 400 for a bad event kind', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/projects/${knownId}/events`,
+        payload: { kind: 'not-a-real-kind', path: '/architecture' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 404 when the project is unknown', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/projects/no-such-project/events',
+        payload: { kind: 'nav', path: '/architecture' },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
   it('parses off the request path — reads the model once across repeated calls (NFR-4)', async () => {
     // A fresh project → cold cache, so the read count is attributable to this test.
     const root = makeProjectWithModel();
