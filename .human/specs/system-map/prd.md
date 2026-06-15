@@ -22,6 +22,10 @@ renders them together. To understand a system or decide what to touch, you read 
   slice merges).
 - Switch to an **SDLC progress** view of where the current feature sits in the chain.
 
+**Built-in safety:** the dashboard only accepts state-changing commands that come from itself,
+running on your own machine — a request from any other web page or address is refused (403) and
+changes nothing. (Security guarantee carried from the threat model, RC-2.)
+
 ## Deliberately NOT in this version
 - The **orchestrator** (next-move recommendations / run-on-confirm) — that's a separate feature.
 - The **portfolio switcher** / multiple projects — separate.
