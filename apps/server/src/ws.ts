@@ -1,8 +1,9 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { WebSocket } from 'ws';
 import type { ClientEvent, ServerEvent } from '@sdlc/shared';
 import { bus } from './bus.js';
 import { logger } from './logger.js';
+import { isAllowedOrigin } from './originGuard.js';
 import { getScrollback, resizeSession, writeToSession } from './claude/sessionManager.js';
 
 /**
@@ -47,7 +48,16 @@ export function registerWebSocket(app: FastifyInstance) {
     }
   });
 
-  app.get('/ws', { websocket: true }, (socket: WebSocket) => {
+  app.get('/ws', { websocket: true }, (socket: WebSocket, req: FastifyRequest) => {
+    // Reject cross-site WebSocket hijacking: a WS handshake bypasses CORS, so a
+    // foreign page could otherwise open this socket, stream every terminal/
+    // transcript, and inject keystrokes into a live session (scc-7ru). Reject
+    // before wiring any subscription or message handler. (The Host/rebinding
+    // angle is covered by originHostGuard running on this upgrade GET.)
+    if (!isAllowedOrigin(req.headers.origin)) {
+      socket.close(1008, 'forbidden origin');
+      return;
+    }
     clients.set(socket, new Set(['all']));
 
     socket.on('message', (raw: Buffer) => {

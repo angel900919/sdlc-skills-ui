@@ -10,6 +10,9 @@ export const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 export const config = {
   port: Number(process.env.SDLC_PORT ?? 4317),
   host: process.env.SDLC_HOST ?? '127.0.0.1',
+  /** Vite dev-server port (apps/web/vite.config.ts), allow-listed by the
+   *  request-boundary guard as a legitimate cross-origin caller in dev. */
+  webDevPort: Number(process.env.SDLC_WEB_DEV_PORT ?? 5180),
   /** Where the SQLite db, logs and generated hook settings live. */
   dataDir: process.env.SDLC_DATA_DIR ?? path.join(REPO_ROOT, 'data'),
   /** Claude CLI binary. */

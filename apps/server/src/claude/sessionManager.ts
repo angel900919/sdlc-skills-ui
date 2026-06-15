@@ -8,6 +8,7 @@ import { logger } from '../logger.js';
 import { ensureHookSettingsFile } from './hookSettings.js';
 import { transcriptTailer } from './transcriptTailer.js';
 import { buildClaudeArgs } from './claudeArgs.js';
+import { isValidSessionId } from './sessionId.js';
 import { createSessionWorktree } from './worktrees.js';
 import { clearAttention } from '../state/attention.js';
 
@@ -110,6 +111,11 @@ export interface SpawnOptions {
 }
 
 export function spawnSession(opts: SpawnOptions): ClaudeSession {
+  // A resume id flows into a transcript file path and the claude CLI args, so a
+  // non-UUID value is a path-traversal / argument-injection vector (scc-7ru).
+  if (opts.resumeSessionId !== undefined && !isValidSessionId(opts.resumeSessionId)) {
+    throw new Error(`invalid resumeSessionId: ${opts.resumeSessionId}`);
+  }
   const id = opts.resumeSessionId ?? randomUUID();
   const settingsFile = ensureHookSettingsFile();
   const previous = opts.resumeSessionId ? getSession(opts.resumeSessionId) : null;

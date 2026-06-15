@@ -5,6 +5,7 @@ import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import { config, REPO_ROOT } from './config.js';
 import { logger } from './logger.js';
+import { allowedOrigins, originHostGuard } from './originGuard.js';
 import { bus } from './bus.js';
 import { registerApiRoutes } from './routes/api.js';
 import { registerHookRoutes } from './routes/hooks.js';
@@ -21,8 +22,13 @@ async function main() {
 
   const app = Fastify({ loggerInstance: logger as unknown as FastifyBaseLogger });
 
-  await app.register(cors, { origin: true });
+  // The loopback bind is not a sufficient boundary against a hostile browser
+  // tab (CSRF / DNS-rebinding / cross-site WS hijack) — originHostGuard is.
+  // CORS is tightened off `origin: true` to the dashboard's own origins so a
+  // foreign page also can't read responses; the guard is the write-side defense.
+  await app.register(cors, { origin: [...allowedOrigins] });
   await app.register(websocket, { options: { maxPayload: 1_048_576 } });
+  app.addHook('onRequest', originHostGuard);
 
   registerApiRoutes(app);
   registerHookRoutes(app);
