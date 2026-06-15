@@ -33,6 +33,9 @@ code renames implied.
 - Observation never interferes (IngestObservability must stay non-blocking end-to-end).
 - The pipeline never shows false progress (ShareDomainModel's verdict matching is the guard).
 - Work leaves the machine only through a human gate (ServeApiAndWs owns the PR gate).
+- The loopback boundary is enforced, not assumed (ServeApiAndWs rejects any state-changing
+  request carrying a foreign Origin or a non-loopback Host, and rejects a `/ws` upgrade from a
+  foreign Origin — scc-7ru; threat-model RC-1, from T-1/T-2/T-3).
 - Self-hosting never recurses (RunClaudeSessions strips nested CLAUDE_* env).
 - The app never observes its own output (DeriveProjectState excludes dashboard/).
 - The twin derives, never duplicates (ADR-0009) — the project graph references authoritative

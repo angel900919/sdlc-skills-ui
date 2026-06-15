@@ -107,6 +107,9 @@ see Open questions); the animated "Living Blueprint" and C4 modes (later toggles
   without a manual refresh.
 - When I switch to the SDLC view, I see chain stages grouped by phase, colored by status, with
   the current "next" stage marked.
+- *(Unwanted behavior — security; threat-model RC-2, from T-1.)* If a state-changing request
+  arrives whose Origin is not the dashboard's own (or whose Host is not the loopback server),
+  then the system (ServeApiAndWs) shall reject it with 403 and make no state change.
 
 ## Open questions
 1. **Success metric** — confirm self-adoption (≥60% of code-touching sessions) as the winning
