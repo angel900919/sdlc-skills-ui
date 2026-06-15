@@ -63,7 +63,7 @@ From `state.json`: roster (`features[]`), slice board (`slices[]` — derived st
 
 ### Phase 2 — Per-slice status (verify/label the spine)
 
-The generator already derived each slice's status; confirm against this tree (first match wins): `status: removed` → removed · `status: open` → planned · published + a `depends_on` not yet merged → blocked · backend terminal + merge commit on target → merged · backend has impl/review/verify notes OR a feature branch → in-progress · backends disagree → conflict · backend query failed → unavailable · else → published. For in-progress/merged slices also capture the **last note**: `<phase>: <one-line> (<short-time>, <SHA>)` (e.g. `merge: COMPLETED at abc1234 (2026-05-22)`).
+The generator already derived each slice's status — and (since scc-934) reconciled closed-backend slices to `merged` in the spine. **Roster mode trusts `slices[].status` as-is** — don't re-query backends per slice to re-derive merged-ness the spine already carries (that work is done and cached). Apply this tree only where the spine can't reach: the **deep-dive** (live note/branch + conflict/unavailable detail the spine doesn't carry) and the **no-spine fallback** (first match wins): `status: removed` → removed · `status: open` → planned · published + a `depends_on` not yet merged → blocked · backend terminal + merge commit on target → merged · backend has impl/review/verify notes OR a feature branch → in-progress · backends disagree → conflict · backend query failed → unavailable · else → published. For in-progress/merged slices also capture the **last note**: `<phase>: <one-line> (<short-time>, <SHA>)` (e.g. `merge: COMPLETED at abc1234 (2026-05-22)`).
 
 ### Phase 3 — Render
 
