@@ -36,7 +36,7 @@ function Clock() {
     return () => clearInterval(t);
   }, []);
   return (
-    <Typography sx={{ ...microLabel, color: palette.faint }}>
+    <Typography sx={{ ...microLabel }}>
       {now.toLocaleTimeString('en-GB')}
     </Typography>
   );
@@ -112,6 +112,7 @@ export function Shell() {
                 value={selectedProjectId && projects?.some((p) => p.id === selectedProjectId) ? selectedProjectId : ''}
                 onChange={(e) => selectProject(e.target.value)}
                 displayEmpty
+                SelectDisplayProps={{ 'aria-label': 'Select project' }}
                 sx={{ fontSize: 12.5 }}
               >
                 {(projects ?? []).map((p) => (
@@ -128,27 +129,34 @@ export function Shell() {
             </Tooltip>
           </Stack>
         </Box>
-        <Stack sx={{ px: 1, gap: 0.25, flex: 1 }}>
+        <Stack component="nav" aria-label="Primary" sx={{ px: 1, gap: 0.25, flex: 1 }}>
           {NAV.map((item) => {
             const active = location.pathname.startsWith(item.path);
             return (
               <Box
                 key={item.path}
+                component="button"
+                type="button"
                 onClick={() => navigate(item.path)}
+                aria-current={active ? 'page' : undefined}
                 sx={{
-                  display: 'flex', alignItems: 'center', gap: 1.25, px: 1.25, py: 0.9,
+                  display: 'flex', alignItems: 'center', gap: 1.25, px: 1.25, py: 0.9, width: '100%',
                   borderRadius: 1, cursor: 'pointer', userSelect: 'none',
+                  textAlign: 'left', font: 'inherit', appearance: 'none', border: 'none',
                   color: active ? palette.text : palette.muted,
                   background: active ? palette.raised : 'transparent',
                   borderLeft: `2px solid ${active ? palette.green : 'transparent'}`,
                   '&:hover': { background: palette.raised, color: palette.text },
+                  '&:focus-visible': { outline: `2px solid ${palette.blue}`, outlineOffset: '-2px' },
                   transition: 'background 120ms, color 120ms',
                 }}
               >
                 {item.icon}
-                <Typography sx={{ fontSize: 13, fontWeight: active ? 600 : 400, flex: 1 }}>{item.label}</Typography>
+                <Typography component="span" sx={{ fontSize: 13, fontWeight: active ? 600 : 400, flex: 1 }}>{item.label}</Typography>
                 {item.path === '/workspace' && attentionCount > 0 && (
                   <Box
+                    component="span"
+                    aria-label={`${attentionCount} waiting on you`}
                     sx={{
                       minWidth: 16, height: 16, px: 0.5, borderRadius: 1,
                       background: palette.amber, color: palette.bg,
@@ -207,7 +215,7 @@ export function Shell() {
             display: 'flex', alignItems: 'center', px: 2, gap: 2, background: palette.surface,
           }}
         >
-          <Typography sx={{ ...microLabel }}>
+          <Typography component="h1" sx={{ ...microLabel }}>
             {NAV.find((n) => location.pathname.startsWith(n.path))?.label ?? ''}
           </Typography>
           <Box sx={{ flex: 1 }} />
@@ -217,7 +225,7 @@ export function Shell() {
             </IconButton>
           </Tooltip>
         </Box>
-        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+        <Box component="main" id="main-content" sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
           <Outlet />
         </Box>
       </Box>

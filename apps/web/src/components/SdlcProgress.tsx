@@ -104,7 +104,7 @@ export function SdlcProgress({ projectId: _projectId, state }: { projectId: stri
 
   if (!state) {
     return (
-      <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box role="status" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography sx={{ fontSize: 12.5, color: palette.muted }}>
           No chain state yet — start with /intake (new idea) or /onboard (existing code).
         </Typography>
@@ -124,6 +124,7 @@ export function SdlcProgress({ projectId: _projectId, state }: { projectId: stri
             size="small"
             value={feature?.slug ?? ''}
             onChange={(e) => setFeatureSlug(e.target.value)}
+            SelectDisplayProps={{ 'aria-label': 'Select feature' }}
             sx={{ fontSize: 12.5, minWidth: 168 }}
           >
             {features.map((f) => (
@@ -166,7 +167,7 @@ function PhaseRow({
         <Box sx={{ width: 6, height: 6, borderRadius: '50%', background: group.accent }} />
         <Typography sx={{ ...microLabel, color: palette.muted }}>{group.label}</Typography>
         <Box sx={{ flex: 1, height: '1px', background: palette.hairline }} />
-        <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: done === total && total > 0 ? palette.green : palette.faint }}>
+        <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: done === total && total > 0 ? palette.green : palette.muted }}>
           {done}/{total}
         </Typography>
       </Stack>

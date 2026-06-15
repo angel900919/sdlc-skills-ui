@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import type { ArchEdge, ArchNodeStatus, ComponentNode } from '@sdlc/shared';
 import { palette, microLabel } from '../theme.js';
@@ -8,7 +8,9 @@ const STATUS_COLOR: Record<ArchNodeStatus, string> = {
   'in-progress': palette.amber,
   planned: palette.blue,
   blocked: palette.red,
-  unknown: palette.faint,
+  // muted, not faint: this colour also renders the status as text, where faint
+  // (#4D5A6B) fails WCAG AA contrast; muted clears it.
+  unknown: palette.muted,
 };
 
 interface ComponentInspectorProps {
@@ -28,15 +30,30 @@ interface ComponentInspectorProps {
  * resolvable feature renders an honest "unlinked" rather than a fabricated link.
  */
 export function ComponentInspector({ component, inputs, outputs, onClose }: ComponentInspectorProps) {
-  const color = STATUS_COLOR[component.status] ?? palette.faint;
+  const color = STATUS_COLOR[component.status] ?? palette.muted;
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // When the inspector opens, move focus into the panel so keyboard users land
+  // here (a node can open it via Enter), and restore focus to where it was —
+  // the originating node — when it closes. Runs once per open, not on re-select.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    return () => previouslyFocused?.focus?.();
+  }, []);
+
   return (
     <Box
+      ref={panelRef}
       role="complementary"
       aria-label={`${component.id} inspector`}
+      tabIndex={-1}
+      onKeyDown={(event) => { if (event.key === 'Escape') onClose(); }}
       sx={{
         position: 'absolute', top: 0, right: 0, bottom: 0, width: 360, zIndex: 5,
         background: `${palette.raised}F2`, borderLeft: `1px solid ${palette.hairline}`,
         backdropFilter: 'blur(6px)', overflowY: 'auto', px: 2.5, py: 2,
+        outline: 'none',
       }}
     >
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 1.5 }}>
@@ -48,7 +65,9 @@ export function ComponentInspector({ component, inputs, outputs, onClose }: Comp
           aria-label="Close inspector"
           sx={{
             fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, color: palette.muted,
-            background: 'none', border: 'none', cursor: 'pointer', px: 0.5, '&:hover': { color: palette.text },
+            background: 'none', border: 'none', cursor: 'pointer', px: 0.5, borderRadius: 0.5,
+            '&:hover': { color: palette.text },
+            '&:focus-visible': { outline: `2px solid ${palette.blue}`, outlineOffset: 2, color: palette.text },
           }}
         >
           ✕
@@ -91,7 +110,7 @@ export function ComponentInspector({ component, inputs, outputs, onClose }: Comp
             ))}
           </Stack>
         ) : (
-          <Typography sx={{ fontSize: 12, color: palette.faint, fontStyle: 'italic' }}>
+          <Typography sx={{ fontSize: 12, color: palette.muted, fontStyle: 'italic' }}>
             unlinked — no feature maps to this component yet
           </Typography>
         )}
@@ -125,14 +144,14 @@ function EdgeList({
   empty: string;
 }) {
   if (edges.length === 0) {
-    return <Typography sx={{ fontSize: 11.5, color: palette.faint, fontStyle: 'italic' }}>{empty}</Typography>;
+    return <Typography sx={{ fontSize: 11.5, color: palette.muted, fontStyle: 'italic' }}>{empty}</Typography>;
   }
   return (
     <Stack sx={{ gap: 0.4 }}>
       {edges.map((edge, i) => (
         <Stack key={`${endpoint(edge)}#${i}`} direction="row" sx={{ alignItems: 'baseline', gap: 0.75 }}>
           <Typography sx={{ fontSize: 12, color: palette.text, flex: 1, minWidth: 0 }} noWrap>{endpoint(edge)}</Typography>
-          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: palette.faint }}>{edge.mode}</Typography>
+          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: palette.muted }}>{edge.mode}</Typography>
         </Stack>
       ))}
     </Stack>

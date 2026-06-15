@@ -44,6 +44,17 @@ const STATUS_COLOR: Record<ArchNodeStatus, string> = {
   unknown: palette.faint,
 };
 
+// A shape per status so status survives without colour (WCAG 1.4.1): the glyph
+// distinguishes done/in-progress/planned/blocked for colour-blind users, while
+// the colour stays as a redundant cue. Status is also in each node's ariaLabel.
+const STATUS_GLYPH: Record<ArchNodeStatus, string> = {
+  done: '✓',
+  'in-progress': '◐',
+  planned: '○',
+  blocked: '✕',
+  unknown: '·',
+};
+
 /**
  * react-flow types a node's `data` as a loose `Record<string, unknown>`, so the
  * render sites narrow it back to this shape with `data as ArchNodeData` — the
@@ -78,7 +89,15 @@ function ComponentGraphNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Left} style={handleStyle} />
       <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
         {!external && (
-          <Box sx={{ width: 9, height: 9, borderRadius: '50%', flexShrink: 0, background: color, boxShadow: `0 0 6px ${color}` }} />
+          <Typography
+            aria-hidden
+            sx={{
+              fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, fontWeight: 700, lineHeight: 1,
+              width: 12, textAlign: 'center', flexShrink: 0, color, textShadow: `0 0 6px ${color}`,
+            }}
+          >
+            {STATUS_GLYPH[status] ?? '·'}
+          </Typography>
         )}
         <Typography sx={{ fontSize: 12.5, fontWeight: 600, flex: 1, minWidth: 0 }} noWrap>{label}</Typography>
       </Stack>
@@ -109,6 +128,18 @@ export function ArchitecturePage() {
     setSelectedId((current) => (current === node.id ? null : node.id));
   }, []);
 
+  // Keyboard activation: react-flow makes nodes focusable but only fires
+  // onNodeClick on a mouse click, so Enter/Space on a focused node opened
+  // nothing. Capture the key before react-flow and toggle the same inspector.
+  const onGraphKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
+    const nodeEl = (event.target as HTMLElement | null)?.closest?.('.react-flow__node[data-id]');
+    const id = nodeEl?.getAttribute('data-id');
+    if (!id) return;
+    event.preventDefault();
+    setSelectedId((current) => (current === id ? null : id));
+  }, []);
+
   const selected: ComponentNode | null =
     (selectedId && model?.components.find((c) => c.id === selectedId)) || null;
   const inEdges = useMemo(
@@ -133,6 +164,9 @@ export function ArchitecturePage() {
         position: COMPONENT_POSITIONS[c.id] ?? { x: 40 + (i % 5) * 280, y: 820 },
         initialWidth: NODE_W,
         initialHeight: NODE_H,
+        // Status in the accessible name — the glyph is aria-hidden, so this is
+        // how assistive tech hears a node's status.
+        ariaLabel: `${c.id}, status ${c.status}`,
         data: { label: c.id, sub: c.livesAt, status: c.status, external: false } satisfies ArchNodeData,
       });
     });
@@ -152,6 +186,7 @@ export function ArchitecturePage() {
         position: { x: 40 + i * 360, y: 860 },
         initialWidth: NODE_W,
         initialHeight: NODE_H,
+        ariaLabel: `${id}, external system`,
         data: { label: id, sub: 'external', status: 'unknown', external: true } satisfies ArchNodeData,
       });
     });
@@ -191,7 +226,7 @@ export function ArchitecturePage() {
         </Typography>
         <Box sx={{ flex: 1 }} />
         {view === 'graph' && model && (
-          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: palette.faint }}>
+          <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10.5, color: palette.muted }}>
             {model.components.length} components · {model.edges.length} edges
           </Typography>
         )}
@@ -200,7 +235,23 @@ export function ArchitecturePage() {
       {view === 'sdlc' ? (
         <SdlcProgress projectId={projectId} state={projectStateData?.state ?? null} />
       ) : (
-      <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+      <Box
+        role="region"
+        aria-label="System architecture graph"
+        aria-busy={isLoading || undefined}
+        onKeyDownCapture={onGraphKeyDown}
+        sx={{
+          flex: 1, minHeight: 0, position: 'relative',
+          // react-flow zeroes the node outline and its focus box-shadow rule
+          // doesn't cover our custom `component` node type; restore a visible
+          // keyboard focus ring (double class beats react-flow's specificity).
+          '& .react-flow__node.react-flow__node-component:focus-visible': {
+            outline: `2px solid ${palette.blue}`,
+            outlineOffset: '2px',
+            borderRadius: '8px',
+          },
+        }}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -246,7 +297,12 @@ export function ArchitecturePage() {
         >
           {(['done', 'in-progress', 'planned', 'blocked'] as const).map((s) => (
             <Stack key={s} direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', background: STATUS_COLOR[s] }} />
+              <Typography
+                aria-hidden
+                sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, fontWeight: 700, lineHeight: 1, width: 12, textAlign: 'center', color: STATUS_COLOR[s] }}
+              >
+                {STATUS_GLYPH[s]}
+              </Typography>
               <Typography sx={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9.5, color: palette.muted }}>{s}</Typography>
             </Stack>
           ))}
@@ -273,6 +329,7 @@ function EmptyState({
   if (!message) return null;
   return (
     <Box
+      role="status"
       sx={{
         position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)',
         px: 2, py: 1, background: `${palette.raised}EE`, border: `1px solid ${palette.hairline}`, borderRadius: 1.5,
