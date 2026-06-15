@@ -74,11 +74,11 @@ updated: 2026-06-15
 
 ## Routed candidates
 
-### RC-1 · invariant · from T-1/T-2/T-3 · → /architect · status: proposed
-> ServeApiAndWs rejects any state-changing request carrying a foreign Origin or a non-loopback Host, and rejects a `/ws` upgrade from a foreign Origin. (Implemented in scc-7ru; pending adoption into `02-components.md § Invariants`.)
+### RC-1 · invariant · from T-1/T-2/T-3 · → /architect · status: adopted
+> ServeApiAndWs rejects any state-changing request carrying a foreign Origin or a non-loopback Host, and rejects a `/ws` upgrade from a foreign Origin. (Implemented in scc-7ru; adopted into `02-components.md § Architecture-level invariants` — scc-1in, 2026-06-15.)
 
-### RC-2 · unwanted-ears · from T-1 · → /prd system-map · status: proposed
-> If a state-changing request arrives whose Origin is not the dashboard's own (or whose Host is not the loopback server), then the system shall reject it with 403 and make no state change.
+### RC-2 · unwanted-ears · from T-1 · → /prd system-map · status: adopted
+> If a state-changing request arrives whose Origin is not the dashboard's own (or whose Host is not the loopback server), then the system shall reject it with 403 and make no state change. (Adopted into the system-map PRD functional requirements — scc-1in, 2026-06-15.)
 
 ## Out of scope
 - Remote network attackers — the server is loopback-bound (the bind stops the socket; B-1 covers the in-browser path).
