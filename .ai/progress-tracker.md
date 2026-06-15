@@ -1,5 +1,20 @@
 # Progress tracker — append-only session log
 
+## 2026-06-15 — runbook landed (system-map) — RUNBOOK-WRITTEN
+- Artifact: `.ai/runbooks/system-map.md` (+ mandatory `.human/runbooks/system-map.md` prose mirror) — 7-row alert/symptom table compiled from design failure modes + observability + NFR-1 + the threat-model boundary fix + the QA-accepted a11y weak spot.
+- Key decision(s): mvp, single deploy-rollback arm (no migrations — system-map added no schema; no flags). Escalation = owner (single-user local). Closes QA WARN-k.
+- Next: a11y pass on the Architecture tab (the remaining open QA WARN-j).
+
+## 2026-06-15 — threat-model landed (project) — THREAT-MODEL-LOCKED (lite)
+- Artifact: `.ai/architecture/threat-model.md` (+ `.human/summaries/threat-model.md` mirror with a validated boundary diagram) — 3 boundaries, 5 assets, 6 threats, 0 open.
+- Key decision(s): mvp / no uplift → lite pass run past SKIPPED-TIER (the security review found the loopback boundary porous). T-1/2/3 (CSRF/rebind/WS-hijack, ≥6) mitigated by scc-7ru; T-4/5 mitigated; T-6 accepted. RC-1 (origin/host invariant) + RC-2 (unwanted-EARS) routed. Closes the design half of QA WARN-i.
+- Next: adopt RC-1 into `02-components.md § Invariants` via `/architect`; RC-2 into system-map's PRD.
+
+## 2026-06-15 — security-review + fix landed (scc-7ru) — boundary hardened
+- Artifact: code (apps/server: `originGuard.ts`, `ws.ts`, `sessionManager.ts`, `index.ts`, `sessionId.ts`) + 16 tests; no `.ai` artifact (a code pass).
+- Key decision(s): adversarial review found the loopback bind is not a boundary against a hostile browser tab — CSRF→RCE (V1), DNS-rebind (V2), WS-hijack (V3), resume-id traversal (V4). Fixed: Origin+Host onRequest guard, CORS off `origin:true`, WS foreign-origin reject, resumeSessionId UUID guard. Subprocess surface verified clean. Full suite 235/235; live smoke verified the 403s. Closes the code half of QA WARN-i.
+- Next: the a11y pass (WARN-j) is the last open system-map QA follow-up.
+
 ## 2026-06-14 — ship landed (system-map) — SHIPPED (qa-approved → shipped)
 - Artifact: `.ai/features.md` row flipped qa-approved → shipped; release notes printed in chat (no CHANGELOG.md at repo root, so none appended — per /ship rule 5). No new per-feature file.
 - Key decision(s): local-first ship — `environments.md` has a single `local` env, `deploy_mechanism: none`, no CI/pipeline, `flag_system: none`. "Shipped" = merged on `v2-prototype-architecture-tab` + runs from source; no remote deploy, no tag, no flag flip. `/api/health` smoke green (`ok:true`) this run; build was 217/217 + typecheck clean at QA. Authorized by Andres Rambal on the record. Anchor open question (release_policy.versioning semver-vs-none) still unresolved — non-blocking, recommend closing.
