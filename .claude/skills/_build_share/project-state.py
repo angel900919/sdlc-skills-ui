@@ -185,6 +185,7 @@ def normalize_status(s):
     table = [
         (r"^planned$", "Planned"), (r"^building$", "Building"),
         (r"^(qa-approved|qa)$", "QA-Approved"), (r"^shipped$", "Shipped"),
+        (r"^deprecated$", "Deprecated"), (r"^removed$", "Removed"),
         (r"^blocked$", "Blocked"), (r"^cut$", "Cut"),
     ]
     for pat, out in table:

@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
   type ParsedComponentsModel,
+  parseComponentFeatureMap,
   parseComponentsModel,
   serializeComponentsModel,
 } from './parseComponentsModel.js';
@@ -51,6 +52,35 @@ describe('parseComponentsModel — against the real declared model', () => {
   it('round-trips through serialize with zero dropped or invented (NFR-3)', () => {
     const reparsed = parseComponentsModel(serializeComponentsModel(model));
     expect(reparsed).toEqual(model);
+  });
+});
+
+describe('parseComponentFeatureMap — roster table discrimination', () => {
+  // The roster carries both `id` and `status`; the Deferred sibling carries
+  // `id` but no `status`. Keying on `id` alone latches whichever id-table comes
+  // first — so a Deferred table ahead of the roster silently zeroes the map
+  // (the column→feature links vanish). Mirror the Python parser: require status.
+  const deferredBeforeRoster = [
+    '## Deferred',
+    '| id | revisit | reason |',
+    '| :-- | :-- | :-- |',
+    '| cross-project-orchestrator | 2026-12-31 | routed out of scope |',
+    '',
+    '## In scope',
+    '| id | title | priority | status | tier | depends_on | satisfies |',
+    '| :-- | :-- | :-- | :-- | :-- | :-- | :-- |',
+    '| system-map | Architecture tab | P0 | shipped | mvp | — | DeriveProjectState, RenderFlightDeck |',
+  ].join('\n');
+
+  it('reads the roster even when a status-less id-table precedes it', () => {
+    const map = parseComponentFeatureMap(deferredBeforeRoster);
+    expect(map.get('DeriveProjectState')).toEqual(['system-map']);
+    expect(map.get('RenderFlightDeck')).toEqual(['system-map']);
+  });
+
+  it('never treats a Deferred id (no satisfies) as a component link', () => {
+    const map = parseComponentFeatureMap(deferredBeforeRoster);
+    expect(map.has('cross-project-orchestrator')).toBe(false);
   });
 });
 

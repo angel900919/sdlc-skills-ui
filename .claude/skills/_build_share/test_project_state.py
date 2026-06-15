@@ -346,6 +346,26 @@ class ParseFeaturesTableTest(unittest.TestCase):
         self.assertEqual(ps.parse_features_table("# Doc\n\nno tables here\n"), [])
 
 
+class NormalizeStatusTest(unittest.TestCase):
+    """normalize_status must map every status `ai-schema.md` declares valid.
+
+    `deprecated` and `removed` are valid feature statuses (features.md:62,
+    ai-schema.md) that /status renders distinctly; left unmapped they collapse
+    to 'Unknown' and mis-render as a skipped badge (scc-q81).
+    """
+
+    def test_maps_deprecated_and_removed(self):
+        self.assertEqual(ps.normalize_status("deprecated"), "Deprecated")
+        self.assertEqual(ps.normalize_status("removed"), "Removed")
+
+    def test_deprecated_removed_are_case_insensitive(self):
+        self.assertEqual(ps.normalize_status("Deprecated"), "Deprecated")
+        self.assertEqual(ps.normalize_status("REMOVED"), "Removed")
+
+    def test_genuinely_unknown_status_still_maps_to_unknown(self):
+        self.assertEqual(ps.normalize_status("frobnicated"), "Unknown")
+
+
 class SliceBackendStatusTest(unittest.TestCase):
     """scc-934: a slice is 'merged' when its beads ticket is closed, even though
     the frozen canonical frontmatter only ever says open/published/removed. Done

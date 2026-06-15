@@ -89,10 +89,18 @@ export function parseComponentsModel(markdown: string): ParsedComponentsModel {
  * Each satisfies cell is a comma-separated component list, optionally trailed by
  * a `· behavior: …` annotation or `(parenthetical)` notes, both of which are
  * stripped. Returns an empty map when the table has no `satisfies` column.
+ *
+ * The roster is the table carrying both an `id` and a `status` column; the
+ * `status` guard (mirroring project-state.py's parse_features_table) excludes
+ * sibling id-tables like `## Deferred` (`| id | revisit | reason |`), which
+ * would otherwise latch first by document order and zero out the map.
  */
 export function parseComponentFeatureMap(markdown: string): Map<string, string[]> {
   const map = new Map<string, string[]>();
-  const table = findTable(markdown, (headers) => headers.some((h) => /^id$/i.test(h)));
+  const table = findTable(
+    markdown,
+    (headers) => headers.some((h) => /^id$/i.test(h)) && headers.some((h) => /^status$/i.test(h)),
+  );
   if (!table) return map;
   const satisfies = columnIndex(table.headers, /^satisfies$/i);
   const id = columnIndex(table.headers, /^id$/i);
