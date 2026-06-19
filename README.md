@@ -1,12 +1,12 @@
 # SDLC Command Center
 
 A local-first **visual operating system for software development** built on top of the
-Claude Code CLI and the 54-skill SDLC chain in `.claude/skills`. It replaces
+Claude Code CLI and the 55-skill SDLC chain in `.claude/skills`. It replaces
 terminal-only workflows with a dashboard that launches, observes, and recovers
 Claude Code sessions — while **keeping Claude Code itself as the only execution
 engine, on your existing subscription**.
 
-![architecture](docs/architecture.md)
+[Architecture overview & diagrams →](docs/architecture.md)
 
 ## Why it works the way it does
 
@@ -57,10 +57,12 @@ the `claude` CLI on PATH and logged in.
 |------|---------|
 | **Dashboard** | Project health: foundation progress, features, next actions (one-click launch), progress tracker, commits, live activity feed, interrupted-session recovery |
 | **Pipeline** | The full SDLC stage graph (greenfield + brownfield + per-feature + MTDD execution loop + QA/release) with live status; double-click a stage to launch its skill |
+| **Architecture** | Live component graph (React Flow) of the recovered architecture model with per-node SDLC status; toggle to the SDLC-stage progress view; click a node to inspect its contract |
+| **Board** | Kanban of feature slices across their lifecycle (planned → published → blocked → in-progress → merged), derived from the chain's `project-state.py` |
 | **Workspace** | Live sessions: embedded terminal (the real Claude TUI — permission prompts work), structured Chat view, per-session activity |
 | **Sessions** | History, metrics (tool calls, prompts, durations), resume any interrupted session |
 | **Docs** | Browse and render `.ai/`, `.human/`, `docs/` — markdown + Mermaid |
-| **Skills** | The 54-skill catalog grouped by SDLC phase, launchable with arguments |
+| **Skills** | The 55-skill catalog grouped by SDLC phase, launchable with arguments |
 
 `⌘K` opens the command palette (navigate anywhere, launch any skill).
 
@@ -78,6 +80,6 @@ the `claude` CLI on PATH and logged in.
 apps/server      Fastify backend: PTY sessions, hooks ingest, state engine, WS hub
 apps/web         React 19 + Vite + MUI 9 dashboard ("Flight Deck" design)
 packages/shared  Types + SDLC stage model shared by both
-.claude/skills   The 54-skill SDLC chain (the thing being orchestrated)
+.claude/skills   The 55-skill SDLC chain (the thing being orchestrated)
 docs/            Architecture, ADRs, assumptions
 ```
