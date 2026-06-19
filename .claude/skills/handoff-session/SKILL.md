@@ -24,3 +24,14 @@ Print: `claude $env:TEMP\<filename>.md`
 
 If macOS/Linux:
 Print: `claude /tmp/<filename>.md` (or use $TMPDIR if applicable)
+
+---
+# Prepare the new-session pickup (cross-platform)
+After the handoff file is written, run:
+
+    node "$CLAUDE_PROJECT_DIR"/.claude/hooks/handoff-pickup.mjs <the-handoff-file>
+
+This copies a ready-to-run resume command to the clipboard and prints how to open a
+new terminal tab inside the IDE and paste it. Relay that to the user (IDEs such as
+IntelliJ cannot be scripted to open a terminal tab, so the user opens the tab and
+pastes — one keystroke). Still print the manual resume command above as a fallback.
