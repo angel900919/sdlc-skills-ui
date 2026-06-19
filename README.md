@@ -10,11 +10,12 @@ engine, on your existing subscription**.
 
 ## Why it works the way it does
 
-From **June 15, 2026**, headless `claude -p` / Agent SDK usage on subscription
-plans bills to a **separate Agent SDK credit pool**. Interactive Claude Code
-sessions stay on normal subscription limits. The Command Center therefore
-drives **interactive** Claude CLI sessions through pseudo-terminals (node-pty)
-and gets structured observability from three zero-cost side channels:
+The Command Center drives **interactive** Claude CLI sessions through
+pseudo-terminals (node-pty) rather than headless `claude -p`. The interactive
+path keeps Claude Code's real permission/trust prompts in the loop (no
+permission-bypass flags), maps crash recovery onto `--resume`, and stays on your
+plan's normal subscription limits. It then gets structured observability from
+three zero-cost side channels:
 
 1. **Hooks** — every spawned session carries a generated `--settings` file whose
    hooks POST session/prompt/tool events to the local backend.
@@ -24,6 +25,13 @@ and gets structured observability from three zero-cost side channels:
 3. **Filesystem watching** — `.ai/`, `.human/`, `docs/`, `tickets/`, `fitness/`
    are watched; project state is recomputed with the chain's own
    `project-state.py` so the dashboard sees exactly what `/status` and `/next` see.
+
+> A *contingent* reason reinforced this choice: Anthropic announced that from
+> **June 15, 2026** headless `claude -p` / Agent SDK usage would bill to a
+> separate Agent SDK credit pool. That change was **paused on the day it took
+> effect** (rechecked 2026-06-20) — for now nothing has changed — so it is a
+> deferred risk, not the load-bearing reason. The SessionManager seam can adopt
+> a headless runner if the change is reinstated.
 
 See [docs/architecture.md](docs/architecture.md) and [docs/adr](docs/adr) for the full
 decision record.

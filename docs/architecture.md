@@ -50,6 +50,13 @@ explicitly unaffected. The platform mandate is "no separate credit pools", so:
 - Structured telemetry comes from **hooks** and **transcript tailing**, which
   are free and billing-neutral.
 
+> **Update (2026-06-20):** Anthropic *paused* the June 15, 2026 Agent SDK credit
+> change on the day it was due to take effect — headless/Agent SDK usage still
+> draws from the normal subscription pool for now. The interactive-PTY decision
+> stands on its durable benefits (real permission prompts, `--resume` crash
+> recovery, staying on subscription limits); billing is now a paused, contingent
+> risk. See [ADR-0001](adr/0001-pty-over-headless.md) for the full recheck.
+
 See [ADR-0001](adr/0001-pty-over-headless.md).
 
 ## Observability spine

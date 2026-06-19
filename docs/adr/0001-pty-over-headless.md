@@ -1,8 +1,45 @@
 # ADR-0001: Drive interactive Claude CLI via PTY instead of headless `claude -p`
 
-Date: 2026-06-11 · Status: accepted
+Date: 2026-06-11 · Status: accepted (billing premise paused 2026-06-15 — see "Update — 2026-06-20" below)
+
+## Update — 2026-06-20 (billing premise paused; decision unchanged)
+
+The decision below stands, but its justification now **leads with the durable,
+non-billing benefits** rather than billing:
+
+1. **Real permission prompts** — the embedded interactive TUI surfaces Claude
+   Code's trust/permission dialogs exactly as a terminal does; no
+   permission-bypass flags are passed by default. A headless runner would have
+   to re-implement or suppress this.
+2. **Crash recovery via `--resume`** — interactive sessions map 1:1 onto
+   `--resume <uuid>`, so a killed backend reattaches to a live session.
+3. **Subscription, not a separate pool** — interactive usage stays on the
+   plan's normal limits regardless of how the Agent SDK billing question
+   resolves.
+
+**Billing is now a contingent, currently-paused risk, not the load-bearing
+reason.** A recheck on 2026-06-20 against the primary source the original
+Context cites (Help Center #15036540) plus The New Stack found: the 2026-06-15
+Agent SDK credit change was announced with the exact terms recorded below, **but
+Anthropic paused it on 2026-06-15, the day it was due to take effect.** As of
+2026-06-20 the notice reads "For now, nothing has changed" — `claude -p` /
+Agent SDK usage still draws from the normal subscription pool. Anthropic intends
+to revise and re-introduce the change with notice, so the risk is **deferred,
+not cancelled**.
+
+The **SessionManager seam** (see Consequences) is unchanged: if the billing
+change is reinstated, the interactive PTY path already avoids it, and a headless
+stream-json runner can still be added without touching the UI. Re-verification
+of #15036540 when Anthropic republishes is tracked in beads (`scc-mz0`).
+
+Sources: support.claude.com/en/articles/15036540 (now carries the pause
+notice) · thenewstack.io/anthropic-pauses-claude-agent-sdk-subscription-change
+· thenewstack.io/anthropic-agent-sdk-credits.
 
 ## Context
+
+*The following records the understanding as of the 2026-06-11 decision date; the
+billing premise was later paused — see "Update — 2026-06-20" above.*
 
 The platform must wrap Claude Code without consuming a separate credit pool.
 Anthropic announced that from **2026-06-15**, Agent SDK and `claude -p`
