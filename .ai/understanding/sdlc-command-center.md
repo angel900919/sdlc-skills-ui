@@ -73,6 +73,7 @@ mechanics, and input-escaping mechanics dropped as implementation detail).
 - assumption: the PTY-over-headless premise (separate Agent SDK billing from 2026-06-15) holds
   source: README.md:13-15; ADR-0001
   falsification_test: re-check Anthropic billing docs after 2026-06-15
+  resolved: 2026-06-20 — test run. The change was announced with these exact terms but Anthropic PAUSED it on 2026-06-15, the day it took effect (Help Center #15036540 now reads "for now, nothing has changed"). Premise NOT in force; `claude -p` still bills to the subscription pool. Risk deferred, not cancelled. PTY decision now rests on durable benefits (real permission prompts, --resume recovery). See ADR-0001 "Update — 2026-06-20"; re-verify on republish tracked in beads scc-mz0.
 - assumption: `auto` and `dontAsk` permission modes are intended for future UI exposure (they exist in the type union, undocumented elsewhere)
   source: recon §E15
   falsification_test: ask the owner; or check whether any UI path can set them

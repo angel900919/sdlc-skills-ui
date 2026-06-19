@@ -48,7 +48,9 @@ flowchart LR
   board -->|"one click"| pick
 ```
 
-**Still open** (recorded as testable assumptions in the machine file): whether the app's two hook systems compose cleanly when it manages its own repo; how far self-hosting is meant to go; whether the PTY-only billing premise holds past 2026-06-15; and whether the two undocumented permission modes are meant for the UI.
+**Still open** (recorded as testable assumptions in the machine file): whether the app's two hook systems compose cleanly when it manages its own repo; how far self-hosting is meant to go; and whether the two undocumented permission modes are meant for the UI.
+
+**Resolved 2026-06-20:** the PTY-only billing premise was re-checked — Anthropic *paused* the separate Agent SDK billing change on 2026-06-15, the day it was due to take effect, so it is not in force (a deferred risk, not a live one). The interactive-PTY decision now rests on its durable benefits. See ADR-0001's "Update — 2026-06-20".
 
 Machine sources of truth: [.ai/understanding/sdlc-command-center.md](../../.ai/understanding/sdlc-command-center.md) · [.ai/context.md](../../.ai/context.md)
 
