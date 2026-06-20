@@ -81,7 +81,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/handoff-watchdog.mjs"]
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/skills/_build_share/hooks/handoff-watchdog.mjs"]
           }
         ],
         "matcher": ""
