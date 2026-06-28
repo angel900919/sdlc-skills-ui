@@ -1,0 +1,73 @@
+@startuml EVCN_Activity_ChargeSession
+title Activity Diagram — Charge Session (Plug-in to Drive Away)
+
+|EV Driver|
+start
+:Drive up & plug in;
+
+|Charging Station (EVSE)|
+:Detect CP state B
+(EV connected);
+:Display "Authenticate";
+
+|EV Driver|
+if (Auth method?) then (App)
+  :Tap "Start" in mobile app;
+elseif (RFID) then
+  :Tap RFID card on reader;
+elseif (PnC) then
+  :Plug & Charge (auto, ISO 15118);
+else (Card)
+  :Tap contactless card;
+endif
+
+|Charging Station (EVSE)|
+:Forward credential to Cloud;
+
+|Cloud (CSMS)|
+:Validate identity & tariff;
+if (Authorized?) then (yes)
+  :Return Authorize.conf (Accepted);
+else (no)
+  :Return Authorize.conf (Blocked);
+  stop
+endif
+
+|Charging Station (EVSE)|
+:ISO 15118 / OCPP TransactionEvent (Started);
+:Close contactors;
+:Begin energy delivery;
+
+fork
+  while (charging?)
+    :Publish MeterValues every 30 s;
+  endwhile
+fork again
+  :Stream live status to driver app
+  & operator dashboard;
+fork again
+  if (DR signal received?) then (yes)
+    :Throttle output power;
+  endif
+end fork
+
+|EV Driver|
+:Stop session
+(via app, HMI, or unplug);
+
+|Charging Station (EVSE)|
+:Soft-stop ramp;
+:Open contactors;
+:OCPP TransactionEvent (Ended);
+
+|Cloud (CSMS)|
+:Settle billing
+(payment processor or OCPI);
+:Email/push receipt;
+
+|EV Driver|
+:Unplug & drive away;
+
+stop
+
+@enduml

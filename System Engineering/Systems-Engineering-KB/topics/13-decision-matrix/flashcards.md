@@ -1,0 +1,28 @@
+# Flashcards — Decision Matrices: Ranking & Scoring Alternatives
+
+| ID | Front | Back | Tags |
+|---|---|---|---|
+| q-13-001 | What is the other name for a decision matrix? | Weighted Scoring Model.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-002 | A decision matrix is a structured method to do what? | Objectively compare design options by scoring them against weighted criteria, for data-driven decision-making.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-003 | Cloze: build a matrix by {{c1::define criteria}} → {{c2::identify alternatives}} → {{c3::weight criteria}} → {{c4::score alternatives}} → multiply score × weight → sum → decide. | define criteria / identify alternatives / weight criteria / score alternatives.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, cloze |
+| q-13-004 | Cloze: the formula for one cell is weighted score = {{c1::score × weight}}. | score × weight.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, cloze |
+| q-13-005 | How do you get an alternative's total in a decision matrix? | Sum all of that alternative's weighted scores; highest total wins.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-006 | List the five criteria categories the course gives. | Performance, Cost, Risk, Scalability, Maintainability.<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-007 | What forms can criterion weights take? | Percentage, a 1–5 scale, or a 1–10 scale (any consistent importance scale).<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-008 | In the architecture example, what weights are assigned to performance, cost, scalability? | Performance 0.4, Cost 0.3, Scalability 0.3 (sum 1.0).<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-009 | Apply: criterion weight 0.4, an alternative scores 5. Weighted score? | 5 × 0.4 = 2.0.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, apply |
+| q-13-010 | In the architecture example, what are the three totals and the winner? | Centralized 3.3, Microservices 4.0, Serverless 4.7 → Serverless wins.<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, recall |
+| q-13-011 | Apply: Serverless scores 5 on performance (weight 0.4). What does that cell contribute? | 5 × 0.4 = 2.0 (the largest single cell in that matrix).<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, apply |
+| q-13-012 | Smart Campus matrix: what are the six criteria and their weights? | Cost 0.3, Performance 0.2, Scalability 0.2, Security 0.15, Maintenance & Support 0.1, User Experience 0.05.<br><sub>(source: m3-ex-decision)</sub> | topic::decision-matrix, recall |
+| q-13-013 | Smart Campus matrix: which alternative wins and with what stated total? | Alternative 1 (Cloud), total 3.95.<br><sub>(source: m3-ex-decision)</sub> | topic::decision-matrix, recall |
+| q-13-014 | Why does Cloud beat Local Server in the Smart Campus matrix despite Local's better performance and security? | Cloud is strong on the heavily-weighted cost (4) and scalability (5); Local's weak cost/scalability sink its total.<br><sub>(source: m3-ex-decision)</sub> | topic::decision-matrix, compare |
+| q-13-015 | What is sensitivity analysis in a decision matrix? | Adjusting criterion weights and re-totaling to see whether the ranking shifts when priorities change.<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-016 | Why multiply by weights instead of averaging raw scores? | Criteria differ in importance; weights make each score count in proportion to priority, so a trivial criterion can't outweigh a critical one.<br><sub>(source: master-notes; m3-decision)</sub> | topic::decision-matrix, compare |
+| q-13-017 | What must alternatives have to be "compatible" in a matrix? | The same level of detail and scope, with quantifiable data for every chosen criterion.<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-018 | Drone-battery example: which criteria and weights does the course use? | Size 20%, Weight 25%, Energy capacity 35%, Cost 20%.<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-019 | In the drone-battery case, what does energy capacity transform into for the stakeholder? | Flight time (capacity is the measurable proxy for flight time).<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-020 | Pitfall: what's wrong with picking the drone battery with the biggest capacity? | "It's not that simple" — size, weight, and cost also matter; score all criteria, not just one.<br><sub>(source: master-notes)</sub> | topic::decision-matrix, apply |
+| q-13-021 | Compare: weight vs. score in a matrix. | Weight belongs to a criterion (whole row, fixed across alternatives); score belongs to a cell (one alternative on one criterion).<br><sub>(source: m3-decision)</sub> | topic::decision-matrix, compare |
+| q-13-022 | Two questions the course says to ask when defining criteria? | What is the most important goal of the selection? Who are the stakeholders and what do they prioritize?<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-023 | After computing totals, what does the course say to verify before committing? | That the top choice is practical and aligns with project goals (not just the highest number).<br><sub>(source: master-notes)</sub> | topic::decision-matrix, recall |
+| q-13-024 | Apply: Smart Campus Cost row, Alt 2 (Hybrid) scores 3 at weight 0.3. Weighted value? | 3 × 0.3 = 0.9.<br><sub>(source: m3-ex-decision)</sub> | topic::decision-matrix, apply |

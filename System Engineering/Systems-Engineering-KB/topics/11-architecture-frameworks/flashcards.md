@@ -1,0 +1,30 @@
+# Flashcards — Architecture Frameworks: TOGAF, Zachman, NIST
+
+| ID | Front | Back | Tags |
+|---|---|---|---|
+| q-11-001 | What does TOGAF stand for? | The Open Group Architecture Framework<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-002 | TOGAF is which *kind* of framework — process, taxonomy, or layered model? | A process / method (its ADM is a step-by-step cyclical process)<br><sub>(source: master-notes; m3-togaf)</sub> | topic::architecture-frameworks, compare |
+| q-11-003 | Cloze: The {{c1::ADM (Architecture Development Method)}} is the heart of TOGAF — a cyclical, iterative process. | ADM (Architecture Development Method)<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, cloze |
+| q-11-004 | How many phases does the TOGAF ADM have, and what is the central process? | 9 phases (Preliminary, A–H); central process = Requirements Management, present in all phases<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-005 | List the 5 TOGAF core components. | ADM; Enterprise Continuum; Architecture Content Framework; TOGAF Reference Models; Capability Framework<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-006 | What does the TOGAF Enterprise Continuum do? | Categorizes architectural assets (e.g., industry standards, templates)<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-007 | Purpose of ADM Phase A – Architecture Vision? | Define scope, stakeholders, and high-level vision<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-008 | Which ADM phase produces the implementation roadmap, and which plans deployment? | E – Opportunities & Solutions identifies projects/transitions; F – Migration Planning plans the roadmap<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, apply |
+| q-11-009 | ADM Phase C covers which two architectures? | Data Architecture and Application Architecture (Information Systems Architecture)<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-010 | Name the three TOGAF artifact types with one example each. | Catalogs (Application Portfolio); Matrices (Role-to-Application); Diagrams (Business Process Models)<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, recall |
+| q-11-011 | TOGAF artifacts: a list of one kind of thing is a ___; X-vs-Y mapping is a ___; visual structure is a ___. | Catalog; Matrix; Diagram<br><sub>(source: m3-togaf)</sub> | topic::architecture-frameworks, apply |
+| q-11-012 | Apply: "Blue-Green deployment" for the banking system belongs to which ADM phase? | F – Migration Planning (deployment strategy)<br><sub>(source: m3-applytogaf)</sub> | topic::architecture-frameworks, apply |
+| q-11-013 | Apply: enforcing PCI DSS / ISO 27001 / GDPR for the banking system is which ADM phase? | G – Implementation Governance<br><sub>(source: m3-applytogaf)</sub> | topic::architecture-frameworks, apply |
+| q-11-014 | Confusion: difference between Architecture Vision (A) and Business Architecture (B)? | A = buy-in + aligning effort with business goals (what/why); B = translates vision into how the business works and what functions must be enabled<br><sub>(source: m3-ex-togaf)</sub> | topic::architecture-frameworks, compare |
+| q-11-015 | Who created the Zachman Framework, and when? | John Zachman, in the 1980s<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, recall |
+| q-11-016 | Zachman is which kind of framework? | A taxonomy / classification schema (6×6 matrix) — NOT a process or methodology<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, compare |
+| q-11-017 | List the six Zachman interrogatives and their aspects. | What→Data, How→Function, Where→Network, Who→People, When→Time, Why→Motivation<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, recall |
+| q-11-018 | List the six Zachman perspectives (rows) in order. | Planner, Owner, Designer, Builder, Subcontractor, Functioning System<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, recall |
+| q-11-019 | Apply: Zachman cell for "physical data: tables and relationships in a SQL DB" (airline reservation "What"). | Builder (Tech) perspective, What (Data) column<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, apply |
+| q-11-020 | Confusion: Designer vs Builder rows in Zachman? | Designer = logical models (logical data model, system architecture); Builder = physical (physical data model, software design)<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, compare |
+| q-11-021 | Who developed the NIST EA Model and in which publication? | NIST (National Institute of Standards and Technology); introduced in NIST Special Publication 500-167<br><sub>(source: m3-nist)</sub> | topic::architecture-frameworks, recall |
+| q-11-022 | List the five NIST EA layers. | Business; Information; Information Systems; Data; Technology Infrastructure Architecture<br><sub>(source: m3-nist)</sub> | topic::architecture-frameworks, recall |
+| q-11-023 | Which later framework did the NIST EA model heavily influence? | FEAF (Federal Enterprise Architecture Framework)<br><sub>(source: m3-nist)</sub> | topic::architecture-frameworks, recall |
+| q-11-024 | Why are NIST layers called "independent but interconnected"? | A change at one layer (e.g., new business process) may require changes at others (e.g., IT systems, infrastructure)<br><sub>(source: m3-nist)</sub> | topic::architecture-frameworks, apply |
+| q-11-025 | Compare: TOGAF vs Zachman vs NIST by *type*. | TOGAF = process/method; Zachman = classification taxonomy; NIST = layered model<br><sub>(source: master-notes; m3-zachman)</sub> | topic::architecture-frameworks, compare |
+| q-11-026 | Apply: a need to "verify every stakeholder viewpoint answered every architectural question" → which framework? | Zachman (its 6×6 matrix forces viewpoint × interrogative coverage)<br><sub>(source: m3-zachman)</sub> | topic::architecture-frameworks, apply |

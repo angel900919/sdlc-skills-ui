@@ -1,0 +1,37 @@
+@startuml <SLUG>_IBD
+' =====================================================================
+' Internal Block Diagram (IBD) — STARTER TEMPLATE  (Phase 03, diagram 3 of 7)
+' Rename file to IBD_<TopBlock>.puml for the actual top block.
+' Builds on: the most critical block from the BDD (usually the controller / service mesh).
+' Conventions §7. Replace <PLACEHOLDERS>; delete (example) lines.
+' Ports:  standard ports = interface-based interactions (service/operation calls)
+'         flow ports     = material / energy / data exchange (signal/data/physical flow)
+' The ports here imply the ICD seams frozen in Phase 04.
+' =====================================================================
+title <Top Block> — Internal Block Diagram (TODO)
+
+component "<Top Block>" as TopBlock <<block>> {
+  component "<Internal Part 1>" as Part1 <<part>>
+  component "<Internal Part 2>" as Part2 <<part>>
+  component "<Internal Part 3>" as Part3 <<part>>
+  ' component "Comms Module" as Part1 <<part>>   ' (example — delete)
+
+  ' --- Ports on the boundary ---
+  portin  "<stdPort: service in>"  as PstdIn
+  portout "<flowPort: data out>"   as PflowOut
+}
+
+' --- Internal flows between parts (signal / data / physical) ---
+Part1 --> Part2 : <flow: data/signal>
+Part2 --> Part3 : <flow: data/signal>
+
+' --- Boundary ports wired to internal parts ---
+PstdIn  --> Part1 : <<standard port>> <service call>
+Part3   --> PflowOut : <<flow port>> <data/energy>
+
+note bottom of TopBlock
+  TODO: each boundary port becomes an ICD-<nn> seam in Phase 04.
+  satisfies REQ-INT-<nn> / REQ-<id>
+end note
+
+@enduml

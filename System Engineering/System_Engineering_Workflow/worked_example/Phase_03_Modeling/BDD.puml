@@ -1,0 +1,93 @@
+@startuml EVCN_BDD
+title EV Charging Station Network — Block Definition Diagram (SysML)
+
+skinparam class {
+  BackgroundColor #F4F8FB
+  BorderColor #2A5C82
+}
+
+class "<<block>>\nEVChargingStationNetwork" as EVCN {
+  + missionStatement : String
+  + serviceLevel : SLA
+}
+
+class "<<block>>\nChargingStation (EVSE)" as Station {
+  + stationId : UUID
+  + connectorTypes : List<CCS, NACS, J1772, CHAdeMO>
+  + maxPowerKW : Float
+  + location : GeoCoord
+  --
+  + startSession()
+  + stopSession()
+  + reportTelemetry()
+}
+
+class "<<block>>\nPower Electronics" as Power {
+  + topology : SiC | IGBT
+  + ratedPowerKW : Float
+  + efficiency : Float = 0.96
+  --
+  + rectifyAC()
+  + regulateDC()
+  + openContactors()
+}
+
+class "<<block>>\nStation Controller" as Controller {
+  + cpu : ARM Cortex-A53
+  + ram : 2 GB
+  + os : Linux + RT patch
+  + secureElement : TPM 2.0
+  --
+  + runOCPP()
+  + runISO15118()
+  + manageStateMachine()
+}
+
+class "<<block>>\nUser Interface (HMI)" as HMI {
+  + display : 10" capacitive touchscreen
+  + reader : RFID + EMV contactless
+  + emergencyStop : Button
+  + lighting : Status LED ring
+}
+
+class "<<block>>\nNetwork Comms" as Comms {
+  + cellular : LTE Cat-4 / 5G NR
+  + ethernet : 1 GbE
+  + wifi : 802.11ac (config only)
+  + protocols : OCPP 2.0.1, MQTT, HTTPS
+}
+
+class "<<block>>\nBackend Cloud Services" as Cloud {
+  + csms : OCPP CSMS
+  + billing : Invoicing & PSP
+  + identity : OAuth 2.1 / OIDC
+  + observability : Prometheus / Grafana
+  --
+  + handleOCPP()
+  + dispatchDR()
+  + settleSession()
+}
+
+class "<<block>>\nClient Apps" as Apps {
+  + mobile : iOS, Android (Flutter)
+  + web : React SPA
+  + dashboard : Operator portal
+}
+
+EVCN o-- "1..*" Station        : composes
+EVCN *-- "1" Cloud              : composes
+EVCN o-- "1..*" Apps            : composes
+
+Station *-- "1" Power           : composes
+Station *-- "1" Controller      : composes
+Station *-- "1" HMI             : composes
+Station *-- "1" Comms           : composes
+
+Controller --> Comms            : uses
+Controller --> Power            : controls
+HMI --> Controller              : reports
+
+Comms ..> Cloud                 : "OCPP 2.0.1 / WSS"
+Apps  ..> Cloud                 : "REST / WSS"
+
+@enduml

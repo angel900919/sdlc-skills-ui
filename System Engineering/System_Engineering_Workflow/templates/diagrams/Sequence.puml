@@ -1,0 +1,36 @@
+@startuml <SLUG>_Sequence
+' =====================================================================
+' Sequence Diagram — STARTER TEMPLATE  (Phase 03, diagram 6 of 7)
+' Rename file to Sequence_<Interaction>.puml for the actual interaction.
+' Builds on: one time-critical multi-actor interaction (e.g. handshake, OAuth, OTA rollout).
+' Conventions §7. Replace <PLACEHOLDERS>; delete (example) lines.
+' Arrows:  ->  synchronous (blocking call)   -->  asynchronous (fire-and-forget) / return
+' Annotate latency budgets from REQ-P-* (and the MOP-*/TPM-* they feed).
+' =====================================================================
+title <Project Name> — Sequence: <Interaction> (TODO)
+
+actor "<Actor>" as Actor
+participant "<Block A>" as A <<block>>
+participant "<Block B>" as B <<block>>
+participant "<External System>" as Ext <<block>>
+
+Actor -> A : <request()>
+activate A
+A -> B : <synchronous call()>
+activate B
+note right of B: budget: <= <N> <unit> (REQ-P-<nn> -> MOP-<nn>)
+B --> A : <return / ack>
+deactivate B
+A --> Ext : <async notify()>
+A --> Actor : <response>
+deactivate A
+
+' --- Example (delete) ---
+' Actor -> A : startSession()
+' A -> B : authorize()  ' note right of B: budget <= 200 ms (REQ-P-01)
+
+note over Actor, Ext
+  TODO: confirm every latency budget traces to a REQ-P-* and its MOP/TPM.
+end note
+
+@enduml

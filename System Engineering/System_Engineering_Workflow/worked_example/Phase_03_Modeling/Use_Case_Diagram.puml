@@ -1,0 +1,68 @@
+@startuml EVCN_UseCase
+title EV Charging Station Network — Use Case Diagram
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "EV Driver" as Driver
+actor "Site Host" as Host
+actor "Network Operator (CPO)" as Operator
+actor "Maintenance Technician" as Tech
+actor "Utility / Grid Operator" as Utility
+actor "Roaming MSP" as MSP
+actor "Payment Processor" as Payment
+
+rectangle "EVCN" {
+  usecase "Authenticate (RFID / App / PnC / Card)" as UC1
+  usecase "Initiate Charging Session" as UC2
+  usecase "Monitor Live Session" as UC3
+  usecase "Stop Charging & Pay" as UC4
+  usecase "Reserve Connector" as UC5
+  usecase "View Billing & Receipts" as UC6
+
+  usecase "View Site Revenue & Uptime" as UC7
+
+  usecase "Provision New Station" as UC8
+  usecase "Apply Tariff Update" as UC9
+  usecase "Trigger Remote Stop" as UC10
+  usecase "Schedule OTA Update" as UC11
+  usecase "View Operator Dashboard" as UC12
+
+  usecase "Run Remote Diagnostics" as UC13
+  usecase "Lock for Maintenance" as UC14
+
+  usecase "Receive DR Signal" as UC15
+  usecase "Throttle Network Power" as UC16
+
+  usecase "Process OCPI Roaming Session" as UC17
+  usecase "Settle Payment" as UC18
+}
+
+Driver --> UC1
+Driver --> UC2
+Driver --> UC3
+Driver --> UC4
+Driver --> UC5
+Driver --> UC6
+
+Host --> UC7
+
+Operator --> UC8
+Operator --> UC9
+Operator --> UC10
+Operator --> UC11
+Operator --> UC12
+
+Tech --> UC13
+Tech --> UC14
+
+Utility --> UC15
+UC15 ..> UC16 : <<include>>
+
+MSP --> UC17
+Payment --> UC18
+
+UC2 ..> UC1 : <<include>>
+UC4 ..> UC18 : <<include>>
+
+@enduml
