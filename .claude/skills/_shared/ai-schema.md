@@ -44,6 +44,79 @@ created: YYYY-MM-DD
 
 ---
 
+## `.ai/strategy/<slug>.md` — product strategy & direction (written by /strategy)
+
+The **optional, once-per-product** strategic context at the very top of the product stage — written from `.ai/intake.md` *before* `/discovery`, when the user wants an explicit vision/strategy/North Star rather than going straight to problem validation. Frozen direction every downstream skill can derive from: `/discovery` checks the problem serves the diagnosis, `/opportunity` checks strategy-fit, `/measure` evaluates the North Star + OKRs against actuals. **Structure only — no diagrams** (the strategy-on-a-page / metric tree is the `.human/summaries/strategy.md` mirror). Tier-scaled: `prototype` collapses vision + strategy to one page with one North Star + one OKR; `mvp`/`production` run the full kernel. **North Star + ≥1 OKR + ≥1 non-goal are mandatory at every tier** — a strategy with no measurable outcome or no trade-off is theatre. Skip the skill entirely for an obvious utility or a pre-approved build.
+
+```markdown
+---
+slug: <slug>
+stage: strategy
+status: draft | complete
+verdict: STRATEGY-SET | NEEDS-EVIDENCE | RECONSIDER
+verdict_overridden: false
+tier_signal: prototype | mvp | production
+north_star: "<value-exchange metric — rises only when a customer got real value>"
+okr_count: <N>                       # 1–3; ≥1 mandatory at every tier
+non_goal_count: <N>                  # ≥1; strategy is choice
+source_intake: .ai/intake.md
+human_summary: .human/summaries/strategy.md
+consumed_by: [discovery, market-research, opportunity, measure]
+created: YYYY-MM-DD
+---
+
+# Strategy — <slug>
+
+## Vision
+> The customer's better future once we've won (3–10yr, outcome-driven — not a feature list).
+
+## Diagnosis
+- crux: <the single most important obstacle/insight that decides whether we win>
+- evidence: <fact + source, OR `ASM: <bet>` where it's unproven → flag for /market-research or /discovery>
+
+## Guiding policy
+- <the overall approach to the diagnosis; what lets us win here>
+
+## Coherent actions
+- <action> · <action> · <action>            # few, mutually-reinforcing; each enacts the policy
+
+## Non-goals
+- <segment / problem / channel / model we decline> — <why>      # ≥1
+
+## North Star
+| field | value |
+| :-- | :-- |
+| metric | <value-exchange metric> |
+| baseline | <number + source, or TODO> |
+| input_metrics | [<lever>, <lever>] |
+| guardrails | <what must NOT get worse — ties to the responsible-product floor> |
+
+## OKRs
+- objective: <qualitative outcome>
+  key_results:
+    - <from X to Y by YYYY-MM-DD — an outcome that moved, not a shipped feature>
+# 1–3 objectives; at least one measurable KR overall
+
+## Risks & assumptions
+- ASM: <load-bearing bet → tested in /market-research or /discovery>
+- RSK: <strategic risk>
+
+## Responsible-product floor
+- harm_exclude_leak: <answer to "can this harm/exclude someone or leak personal data?"> · guardrails: <…>
+
+## Decision
+**<VERDICT>** — <one-line rationale>. <If verdict_overridden: "User chose to continue past <verdict> because <reason>.">
+
+## References
+- source: .ai/intake.md
+- human_summary: .human/summaries/strategy.md
+- research: <links/notes from /market-research or sub-agent research, if any>
+```
+
+The `.human/summaries/strategy.md` mirror is the direction in one sentence + 3–6 why-bullets + **one** validated diagram (a strategy-on-a-page mindmap or the North-Star metric tree) via the mermaid skill. Diagrams never go in `.ai/`.
+
+---
+
 ## `.ai/discovery/<slug>.md` — discovery artifact (written by /discovery)
 
 ```markdown

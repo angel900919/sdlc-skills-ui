@@ -28,7 +28,8 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 | :--- | :--- | :--- |
 | **The person with the idea** | `.human/` only | may seed `.human/intake/idea.md` |
 | **/intake** | `idea.md` (if seeded), filesystem probe | `.human/intake/idea.md` + `.ai/intake.md` |
-| **/discovery** | `.ai/intake.md`, `idea.md` | `.ai/discovery/<slug>.md` + `.human/summaries/discovery.md` |
+| **/strategy** *(optional)* | `.ai/intake.md`, `idea.md` | `.ai/strategy/<slug>.md` + `.human/summaries/strategy.md` |
+| **/discovery** | `.ai/intake.md`, `idea.md`, `.ai/strategy/<slug>.md` (if present) | `.ai/discovery/<slug>.md` + `.human/summaries/discovery.md` |
 | **/understand** | `.ai/discovery/<slug>.md`, `.ai/intake.md` | `.ai/understanding/<slug>.md` + `.ai/context.md` + `.human/summaries/understanding.md` |
 | **Downstream** (`/feature-map`, `/architect`, `/prd`) | `.ai/*` (by section) | their own `.ai/*` artifacts |
 
@@ -38,6 +39,7 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 
 ```
 /intake      →  capture the idea          →  .human/intake/idea.md   + .ai/intake.md (slug, tier, ...)
+/strategy    →  set direction (opt-in)     →  .ai/strategy/<slug>.md  + .human/summaries/strategy.md
 /discovery   →  validate it (gated)        →  .ai/discovery/<slug>.md + .human/summaries/discovery.md
 /understand  →  define it (gated)          →  .ai/understanding/<slug>.md + .ai/context.md + .human/summaries/understanding.md
 /feature-map →  decompose into features    →  .ai/features.md
