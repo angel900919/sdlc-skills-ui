@@ -505,5 +505,41 @@ class ScanFoundationOpportunityTest(unittest.TestCase):
         self.assertFalse(found["strategy"]["present"])
 
 
+class ScanFoundationMarketResearchTest(unittest.TestCase):
+    """scc-1l4: the optional Stage-1 supporting skill /market-research writes
+    .ai/market-research/<slug>.md (sharded by slug like strategy), so
+    scan_foundation must recognize it via list_files — a flat exists() would miss
+    it. It stays optional: absence is reported as not-present, never raised."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_absent_market_research_is_recognized_as_not_present(self):
+        # A project that skipped market research: present=False, empty file list.
+        self.assertEqual(
+            ps.scan_foundation(self.root)["marketResearch"],
+            {"present": False, "files": []},
+        )
+
+    def test_present_market_research_lists_the_slug_file(self):
+        _write(self.root, ".ai/market-research/demo.md", "# Market Research — demo\nbody\n")
+        found = ps.scan_foundation(self.root)["marketResearch"]
+        self.assertTrue(found["present"])
+        self.assertEqual(found["files"], [".ai/market-research/demo.md"])
+
+    def test_market_research_is_distinct_from_strategy_and_discovery(self):
+        # market-research is its own optional Stage-1 artifact; its presence must
+        # not imply strategy or discovery ran.
+        _write(self.root, ".ai/market-research/demo.md", "# Market Research — demo\n")
+        found = ps.scan_foundation(self.root)
+        self.assertTrue(found["marketResearch"]["present"])
+        self.assertFalse(found["strategy"]["present"])
+        self.assertFalse(found["discover"]["present"])
+
+
 if __name__ == "__main__":
     unittest.main()

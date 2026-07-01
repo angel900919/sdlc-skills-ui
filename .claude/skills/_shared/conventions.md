@@ -29,6 +29,7 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 | **The person with the idea** | `.human/` only | may seed `.human/intake/idea.md` |
 | **/intake** | `idea.md` (if seeded), filesystem probe | `.human/intake/idea.md` + `.ai/intake.md` |
 | **/strategy** *(optional)* | `.ai/intake.md`, `idea.md` | `.ai/strategy/<slug>.md` + `.human/summaries/strategy.md` |
+| **/market-research** *(optional)* | `.ai/intake.md`, `.ai/strategy/<slug>.md` (if present), `.ai/discovery/<slug>.md` (if present) | `.ai/market-research/<slug>.md` + `.human/summaries/market-research.md` |
 | **/discovery** | `.ai/intake.md`, `idea.md`, `.ai/strategy/<slug>.md` (if present) | `.ai/discovery/<slug>.md` + `.human/summaries/discovery.md` |
 | **/opportunity** *(optional)* | `.ai/discovery/<slug>.md`, `.ai/strategy/<slug>.md` (if present), `.ai/market-research/<slug>.md` (if present) | `.ai/opportunity/<slug>.md` + `.human/summaries/opportunity.md` |
 | **/understand** | `.ai/discovery/<slug>.md`, `.ai/intake.md` | `.ai/understanding/<slug>.md` + `.ai/context.md` + `.human/summaries/understanding.md` |
@@ -41,6 +42,7 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 ```
 /intake      →  capture the idea          →  .human/intake/idea.md   + .ai/intake.md (slug, tier, ...)
 /strategy    →  set direction (opt-in)     →  .ai/strategy/<slug>.md  + .human/summaries/strategy.md
+/market-research → ground it in the market (opt-in) → .ai/market-research/<slug>.md + .human/summaries/market-research.md
 /discovery   →  validate it (gated)        →  .ai/discovery/<slug>.md + .human/summaries/discovery.md
 /opportunity →  deep go/no-go (opt-in)     →  .ai/opportunity/<slug>.md + .human/summaries/opportunity.md
 /understand  →  define it (gated)          →  .ai/understanding/<slug>.md + .ai/context.md + .human/summaries/understanding.md

@@ -161,6 +161,9 @@ def scan_foundation(root):
     # optional Stage-1 product strategy (/strategy) — sharded by slug like
     # discovery/understanding, so glob the subdir; a flat exists() would miss it.
     strategy = list_files(root, ".ai/strategy", ".md")
+    # optional Stage-1 supporting artifact (/market-research) — sharded by slug
+    # like strategy; chain order is strategy -> market-research -> discovery.
+    market_research = list_files(root, ".ai/market-research", ".md")
     discovery = list_files(root, ".ai/discovery", ".md")
     # optional Stage-1 exit gate (/opportunity) — sharded by slug like strategy,
     # so glob the subdir; chain order is discovery -> opportunity -> understanding.
@@ -168,6 +171,7 @@ def scan_foundation(root):
     understanding = list_files(root, ".ai/understanding", ".md")
     return {
         "strategy": {"present": len(strategy) > 0, "files": strategy},
+        "marketResearch": {"present": len(market_research) > 0, "files": market_research},
         "discover": {"present": len(discovery) > 0, "files": discovery},
         "opportunity": {"present": len(opportunity) > 0, "files": opportunity},
         "understand": {

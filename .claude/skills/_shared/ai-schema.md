@@ -117,6 +117,88 @@ The `.human/summaries/strategy.md` mirror is the direction in one sentence + 3�
 
 ---
 
+## `.ai/market-research/<slug>.md` — market sizing, competitive landscape & positioning (written by /market-research)
+
+The **optional Stage-1 supporting artifact** — grounds the strategy's diagnosis and the opportunity's business case in market reality so neither rests on a wish. Defines the market from the demand side (buyer + functional job, not a category), sizes it top-down **and** bottom-up (reconciled within ~15%; the SOM is the defensible bottom-up number, never "capture 1% of $X B"), maps the alternatives starting with the **status quo / do-nothing**, builds buyer-grounded competitive intelligence (win/loss, not scraped websites), and converts it into Dunford-order positioning. **Structure only — no diagrams** (the market map / TAM-SAM-SOM funnel / positioning 2×2 is the `.human/summaries/market-research.md` mirror). Runs after `/strategy` or standalone; if `/discovery` has run it reuses that JTBD, otherwise it sizes from a job *hypothesis* flagged for `/discovery`. Tier-scaled: `prototype` is a one-page pass (demand-side definition + back-of-envelope both-ways sizing + status-quo + one-line positioning; desk-only CI, flagged); `mvp`/`production` run full both-ways sizing with sensitivity, win/loss-grounded CI, and a macro/PESTEL scan. **This skill owns no build gate** — its verdict is a health check on the research plus a carrier for any market-viability signal; the go/no-go lives in `/opportunity` and `/discovery`.
+
+```markdown
+---
+slug: <slug>
+stage: market-research
+status: draft | complete
+verdict: MARKET-GROUNDED | THIN-EVIDENCE | MARKET-RISK
+verdict_overridden: false
+tier_signal: prototype | mvp | production
+market: "<people + functional job — demand-side, one sentence>"
+som: "<the defensible bottom-up number + unit, or TODO>"
+sizing_reconciled: true | false          # top-down vs bottom-up within ~15%?
+top_alternative: "<what the buyer uses instead today — usually the status quo>"
+positioning_choice: positioning-first | category-design
+source_intake: .ai/intake.md
+source_strategy: .ai/strategy/<slug>.md      # if a strategy was set; else omit
+source_discovery: .ai/discovery/<slug>.md    # if discovery has run (reuse its JTBD); else omit
+human_summary: .human/summaries/market-research.md
+consumed_by: [opportunity]
+created: YYYY-MM-DD
+---
+
+# Market Research — <slug>
+
+## Market definition (demand-side)
+- people: <segment / buyer>
+- job: <functional job in the customer's words>   # reuse .ai/discovery JTBD if present; else `ASM:` a hypothesis to validate in /discovery
+- boundary: in <…> / out <…>
+
+## Sizing — two methods, reconciled
+| layer | top-down | bottom-up | reconciled (±15%?) | key assumptions |
+| :-- | :-- | :-- | :-- | :-- |
+| TAM | <$ + source> | <accounts×ACV / users×ARPU> | <number> | <ASM: …> |
+| SAM | … | … | … | <serviceable-segment logic> |
+| SOM | … | <reach × win-rate, near-term> | <the number we defend> | <ASM: …> |
+
+## Competitive alternatives
+- status_quo: <the do-nothing / current workaround — list first>
+- direct: [<rival>, <rival>]
+- indirect / non-consumption: [<…>]
+# no phantom competitors — only ones a buyer actually evaluates
+
+## Competitive intelligence
+- <competitor>: where_they_win <…> · where_we_win <…> · source <win/loss | desk-research> · decision_it_informs <…>
+# buyer-grounded (win/loss) at mvp/production; desk-only acceptable at prototype — say which. Separate fact from inference; ≥2 sources per claim.
+
+## Macro / weak-signal scan            # conditional — mvp/production, or structural/regulated markets
+- <trend> — source, precision/horizon caveat, so-what for the bet
+
+## Positioning (Dunford order)
+1. alternatives: <what the buyer uses instead>
+2. unique_attributes: <what only we have — capabilities, not adjectives>
+3. value: <the value those attributes enable, in the buyer's terms>
+4. best_fit: <the segment that cares most>
+5. category: <the frame that makes the value obvious>
+- sequencing: positioning-first | category-design — <why>
+
+## Risks & assumptions
+- ASM: <load-bearing sizing/market bet → test in /discovery or /research-report>
+- RSK: <market / competitive risk>
+
+## Responsible-product floor
+- truthful_claims_lawful_data: <competitive claims non-deceptive? data sourced lawfully (no ToS-violating scraping)? AI-generated research labelled where applicable?>
+
+## Decision
+**<VERDICT>** — <one-line rationale>. <If verdict_overridden: "User chose to continue past <verdict> because <reason>.">
+
+## References
+- source_intake: .ai/intake.md
+- source_strategy: .ai/strategy/<slug>.md
+- source_discovery: .ai/discovery/<slug>.md
+- human_summary: .human/summaries/market-research.md
+- research: <links/notes from /research-report or sub-agent research, if any>
+```
+
+The `.human/summaries/market-research.md` mirror is the takeaway in one sentence + 3–6 why-bullets + **one** validated diagram (the market map, the TAM/SAM/SOM funnel, or the positioning 2×2) via the mermaid skill. Diagrams never go in `.ai/`.
+
+---
+
 ## `.ai/discovery/<slug>.md` — discovery artifact (written by /discovery)
 
 ```markdown
@@ -215,6 +297,7 @@ top_risk: value | usability | feasibility | viability | ethics   # highest impor
 reversibility: two-way | one-way
 source_discovery: .ai/discovery/<slug>.md
 source_strategy: .ai/strategy/<slug>.md     # if a strategy was set; else omit
+source_market: .ai/market-research/<slug>.md   # if market research was run (sizing + alternatives); else omit
 human_summary: .human/summaries/opportunity.md
 consumed_by: [feature-map, measure]
 created: YYYY-MM-DD
@@ -272,6 +355,7 @@ created: YYYY-MM-DD
 ## References
 - source_discovery: .ai/discovery/<slug>.md
 - source_strategy: .ai/strategy/<slug>.md
+- source_market: .ai/market-research/<slug>.md
 - research: <links/notes from /market-research, /research-report, or sub-agent research>
 ```
 
