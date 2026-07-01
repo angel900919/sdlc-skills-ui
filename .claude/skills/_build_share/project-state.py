@@ -158,9 +158,13 @@ def read_bootstrap(root):
 
 
 def scan_foundation(root):
+    # optional Stage-1 product strategy (/strategy) — sharded by slug like
+    # discovery/understanding, so glob the subdir; a flat exists() would miss it.
+    strategy = list_files(root, ".ai/strategy", ".md")
     discovery = list_files(root, ".ai/discovery", ".md")
     understanding = list_files(root, ".ai/understanding", ".md")
     return {
+        "strategy": {"present": len(strategy) > 0, "files": strategy},
         "discover": {"present": len(discovery) > 0, "files": discovery},
         "understand": {
             "present": len(understanding) > 0,

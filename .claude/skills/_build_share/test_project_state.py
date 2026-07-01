@@ -434,5 +434,40 @@ class SliceBackendStatusTest(unittest.TestCase):
         self.assertEqual(ps.closed_backend_ids(self.root), set())
 
 
+class ScanFoundationStrategyTest(unittest.TestCase):
+    """scc-29v: the optional Stage-1 /strategy artifact lives under a slug subdir
+    (.ai/strategy/<slug>.md), so scan_foundation must recognize it via list_files
+    like discovery/understanding — a flat exists() check would miss it. It stays
+    optional: absence is reported as not-present, never raised."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_absent_strategy_is_recognized_as_not_present(self):
+        # A project that skipped Stage-1 strategy: present=False, empty file list.
+        self.assertEqual(
+            ps.scan_foundation(self.root)["strategy"],
+            {"present": False, "files": []},
+        )
+
+    def test_present_strategy_lists_the_slug_file(self):
+        _write(self.root, ".ai/strategy/demo.md", "# Strategy — demo\nbody\n")
+        found = ps.scan_foundation(self.root)["strategy"]
+        self.assertTrue(found["present"])
+        self.assertEqual(found["files"], [".ai/strategy/demo.md"])
+
+    def test_strategy_is_distinct_from_ddd_strategic_design(self):
+        # Product strategy (.ai/strategy/<slug>.md) must not be conflated with the
+        # DDD dddStrategy step (.ai/architecture/strategic-design.md).
+        _write(self.root, ".ai/strategy/demo.md", "# Strategy — demo\n")
+        found = ps.scan_foundation(self.root)
+        self.assertTrue(found["strategy"]["present"])
+        self.assertFalse(found["dddStrategy"]["present"])
+
+
 if __name__ == "__main__":
     unittest.main()

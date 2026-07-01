@@ -23,6 +23,7 @@ Read [`../_shared/conventions.md`](../_shared/conventions.md) (folder model, adv
 8. **The gate is advisory.** Run the full analysis and issue `PROCEED | INVESTIGATE | KILL` with reasons. The user may continue past a negative verdict — set `verdict_overridden: true`, record their reason in the Decision section, and still write both artifacts. Never gatekeep by blocking; gatekeep by being honest.
 9. **Tier dial.** Read `predicted_tier` from `.ai/intake.md`. At `prototype`, run a condensed pass (problem, user, JTBD, one core metric, light scope) and lean toward PROCEED unless something is clearly broken. At `mvp`/`production`, run the full interview.
 10. **Two artifacts, two registers.** `.ai/discovery/<slug>.md` is structured (frontmatter index + fixed sections, per the schema). `.human/summaries/discovery.md` is plain-English verdict + why + one validated diagram. Diagrams go in `.human/` only.
+11. **Serve the strategy, if one exists.** When `.ai/strategy/<slug>.md` was loaded, the validated problem should serve its `diagnosis` (the crux it names) and the success metric (rule 5) should ladder to its `north_star`. If the problem doesn't fit the diagnosis or the metric can't ladder to the North Star, name it in the verdict as a strategy-fit risk. Advisory, never a block; if no strategy artifact was loaded, skip this silently.
 
 **Backstopped by** [references/anti-patterns.md](references/anti-patterns.md) — the rejection list (discovery-as-marketing, vibes-metric, no kill criteria, tech leakage). Scan the draft against it before writing.
 
@@ -32,7 +33,7 @@ Copy this checklist:
 
 ```
 discovery progress:
-- [ ] Phase 0: Load .ai/intake.md (slug, tier) + .human/intake/idea.md + progress-tracker top 5
+- [ ] Phase 0: Load .ai/intake.md (slug, tier) + .human/intake/idea.md + .ai/strategy/<slug>.md if present + progress-tracker top 5
 - [ ] Phase 1: Restate the idea in one sentence; confirm fidelity
 - [ ] Phase 2: Research the space with sub-agents (competitors, feasibility) — present findings
 - [ ] Phase 3: Problem validation (whose pain, today's coping, gap, frequency, cost)
@@ -47,7 +48,7 @@ discovery progress:
 ```
 
 ### Phase 0 — Load context
-Read `.ai/intake.md` for `slug`, `predicted_tier`, `technical_user`, `uplift_signals`. Read `.human/intake/idea.md` for the captured idea. Read `.ai/progress-tracker.md` top 5 (create from the stub in [`../_shared/conventions.md`](../_shared/conventions.md) if absent). If no intake exists, ask the user for the idea directly and slug it yourself.
+Read `.ai/intake.md` for `slug`, `predicted_tier`, `technical_user`, `uplift_signals`. Read `.human/intake/idea.md` for the captured idea. Read `.ai/progress-tracker.md` top 5 (create from the stub in [`../_shared/conventions.md`](../_shared/conventions.md) if absent). If no intake exists, ask the user for the idea directly and slug it yourself. Load `.ai/strategy/<slug>.md` if it exists (its `diagnosis` and `north_star`) — optional; warn and proceed if absent, never require or create it.
 
 ### Phase 1 — Restate
 Restate the idea in **one sentence**; ask "did I capture it?" Don't proceed until confirmed.
