@@ -469,5 +469,41 @@ class ScanFoundationStrategyTest(unittest.TestCase):
         self.assertFalse(found["dddStrategy"]["present"])
 
 
+class ScanFoundationOpportunityTest(unittest.TestCase):
+    """scc-29v: the optional Stage-1 exit gate /opportunity writes
+    .ai/opportunity/<slug>.md (sharded by slug like strategy/discovery), so
+    scan_foundation must recognize it via list_files — a flat exists() would miss
+    it. It stays optional: absence is reported as not-present, never raised."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_absent_opportunity_is_recognized_as_not_present(self):
+        # A project that skipped the exit gate: present=False, empty file list.
+        self.assertEqual(
+            ps.scan_foundation(self.root)["opportunity"],
+            {"present": False, "files": []},
+        )
+
+    def test_present_opportunity_lists_the_slug_file(self):
+        _write(self.root, ".ai/opportunity/demo.md", "# Opportunity — demo\nbody\n")
+        found = ps.scan_foundation(self.root)["opportunity"]
+        self.assertTrue(found["present"])
+        self.assertEqual(found["files"], [".ai/opportunity/demo.md"])
+
+    def test_opportunity_is_distinct_from_strategy(self):
+        # The exit gate (.ai/opportunity) and the entry strategy (.ai/strategy)
+        # are separate optional Stage-1 artifacts; one present must not imply the
+        # other.
+        _write(self.root, ".ai/opportunity/demo.md", "# Opportunity — demo\n")
+        found = ps.scan_foundation(self.root)
+        self.assertTrue(found["opportunity"]["present"])
+        self.assertFalse(found["strategy"]["present"])
+
+
 if __name__ == "__main__":
     unittest.main()

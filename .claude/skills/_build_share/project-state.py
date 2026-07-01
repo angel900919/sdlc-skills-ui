@@ -162,10 +162,14 @@ def scan_foundation(root):
     # discovery/understanding, so glob the subdir; a flat exists() would miss it.
     strategy = list_files(root, ".ai/strategy", ".md")
     discovery = list_files(root, ".ai/discovery", ".md")
+    # optional Stage-1 exit gate (/opportunity) — sharded by slug like strategy,
+    # so glob the subdir; chain order is discovery -> opportunity -> understanding.
+    opportunity = list_files(root, ".ai/opportunity", ".md")
     understanding = list_files(root, ".ai/understanding", ".md")
     return {
         "strategy": {"present": len(strategy) > 0, "files": strategy},
         "discover": {"present": len(discovery) > 0, "files": discovery},
+        "opportunity": {"present": len(opportunity) > 0, "files": opportunity},
         "understand": {
             "present": len(understanding) > 0,
             "files": understanding,
