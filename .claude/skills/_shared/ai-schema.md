@@ -197,6 +197,88 @@ created: YYYY-MM-DD
 
 ---
 
+## `.ai/opportunity/<slug>.md` — opportunity assessment & business case (written by /opportunity)
+
+The **optional Stage-1 exit gate** — the deep go/no-go, run after `/discovery` once real evaluation has been done, to decide whether this is the right problem to commit to *now*. Synthesizes the validated problem + strategy-fit + market sizing into an opportunity framed as a customer need (not a solution), sized top-down **and** bottom-up, with the four big risks plus ethics and a lean business case → **PERSEVERE | PIVOT | KILL**. **Structure only — no diagrams** (the opportunity-solution-tree / four-risks map is the `.human/summaries/opportunity.md` mirror). Tier-scaled: `prototype` collapses to a one-page assessment + back-of-envelope sizing + the single top risk; `mvp`/`production` run full both-ways sizing with sensitivity. Skip the skill for an obvious utility — `/discovery`'s own verdict is the lighter "worth building?" gate; `/opportunity` is for when the bet deserves sizing, risk-rating, and a business case.
+
+```markdown
+---
+slug: <slug>
+stage: opportunity
+status: draft | complete
+verdict: PERSEVERE | PIVOT | KILL
+verdict_overridden: false
+tier_signal: prototype | mvp | production
+outcome_fit: "<North Star / OKR this serves (from .ai/strategy); or discovery's success metric if no strategy was set; or `no-fit` — itself a signal>"
+sized: true | false                  # both top-down AND bottom-up reconciled? top-down-only is a red flag
+top_risk: value | usability | feasibility | viability | ethics   # highest importance × lowest evidence
+reversibility: two-way | one-way
+source_discovery: .ai/discovery/<slug>.md
+source_strategy: .ai/strategy/<slug>.md     # if a strategy was set; else omit
+human_summary: .human/summaries/opportunity.md
+consumed_by: [feature-map, measure]
+created: YYYY-MM-DD
+---
+
+# Opportunity — <slug>
+
+## Opportunity
+- need: <customer need/pain/desire in their words — NOT a solution>   # if only one way to address it, reframe up
+- serves: <the outcome/North Star it ladders to, from source_strategy; or discovery's success metric if no strategy was set; or the no-fit gap>
+- evidence: <what in discovery/research shows the need is real, + source>
+
+## Opportunity solution tree
+- outcome: <desired outcome>
+  opportunity: <the need above>
+  candidate_solutions: [<sol-a>, <sol-b>, <sol-c>]     # 2–3; one-solution-per-opportunity is an anti-pattern
+  next_experiment: <cheapest test of the riskiest assumption>
+
+## Sizing
+| method | figure | key assumptions | source |
+| :-- | :-- | :-- | :-- |
+| top_down | <SAM> | <…> | <source or TODO> |
+| bottom_up | <#reachable × value = SOM> | <…> | <source or TODO> |
+- reconciled: <the gap between the two is itself an insight>      # TAM is a ceiling, never revenue
+
+## Four big risks + ethics
+| risk | load-bearing assumption | importance | evidence | test first? |
+| :-- | :-- | :-- | :-- | :-- |
+| value | <…> | H/M/L | strong/weak | y/n |
+| usability | <…> | … | … | … |
+| feasibility | <…> | … | … | … |
+| viability | <…> | … | … | … |
+| ethics | <privacy / fairness / safety> | … | … | … |
+
+## Business case
+| lever | low | expected | high | assumption |
+| :-- | :-- | :-- | :-- | :-- |
+| value | <…> | <…> | <…> | <…> |
+| cost_build_run | <…> | <…> | <…> | <…> |
+| net_payback | <…> | <…> | <…> | <…> |
+- door: two-way | one-way            # reversible bets decide fast on a lean case
+- cost_of_not_doing: <…>
+- sensitivity: <the single assumption that breaks the case>
+
+## Strategy fit
+- serves: <which North Star / OKR from .ai/strategy; or discovery's success metric if no strategy was set; or `no-fit`, a likely PIVOT/KILL signal>
+- diagnosis_fit: <coherent with the strategy's guiding policy? or drift>
+
+## Responsible-product floor
+- harm_exclude_leak: <can this harm/exclude someone or leak personal data?> · guardrails: <…>   # ethics is first-class here
+
+## Decision
+**<VERDICT>** — <one-line rationale>; what would change the call: <…>. <If verdict_overridden: "User chose to continue past <verdict> because <reason>.">
+
+## References
+- source_discovery: .ai/discovery/<slug>.md
+- source_strategy: .ai/strategy/<slug>.md
+- research: <links/notes from /market-research, /research-report, or sub-agent research>
+```
+
+The `.human/summaries/opportunity.md` mirror is the verdict in one sentence + 3–6 why-bullets + **one** validated diagram (the opportunity-solution-tree or the four-risks map) via the mermaid skill. Diagrams never go in `.ai/`.
+
+---
+
 ## `.ai/understanding/<slug>.md` — understanding artifact (written by /understand [greenfield] or /comprehend [brownfield])
 
 The glossary and entity definitions live in `.ai/context.md` (shared). This file references them and adds invariants, behaviors, boundaries, and assumptions. `/understand` builds it by interview from `.ai/discovery/<slug>.md` (`source_discovery`, verdict `READY-FOR-FEATURE-MAP`); `/comprehend` builds the **same file** by confirming a code-derived draft from `.ai/recon.md` (`source_recon`, verdict `READY-FOR-ARCHITECT`). Downstream consumers don't care which produced it.
