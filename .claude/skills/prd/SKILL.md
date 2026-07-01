@@ -62,6 +62,7 @@ Read `.ai/progress-tracker.md` top 5 (expect an `architect landed` entry upstrea
 | `.ai/architecture[.md\|/]` | `02-components` (placement), invariants, top-3 characteristics (prod), ADRs | **BLOCKED-ON-ARCHITECTURE at mvp+**; warn at prototype |
 | `.ai/architecture/threat-model.md` | Routed candidates (kind: unwanted-ears) targeting this feature → production Unwanted-EARS seeds; open T-N context | warn at production ("no threat model — Unwanted clauses defend invariants only") |
 | `.ai/understanding/<slug>.md` | glossary + invariants + boundaries (use terms verbatim) | warn |
+| `.ai/requirements/<slug>.md` | systems-track only — the `REQ-NN` IDs this feature realizes → populate `traces_to` (every feature should trace up to ≥1 requirement) | optional (skip if not run) |
 | `.ai/discovery/<slug>.md` | JTBD / target user / success-metric framing as defaults | warn |
 | `.ai/context.md` | entity terms (name honesty) | warn |
 | `.ai/specs/<feature>/grill-notes.md` | optional interview seed (skip Phase 2) | optional |

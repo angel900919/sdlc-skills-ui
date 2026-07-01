@@ -541,5 +541,40 @@ class ScanFoundationMarketResearchTest(unittest.TestCase):
         self.assertFalse(found["discover"]["present"])
 
 
+class ScanFoundationRequirementsTest(unittest.TestCase):
+    """scc-ybq: the optional systems-track skill /requirements writes
+    .ai/requirements/<slug>.md (sharded by slug like understanding), so
+    scan_foundation must recognize it via list_files — a flat exists() would miss
+    it. It stays optional: absence is reported as not-present, never raised."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_absent_requirements_is_recognized_as_not_present(self):
+        # A software project that skipped the systems-track: present=False, [].
+        self.assertEqual(
+            ps.scan_foundation(self.root)["requirements"],
+            {"present": False, "files": []},
+        )
+
+    def test_present_requirements_lists_the_slug_file(self):
+        _write(self.root, ".ai/requirements/demo.md", "# Requirements — demo\nbody\n")
+        found = ps.scan_foundation(self.root)["requirements"]
+        self.assertTrue(found["present"])
+        self.assertEqual(found["files"], [".ai/requirements/demo.md"])
+
+    def test_requirements_is_distinct_from_understanding(self):
+        # /requirements derives from understanding but is its own artifact; one
+        # present must not imply the other.
+        _write(self.root, ".ai/requirements/demo.md", "# Requirements — demo\n")
+        found = ps.scan_foundation(self.root)
+        self.assertTrue(found["requirements"]["present"])
+        self.assertFalse(found["understand"]["present"])
+
+
 if __name__ == "__main__":
     unittest.main()

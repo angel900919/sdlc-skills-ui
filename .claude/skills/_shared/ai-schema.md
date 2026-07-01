@@ -467,6 +467,73 @@ This is the machine entity model. Its human mirror — an `erDiagram` / `stateDi
 
 ---
 
+## `.ai/requirements/<slug>.md` — system-level requirements (written by /requirements)
+
+The **optional systems-track artifact** — the baselined, testable system requirements the architecture satisfies, the features decompose, and the tests verify. Each requirement is a SMART statement (EARS fallback) with a **stable `REQ-NN` ID** (never renumbered — traceability depends on it), a light class (functional / quality / constraint), a priority (must / should / could), a trace up to a need (a `/discovery` JTBD, a `/understand` behaviour/invariant, or a `/strategy` outcome), and a seeded verification method (test / inspect / analyze / demo — `/qa` and `/test-strategy` are authoritative). **Structure only — no diagrams** (the traceability map / modes-and-states diagram is the `.human/summaries/requirements.md` mirror). Runs after `/understand` and before/around `/architect` + `/feature-map`; per-feature `/prd` carries a `traces_to` line up to these IDs. Tier-scaled: `prototype` is a short SMART list (functional + top quality/constraint, traced + prioritised); `mvp` adds full classification + verification seeds + light measures; `production` adds bidirectional coverage, measures with thresholds, and a peer-review note. Optional — a straightforward software product skips it and goes `/understand`/`/feature-map` → per-feature `/prd`.
+
+```markdown
+---
+slug: <slug>
+stage: requirements
+status: draft | complete
+verdict: BASELINED | NEEDS-REFINEMENT | BLOCKED-ON-CONCEPT
+verdict_overridden: false
+tier_signal: prototype | mvp | production
+req_count: <N>
+must_count: <N>                          # requirements at priority must
+coverage: "<N/N needs covered by ≥1 requirement, or TODO>"
+verification_seeded: true | false        # every requirement has a T/I/A/D seed?
+source_understanding: .ai/understanding/<slug>.md   # or omit if derived from discovery only
+source_discovery: .ai/discovery/<slug>.md           # if present
+source_strategy: .ai/strategy/<slug>.md             # if present (measures ladder to the North Star)
+human_summary: .human/summaries/requirements.md
+consumed_by: [prd]                        # the wired consumer today (traces_to seam); architect/feature-map/measure consume by hand until that wiring lands
+created: YYYY-MM-DD
+---
+
+# Requirements — <slug>
+
+## Requirements
+| ID | statement (SMART) | class | priority | traces_to (need) | verify (seed) | measure/threshold |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| REQ-01 | The system shall <action> <measurable condition> <under context>. | functional | must | <JTBD / behaviour / outcome> | test | <MOP: target + unit, or —> |
+| REQ-02 | … | quality | should | … | analyze | … |
+| REQ-03 | … | constraint | must | … | inspect | … |
+# stable IDs, never renumbered · one behaviour per row (no double-barrelled) · no vague verbs
+
+## Traceability
+- coverage: <every need covered by ≥1 REQ? list any uncovered need>
+- orphans: <any REQ with no parent need — should be none>
+# production: maintain both directions (need→REQ and REQ→need)
+
+## Measures
+- MOE (mission-level, ladders to North Star / success metric): <metric — feeds /measure>
+- <REQ-NN>: <target · threshold · unit>     # per-requirement thresholds where risk warrants
+
+## Modes & states            # if the system has them (seeds /architect / state modelling)
+- <Off / Idle / Active / Fault / Maintenance> + transitions
+
+## Conflicts & assumptions
+- conflict: <REQ-NN vs REQ-MM> — resolution: <…> (priority tie-break)
+- ASM: <load-bearing assumption → owner / where tested>
+
+## Responsible-product floor
+- security_privacy_safety: <the must-never-do captured as REQ-<id>(s)>
+
+## Decision
+**<VERDICT>** — <one-line rationale>. <If verdict_overridden: "User chose to continue past <verdict> because <reason>.">
+
+## References
+- source_understanding: .ai/understanding/<slug>.md
+- source_discovery: .ai/discovery/<slug>.md
+- source_strategy: .ai/strategy/<slug>.md
+- human_summary: .human/summaries/requirements.md
+```
+
+The `.human/summaries/requirements.md` mirror is the baseline state in one sentence + the count by bucket + 3–6 why-bullets + **one** validated diagram (a requirements-to-needs traceability map or a modes/states diagram) via the mermaid skill. Diagrams never go in `.ai/`.
+
+---
+
 ## `.ai/features.md` — feature roster (written by /feature-map [greenfield] or /feature-census [brownfield])
 
 The prioritized roster of atomic vertical features. **Greenfield (`/feature-map`):** decomposition source is understanding's `behaviors` (each journey → one or more independently-shippable slices); discovery's `scope` is the envelope and the P0 signal; all rows start `status: planned`. **Brownfield (`/feature-census`):** the roster is *inventoried from the code* — existing capabilities are `status: shipped`, sourced from `recon.md` Section B components (cited in `satisfies`/Notes) and cross-traced to behaviors; new work the user names is `status: planned`. Priority + tier cap apply to **planned** rows only; the shipped inventory is whatever exists. `context.md` entities keep names honest. The index `/prd` reads to pick the next feature; `/anchor` reads it to size tier-relevant choices.
@@ -1123,6 +1190,7 @@ verdict: READY-FOR-DESIGN | NEEDS-MORE-CLARITY | BLOCKED-ON-ARCHITECTURE | BLOCK
 verdict_overridden: false
 placement: <component from architecture 02-components.md, proposed>   # finalized by /design
 satisfies: <behavior-name from understanding>
+traces_to: [REQ-NN, ...]                   # systems-track only: the .ai/requirements/<slug>.md REQ IDs this feature realizes; omit if /requirements was not run
 beyond_roster: false                       # true if <feature> is not a row in features.md (surfaced, not invented)
 nfr_count: <N>                             # mvp+
 ai_card: false                             # true if the feature ships AI to end users

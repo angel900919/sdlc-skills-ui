@@ -169,6 +169,9 @@ def scan_foundation(root):
     # so glob the subdir; chain order is discovery -> opportunity -> understanding.
     opportunity = list_files(root, ".ai/opportunity", ".md")
     understanding = list_files(root, ".ai/understanding", ".md")
+    # optional systems-track artifact (/requirements) — sharded by slug; chain
+    # order is understanding -> requirements -> feature-map/architect.
+    requirements = list_files(root, ".ai/requirements", ".md")
     return {
         "strategy": {"present": len(strategy) > 0, "files": strategy},
         "marketResearch": {"present": len(market_research) > 0, "files": market_research},
@@ -180,6 +183,7 @@ def scan_foundation(root):
             # reconciled: the shared domain context lives at .ai/context.md (was CONTEXT.md)
             "hasContext": exists(root, ".ai/context.md"),
         },
+        "requirements": {"present": len(requirements) > 0, "files": requirements},
         "eventStorm": {"present": exists(root, ".ai/architecture/domain-model.md")},
         "featureMap": {"present": exists(root, ".ai/features.md")},
         "anchor": read_anchor(root),

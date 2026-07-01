@@ -33,6 +33,7 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 | **/discovery** | `.ai/intake.md`, `idea.md`, `.ai/strategy/<slug>.md` (if present) | `.ai/discovery/<slug>.md` + `.human/summaries/discovery.md` |
 | **/opportunity** *(optional)* | `.ai/discovery/<slug>.md`, `.ai/strategy/<slug>.md` (if present), `.ai/market-research/<slug>.md` (if present) | `.ai/opportunity/<slug>.md` + `.human/summaries/opportunity.md` |
 | **/understand** | `.ai/discovery/<slug>.md`, `.ai/intake.md` | `.ai/understanding/<slug>.md` + `.ai/context.md` + `.human/summaries/understanding.md` |
+| **/requirements** *(optional, systems-track)* | `.ai/understanding/<slug>.md`, `.ai/discovery/<slug>.md`, `.ai/strategy/<slug>.md` (if present), `.ai/anchor.md` (if present) | `.ai/requirements/<slug>.md` + `.human/summaries/requirements.md` |
 | **Downstream** (`/feature-map`, `/architect`, `/prd`) | `.ai/*` (by section) | their own `.ai/*` artifacts |
 
 > "The human only interacts with `.human/`" means their **persistent files** live there. They still converse in chat during each stage — that conversation is how the gates reach mutual understanding. What they never have to do is read or edit a structured `.ai/` file.
@@ -46,6 +47,7 @@ Shared by `/intake`, `/discovery`, `/understand` (and read by downstream skills)
 /discovery   →  validate it (gated)        →  .ai/discovery/<slug>.md + .human/summaries/discovery.md
 /opportunity →  deep go/no-go (opt-in)     →  .ai/opportunity/<slug>.md + .human/summaries/opportunity.md
 /understand  →  define it (gated)          →  .ai/understanding/<slug>.md + .ai/context.md + .human/summaries/understanding.md
+/requirements → system requirements (opt-in, systems-track) → .ai/requirements/<slug>.md + .human/summaries/requirements.md
 /feature-map →  decompose into features    →  .ai/features.md
 /anchor      →  lock the stack + tier      →  .ai/anchor.md
 /architect   →  high-level design          →  .ai/architecture[.md|/]
