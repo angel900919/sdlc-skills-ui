@@ -1,0 +1,47 @@
+{
+  "//": "Merge these blocks into .claude/settings.json. Replace scripts/check and test/lint commands.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "scripts/check && exit 0 || jq -n '{decision: \"block\", reason: \"scripts/check failed — fix before stopping. Show me the failing output.\"}'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm test -- --reporter=dot 2>&1 | tail -20"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".ai/hooks/guard-protected-paths.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(.claude/tdd-guard/**)",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(perl:*)"
+    ]
+  }
+}
